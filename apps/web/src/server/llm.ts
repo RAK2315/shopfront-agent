@@ -20,14 +20,16 @@ import { services } from "./services";
 // The one door to an LLM (CLAUDE.md "llm.call budget guard"): cache → caps → provider chain → replay.
 // Every finished call is one agent_runs row, which also serves as the cache and the replay store (D-029).
 
-/** Answers recorded from a live provider, looked up by input hash. Writes happen in `log` (one row per call). */
+/** Answers recorded from a live provider. Writes happen in `log` (one row per call). */
 class AgentRunStore implements LlmCache, ReplayStore {
+  /** `by` = input_hash for the cache (exact input), replay_key for recorded-transcript replay (D-029, D-055). */
+  constructor(private readonly by: "inputHash" | "replayKey") {}
   async get(key: string) {
     const { db } = services();
     const [row] = await db
       .select({ output: schema.agentRuns.output })
       .from(schema.agentRuns)
-      .where(and(eq(schema.agentRuns.inputHash, key), inArray(schema.agentRuns.provider, ["gemini", "groq"])))
+      .where(and(eq(schema.agentRuns[this.by], key), inArray(schema.agentRuns.provider, ["gemini", "groq"])))
       .orderBy(desc(schema.agentRuns.createdAt))
       .limit(1);
     return row?.output ?? undefined;
@@ -46,6 +48,7 @@ async function logRun(r: CallRecord) {
       model: r.model ?? r.source,
       promptVersion: r.promptVersion,
       inputHash: r.inputHash,
+      replayKey: r.replayKey ?? r.inputHash,
       output: r.output as never,
       latencyMs: r.latencyMs,
       inputTokens: r.usage?.inputTokens ?? null,
@@ -112,9 +115,8 @@ const g = globalThis as unknown as { __llm?: { agent: LlmRouter; vision: LlmRout
 export function llm() {
   if (g.__llm) return g.__llm;
   const e = env();
-  const store = new AgentRunStore();
   const budget = new MemoryBudget(e.LLM_MAX_CALLS_PER_DAY, e.LLM_MAX_CALLS_PER_IP_PER_HOUR);
-  const base = { cache: store, replay: store, budget, mode: e.LLM_MODE, log: logRun };
+  const base = { cache: new AgentRunStore("inputHash"), replay: new AgentRunStore("replayKey"), budget, mode: e.LLM_MODE, log: logRun };
   g.__llm = {
     agent: new LlmRouter({ ...base, providers: providers(e.LLM_AGENT_PROVIDERS) }),
     vision: new LlmRouter({ ...base, providers: providers(e.LLM_VISION_PROVIDERS) }),

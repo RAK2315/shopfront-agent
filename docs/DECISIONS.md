@@ -61,6 +61,8 @@
 | D-050 | 2026-10-15 | Phase 3 AT waits for real photos while Phase 4 starts; `@vitest/coverage-v8` added for AT-4 branch coverage | ACCEPTED | J1, P6 |
 | D-051 | 2026-10-15 | Phase 4: refund rules + locked executor, number-free AI notes with code-appended facts, label → confirm → /track | ACCEPTED | R2, R3, J1 |
 | D-052 | 2026-10-15 | Phase 5: AG Studio dashboard, custom widgets, runtime-resolved theme, insights agent + delegation, Gemini-first long turns, spike rule | ACCEPTED | P9, J2, J1 |
+| D-053 | 2026-10-15 | Ledger on AG Grid Community (Studio key does not license standalone Grid); deterministic add_chart; one layout save path; Lighthouse report hygiene | ACCEPTED | P9, J2, J1 |
+| D-054 | 2026-10-15 | Phase 6: hosted /shop agent over our own /mcp, hack demo, blocked calls on the timeline, rate limits, signed failover hook (Groq primary), judge-mode reset | ACCEPTED | P8, P7, J1, J5 |
 
 ---
 
@@ -504,6 +506,40 @@
 - **Local development:** `next dev` on this Windows machine recompiles and reloads on every request (a dev-server/HMR quirk; the files were unchanged), so Phase 5 was verified on a local **production** build (`next build && next start`) and then on Render.
 - **Lighthouse** runs through `npx lighthouse@12.8.2` inside the AT-5 script. It is not a project dependency, and its cookie-header file is written to the OS temp dir, not the repo.
 - **Serves:** P9, J2, J1, R2, D-007, D-023, D-043.
+
+
+## D-053: Ledger on AG Grid Community; deterministic `add_chart`; one layout save path
+- **Licence finding:**
+  - The AG Studio Pro trial key licenses AG Studio, including its embedded grids and charts. It does **not** license standalone `ag-grid-enterprise`: setting it there logged "Invalid License Key" and watermarked the ledger.
+  - The ledger now uses **AG Grid Community** (free, no watermark). Product grouping is built in code: full-width product rows with order count, subtotal and refunds, plus a pinned grand-total row. `ag-grid-enterprise` is no longer a direct dependency.
+  - If the owner later gets an AG Grid Enterprise key (info@ag-grid.com), native row grouping is a small change.
+- **`add_chart` tool (deviation from "delegate to Studio's agents" for charts):**
+  - On Render, Studio's page agent added a chart **without its data mapping** and put a page-wide filter on every widget.
+  - Our insights agent now builds charts with a deterministic tool. The model picks the chart type, source, fields (closed lists), aggregation and window; code writes the complete widget with a **widget-level** filter.
+  - Open-ended layout requests still delegate to Studio's page, widget and data agents, so the Studio Agent Framework story (a custom agent working with Studio's built-ins) holds.
+- **Layout persistence:** Studio fires `onStateUpdated` for its own UI and agent changes, but not for programmatic `setState`. Every change our code makes (`add_chart`, the refund-spike alert) goes through the same save path.
+- **Edit mode by default:** Studio shows its AI assistant only in edit mode. In edit mode Studio keeps pointer gestures for itself, so ledger cells are edited by selecting a ✎ cell and typing or pressing Enter (shown as a hint). A "Preview" toggle switches to view mode.
+- **Lighthouse report hygiene:** Lighthouse stores the `--extra-headers` it was given in its JSON report, so the committed dashboard report briefly contained the shared demo seller's session cookie (pushed in `304a503`). It was redacted in `4fba953`, and AT-5 now strips it.
+  - That cookie is publicly obtainable: judge mode signs anyone in as that seller without a password. It is an HMAC output, so it reveals nothing about `SESSION_SECRET`.
+  - History was not rewritten.
+- **Serves:** P9, J2, J1.
+
+## D-054: Phase 6 choices (hosted buyer agent and guardrail showcase)
+- **`/shop`:** the hosted buyer agent is a real MCP client of our own public `/mcp` (client `shopfront-web-agent`), so it has exactly the powers any external agent has.
+  - The chat streams NDJSON events: steps with their AI source, tool calls and results, and text.
+  - Tool results reach the browser without `order_token`, which stays in the server-side `buyer_sessions` row (migration `0005`).
+  - The checkout card hands off to `/pay/{id}` (PayPal blue only there). The live timeline sits beside the chat for the split-screen moment.
+  - Prompt `shop-v2`: buy the best match when type or budget are given, reply in 1–3 plain sentences.
+- **"Try to hack the price":** it sends three real protocol attacks to `/mcp`: an item `price` of 0, a `total` with `discount_percent`, and a negative quantity. All three are rejected by the strict schemas; 0 checkouts are created and no LLM or PayPal call is made. Then the same trick goes to the agent as a prompt.
+  - `/mcp` pre-validates tool calls with the same schemas, so each blocked attempt appears on the live timeline ("create_checkout blocked by server · unknown field "price"").
+- **Rate limits:** in-memory, per IP: `/mcp` 120/min, `/api/shop/chat` 12/min, `/api/shop/hack` 6/min. The LLM caps (per day, per IP per hour) stay in the router.
+- **Failover test hook (deviation from AT-6 wording):** on agent routes, **Groq is primary** (D-038), so AT-6 forces the 429 on Groq and expects Gemini, rather than the reverse. The hook only works with a header signed by `SESSION_SECRET`, for one request (AsyncLocalStorage). The timeline shows "fallback after groq:429".
+- **Judge mode (D-011):**
+  - `POST /api/admin/demo {action: freeze|reset}` with a bearer token derived from `SESSION_SECRET` (no new secret).
+  - A reset restores the frozen demo catalog (listings, prices, stock, bio, refund policy), archives anything judges added, and clears the saved dashboard layout. **Orders, payments, refunds and events are kept.**
+  - For the demo seller, the per-buyer automatic-refund count starts at the last reset, so shared sandbox buyers can't exhaust automatic refunds for a month (HANDOFF risk 11). The rule itself is unchanged.
+  - cron-job.org calls the reset nightly from Nov 8 (owner sets it up with the keep-alive pinger).
+- **Serves:** P8, P7, J1, J5, S3.b, G9, D-011, D-029.
 
 ---
 

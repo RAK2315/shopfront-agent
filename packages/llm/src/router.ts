@@ -79,10 +79,25 @@ export class LlmRouter {
       messages: req.messages,
       tools: req.tools.map((t) => ({ name: t.name, description: t.description })),
     });
+    // Replay matches the conversation's shape, not live data: tool results (stock, ids, timestamps) are left out.
+    const replayKey = hashInput({
+      kind: 'chat_step_replay',
+      route: req.route,
+      promptVersion: req.promptVersion,
+      system: req.system,
+      messages: req.messages.map((m) =>
+        m.role === 'tool'
+          ? { role: 'tool', toolName: m.toolName }
+          : m.role === 'assistant'
+            ? { role: 'assistant', content: m.content, toolCalls: (m.toolCalls ?? []).map((c) => c.name) }
+            : { role: m.role, content: m.content },
+      ),
+      tools: req.tools.map((t) => t.name),
+    });
     return this.run<ChatStep>('chat_step', req, inputHash, { vision: false, tools: req.tools.length > 0 }, clientKey, async (p) => {
       const { step, usage } = await p.chatStep(req);
       return { value: step, usage };
-    }, (raw) => raw as ChatStep);
+    }, (raw) => raw as ChatStep, replayKey);
   }
 
   private async run<T>(
@@ -93,6 +108,7 @@ export class LlmRouter {
     clientKey: string | undefined,
     call: (p: LlmProvider) => Promise<{ value: T; usage?: Usage }>,
     revive: (raw: unknown) => T,
+    replayKey: string = inputHash,
   ): Promise<LlmResult<T>> {
     const t0 = this.o.now();
     const attempts: Attempt[] = [];
@@ -103,6 +119,7 @@ export class LlmRouter {
         kind,
         promptVersion: req.promptVersion,
         inputHash,
+        replayKey,
         source: result.source,
         provider: result.provider,
         model: result.model,
@@ -127,7 +144,7 @@ export class LlmRouter {
 
     let fallbackReason: string | null = null;
     const replay = async (reason: string) => {
-      const raw = await this.o.replay?.get(inputHash);
+      const raw = await this.o.replay?.get(replayKey);
       if (raw === undefined) throw new LlmUnavailableError(`No live provider and no recorded answer (${reason}).`, attempts);
       return finish({ value: revive(raw), source: 'replay', provider: null, model: null, fallbackReason: reason });
     };

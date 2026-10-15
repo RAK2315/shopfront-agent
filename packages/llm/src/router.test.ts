@@ -128,6 +128,33 @@ describe('LlmRouter resilience chain (D-029)', () => {
     expect(gemini.calls).toHaveLength(0);
   });
 
+  it('replays a recorded agent step even when live tool results have changed since recording', async () => {
+    const step = { text: 'Found it', toolCalls: [] };
+    const base = {
+      route: 'buyer' as const,
+      promptVersion: 'v1',
+      system: 's',
+      tools: [{ name: 'search_products', description: 'search', parameters: z.toJSONSchema(z.object({ query: z.string() })) }],
+    };
+    const convo = (stock: number) => [
+      { role: 'user' as const, content: 'blue mug' },
+      { role: 'assistant' as const, content: '', toolCalls: [{ id: 'c1', name: 'search_products', args: { query: 'blue mug' } }] },
+      { role: 'tool' as const, toolCallId: 'c1', toolName: 'search_products', content: JSON.stringify({ results: [{ title: 'Cobalt drip mug', stock }] }) },
+    ];
+    const log: CallRecord[] = [];
+    const live = new LlmRouter({ providers: [fake('groq', [step])], cache: new MemoryStore(), log: (r) => void log.push(r) });
+    const recorded = await live.chatStep({ ...base, messages: convo(5) });
+    const replay = new MemoryStore();
+    await replay.set(log[0]!.replayKey!, recorded.value);
+    const groq = fake('groq', [step]);
+    const { router } = makeRouter([groq], { replay, mode: 'replay' });
+    const r = await router.chatStep({ ...base, messages: convo(4) }); // stock changed since the recording
+    expect(r.source).toBe('replay');
+    expect(r.value).toEqual(step);
+    expect(r.inputHash).not.toBe(log[0]!.inputHash);
+    expect(groq.calls).toHaveLength(0);
+  });
+
   it('respects the free-tier budget before calling providers', async () => {
     const gemini = fake('gemini', [ok]);
     const budget = new MemoryBudget(100, 1, () => 1_000_000);

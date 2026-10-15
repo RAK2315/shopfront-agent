@@ -89,8 +89,9 @@ export function SellerDashboard({ initialData, savedState }: { initialData: Sour
   const apiRef = useRef<AgStudioApi | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [alert, setAlert] = useState<string | null>(null);
-  // Edit mode by default: Studio shows its AI assistant only there. "Preview" switches to the locked view mode.
-  const [editing, setEditing] = useState(true);
+  // Edit mode by default on wide screens (Studio shows its AI assistant only there); phones open in view mode,
+  // where the dashboard itself fits. The toggle switches either way. (Client-only component: window exists.)
+  const [editing, setEditing] = useState(() => typeof window === "undefined" || window.innerWidth >= 1024);
 
   const sources = useMemo(
     () => ({

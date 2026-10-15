@@ -270,6 +270,7 @@ export const agentRuns = pgTable(
     model: text('model').notNull(),
     promptVersion: text('prompt_version').notNull(),
     inputHash: text('input_hash').notNull(),
+    replayKey: text('replay_key'), // like input_hash but ignoring tool-result contents (D-055)
     output: jsonb('output').notNull(),
     toolCalls: jsonb('tool_calls'),
     latencyMs: integer('latency_ms').notNull(),
@@ -280,7 +281,7 @@ export const agentRuns = pgTable(
     confidence: real('confidence'),
     createdAt: createdAt(),
   },
-  (t) => [index('agent_runs_input_hash').on(t.inputHash)],
+  (t) => [index('agent_runs_input_hash').on(t.inputHash), index('agent_runs_replay_key').on(t.replayKey)],
 );
 
 /** Hosted /shop buyer-agent conversations (short transcripts; the agent shops through the public /mcp). */

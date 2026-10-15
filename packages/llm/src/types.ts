@@ -108,6 +108,8 @@ export interface CallRecord {
   kind: 'object' | 'chat_step';
   promptVersion: string;
   inputHash: string;
+  /** Key for recorded-transcript replay: like inputHash, but tool-result contents are ignored (live data drifts). */
+  replayKey?: string;
   source: AnswerSource;
   provider: ProviderId | null;
   model: string | null;

@@ -16,6 +16,7 @@
     "phase3-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase3-checks.mts",
     "phase4-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase4-checks.mts",
     "phase5-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase5-checks.mts",
+    "phase6-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase6-checks.mts",
     "screens": "node --import tsx scripts/screens.mts"
   },
   "dependencies": {
