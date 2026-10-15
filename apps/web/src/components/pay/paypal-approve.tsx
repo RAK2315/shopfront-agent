@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CircleCheck, LoaderCircle, ShieldCheck, TriangleAlert } from "lucide-react";
+import { CircleCheck, LoaderCircle, MessageSquareText, PackageCheck, ShieldCheck, TriangleAlert, Undo2 } from "lucide-react";
 import type { CheckoutStatus, Confirmation } from "@shopfront/core";
 import { ConfirmationBadge } from "@/components/console/confirmation-badge";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -45,6 +45,9 @@ interface Status {
   confirmation: Confirmation;
   paypalOrderId: string | null;
   captureId: string | null;
+  tracking?: Array<{ carrier: string; trackingNumber: string }>;
+  messages?: Array<{ id: string; kind: string; subject: string; body: string; at: string }>;
+  refunds?: Array<{ id: string; status: string; amountCents: number; paypalRefundId: string | null }>;
 }
 
 export function PayPalApprove({
@@ -225,6 +228,40 @@ export function PayPalApprove({
           </p>
         </div>
       )}
+
+      {phase === "paid" && <AfterSale status={status} />}
+    </div>
+  );
+}
+
+const REFUND_STATUS: Record<string, string> = { pending: "Waiting for the seller", approved: "Approved, sending", executed: "Refunded", rejected: "Declined", failed: "Not sent" };
+
+/** What happened after payment: the seller's notes, tracking and refunds (D-008: published here, never emailed). */
+function AfterSale({ status }: { status: Status | null }) {
+  if (!status?.messages?.length && !status?.tracking?.length && !status?.refunds?.length) return null;
+  return (
+    <div className="grid gap-3" data-testid="after-sale">
+      {status.tracking?.map((t) => (
+        <p key={t.trackingNumber} className="inline-flex flex-wrap items-center gap-2 text-sm text-ink-2">
+          <PackageCheck aria-hidden className="size-4 text-success" /> Shipped with {t.carrier}
+          <RequestId label="Tracking" value={t.trackingNumber} tone="paypal" />
+        </p>
+      ))}
+      {status.refunds?.map((r) => (
+        <p key={r.id} className="inline-flex flex-wrap items-center gap-2 text-sm text-ink-2">
+          <Undo2 aria-hidden className="size-4 text-ink-2" /> Refund <span className="font-medium text-ink tabular">${(r.amountCents / 100).toFixed(2)}</span> · {REFUND_STATUS[r.status] ?? r.status}
+          {r.paypalRefundId && <RequestId label="Refund" value={r.paypalRefundId} tone="paypal" />}
+        </p>
+      ))}
+      {status.messages?.map((m) => (
+        <article key={m.id} className="grid gap-1 rounded-lg border border-line bg-surface p-4">
+          <p className="inline-flex items-center gap-2 text-xs font-medium text-muted">
+            <MessageSquareText aria-hidden className="size-3.5 text-clay" /> From the seller
+          </p>
+          <h3 className="font-display text-lg font-medium">{m.subject}</h3>
+          <p className="whitespace-pre-line text-sm text-ink-2">{m.body}</p>
+        </article>
+      ))}
     </div>
   );
 }

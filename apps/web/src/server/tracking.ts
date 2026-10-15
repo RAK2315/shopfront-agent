@@ -66,9 +66,11 @@ export async function addTracking(seller: Seller, checkoutId: string, input: z.i
   const carrier = paypalCarrier(input.carrier);
   const requestId = `track-${checkoutId}-${number}`.slice(0, 100);
   let debugId: string | undefined;
+  let trackerId: string | undefined;
   try {
     const r = await paypal.addTracking(c.paypalOrderId, { capture_id: cap!.paypalCaptureId, tracking_number: number, ...carrier, notify_payer: false }, requestId, { context: { checkoutId } });
     debugId = r.debugId;
+    trackerId = r.data.purchase_units?.[0]?.shipping?.trackers?.find((t) => t.id.endsWith(number))?.id;
   } catch (e) {
     const d = e instanceof PayPalApiError ? e.debugId : undefined;
     await recordEvent(db, { actor: "paypal", kind: "tracking_failed", checkoutId, sellerId: seller.id, summary: `PayPal tracking failed${e instanceof PayPalApiError ? ` (${e.issue})` : ""}`, data: { debugId: d, paypalRequestId: requestId } });
@@ -76,7 +78,7 @@ export async function addTracking(seller: Seller, checkoutId: string, input: z.i
   }
   const [ship] = await db
     .insert(schema.shipments)
-    .values({ id: newId("shipment"), checkoutId, carrier: carrier.carrier === "OTHER" ? carrier.carrier_name_other! : carrier.carrier, trackingNumber: number, source: input.source, paypalTrackerRef: `${c.paypalOrderId}-${number}` })
+    .values({ id: newId("shipment"), checkoutId, carrier: carrier.carrier === "OTHER" ? carrier.carrier_name_other! : carrier.carrier, trackingNumber: number, source: input.source, paypalTrackerRef: trackerId ?? null })
     .returning();
   await applyCheckoutEvent(checkoutId, "TRACKING_ADDED", "seller");
   await recordEvent(db, {
@@ -85,7 +87,7 @@ export async function addTracking(seller: Seller, checkoutId: string, input: z.i
     checkoutId,
     sellerId: seller.id,
     summary: `Tracking added to the PayPal order · ${ship!.carrier} · ${input.source === "label_photo" ? "read from the label photo, confirmed by seller" : "entered by seller"}`,
-    data: { orderId: c.paypalOrderId, trackingNumber: number, debugId, paypalRequestId: requestId },
+    data: { orderId: c.paypalOrderId, trackingNumber: number, trackerId, debugId, paypalRequestId: requestId },
   });
   await publishMessage(checkoutId, "shipped", { carrier: ship!.carrier, trackingNumber: number });
   return ship!;

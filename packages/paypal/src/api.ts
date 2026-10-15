@@ -28,7 +28,7 @@ export interface PayPalOrder {
   purchase_units?: Array<{
     reference_id?: string;
     custom_id?: string;
-    shipping?: { name?: { full_name?: string }; address?: Record<string, string> };
+    shipping?: { name?: { full_name?: string }; address?: Record<string, string>; trackers?: Array<{ id: string; status?: string }> };
     payments?: { captures?: PayPalCapture[] };
   }>;
 }
@@ -91,6 +91,8 @@ export function createPayPalApi(c: PayPalClient) {
     ) => c.request<PayPalOrder>('POST', `/v2/checkout/orders/${encodeURIComponent(orderId)}/track`, { body, requestId, ...o }),
 
     getCapture: (captureId: string, o: Ctx = {}) => c.request<PayPalCapture>('GET', `/v2/payments/captures/${encodeURIComponent(captureId)}`, o),
+
+    getRefund: (refundId: string, o: Ctx = {}) => c.request<PayPalRefund>('GET', `/v2/payments/refunds/${encodeURIComponent(refundId)}`, o),
 
     refundCapture: (captureId: string, body: { amount: { value: string; currency_code: string }; note_to_payer?: string }, requestId: string, o: Ctx = {}) =>
       c.request<PayPalRefund>('POST', `/v2/payments/captures/${encodeURIComponent(captureId)}/refund`, { body, requestId, ...o }),
