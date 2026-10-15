@@ -47,20 +47,21 @@ export function RequestId({
       type="button"
       onClick={copy}
       title={`${label}: ${value} (click to copy)`}
-      aria-label={`Copy ${label} ${value}`}
       className={cn(
         "group relative inline-flex h-6 max-w-full items-center gap-1.5 rounded-sm border px-1.5 text-xs transition-colors duration-150",
         TONE[tone],
         className,
       )}
     >
-      <span className="shrink-0 font-sans font-medium opacity-75">{label}</span>
+      <span className="shrink-0 font-sans font-medium">{label}</span>
       <span className="truncate font-mono tracking-tight">{middle(value, max)}</span>
       {copied ? (
         <Check aria-hidden className="size-3 shrink-0" />
       ) : (
         <Copy aria-hidden className="size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-70 group-focus-visible:opacity-70" />
       )}
+      {/* The accessible name starts with the visible text (WCAG 2.5.3); the full value is in the title. */}
+      <span className="sr-only">, copy {value}</span>
       <span className="sr-only" aria-live="polite">
         {copied ? "Copied" : ""}
       </span>

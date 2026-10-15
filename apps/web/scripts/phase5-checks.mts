@@ -243,7 +243,8 @@ try {
       const file = join(out, `lighthouse-${name}.json`);
       const hdrFile = join(tmpdir(), `shopfront-lh-headers-${name}.json`); // outside the repo: it holds the session cookie
       writeFileSync(hdrFile, headers);
-      spawnSync("npx", ["--yes", "lighthouse@12.8.2", url, "--only-categories=accessibility", "--output=json", `--output-path=${file}`, `--extra-headers=${hdrFile}`, "--chrome-flags=--headless=new", "--quiet"], { shell: true, encoding: "utf8", timeout: 300_000 });
+      // shell: true (npx is a .cmd on Windows), so every path is quoted: the repo path contains spaces.
+      spawnSync("npx", ["--yes", "lighthouse@12.8.2", `"${url}"`, "--only-categories=accessibility", "--output=json", `"--output-path=${file}"`, `"--extra-headers=${hdrFile}"`, '"--chrome-flags=--headless=new"', "--quiet"], { shell: true, encoding: "utf8", timeout: 300_000 });
       try {
         scores[name] = Math.round(JSON.parse(readFileSync(file, "utf8")).categories.accessibility.score * 100);
       } catch {

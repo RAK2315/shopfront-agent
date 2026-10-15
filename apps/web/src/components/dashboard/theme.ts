@@ -36,6 +36,8 @@ export function makeStudioTheme() {
   return studioTheme.withParams({
     fontFamily: fontFamily(),
     fontSize: 13,
+    // Fit phones: the shell may shrink below Studio's 600 px default; the canvas scrolls inside it.
+    studioMinWidth: 320,
     backgroundColor: t("surface", "#ffffff"),
     textColor: t("ink", "#2b2622"),
     borderColor: t("line", "#e3dfdb"),
