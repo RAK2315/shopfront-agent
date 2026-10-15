@@ -16,6 +16,7 @@ import { approveLink, PayPalApiError } from "@shopfront/paypal";
 import type { CallContext, ShopPort } from "@shopfront/mcp";
 import { appUrl } from "./env";
 import { recordEvent } from "./events";
+import { scheduleExpiryCheck, scheduleFallbackChecks } from "./fallback";
 import { services } from "./services";
 import { hashToken, orderTokenFor, verifyOrderToken } from "./tokens";
 
@@ -241,6 +242,8 @@ export const shop: ShopPort = {
         summary: `Order created (${order.status})`,
         data: { orderId: order.id, debugId, paypalRequestId: requestId },
       });
+      scheduleFallbackChecks(checkoutId, "created");
+      scheduleExpiryCheck(checkoutId, new Date(Date.now() + CHECKOUT_TTL_MS));
     } catch (e) {
       await db.update(schema.checkouts).set({ status: "cancelled", updatedAt: new Date() }).where(eq(schema.checkouts.id, checkoutId));
       const debugId = e instanceof PayPalApiError ? e.debugId : undefined;

@@ -1,7 +1,7 @@
 import "server-only";
-import { newId, valueToCents } from "@shopfront/core";
-import { eq, schema, sql } from "@shopfront/db";
-import type { PayPalCapture, PayPalOrder } from "@shopfront/paypal";
+import { centsToValue, newId, valueToCents } from "@shopfront/core";
+import { and, eq, schema, sql } from "@shopfront/db";
+import { refundCaptureId, type PayPalCapture, type PayPalOrder, type PayPalRefund } from "@shopfront/paypal";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { applyCheckoutEvent, captureCheckout } from "./payments";
@@ -22,30 +22,31 @@ export type IngestResult = { status: "duplicate" | "stored"; verified: boolean; 
  * keyed by PayPal's event id. All event types are subscribed; we filter here (owner decision, D-039).
  */
 export async function ingestWebhook(rawBody: string, headers: Headers): Promise<IngestResult> {
-  const { db, paypal } = services();
+  const { db } = services();
   const event = JSON.parse(rawBody) as WebhookEvent;
   if (!event?.id || !event.event_type) throw new Error("Not a PayPal webhook event");
+  const base = { eventId: event.id, eventType: event.event_type };
 
-  const [existing] = await db.select().from(schema.webhookEvents).where(eq(schema.webhookEvents.eventId, event.id));
-  if (existing) return { status: "duplicate", verified: existing.verified, eventId: event.id, eventType: event.event_type };
+  // Count every delivery (PayPal retries, Dashboard resends) so "received N×, processed once" is provable.
+  const [existing] = await db
+    .update(schema.webhookEvents)
+    .set({ deliveries: sql`${schema.webhookEvents.deliveries} + 1`, lastDeliveryAt: new Date() })
+    .where(eq(schema.webhookEvents.eventId, event.id))
+    .returning();
+  if (existing?.verified) return { status: "duplicate", verified: true, ...base };
 
-  const e = env();
-  let verified = false;
-  const h = {
-    authAlgo: headers.get("paypal-auth-algo") ?? "",
-    certUrl: headers.get("paypal-cert-url") ?? "",
-    transmissionId: headers.get("paypal-transmission-id") ?? "",
-    transmissionSig: headers.get("paypal-transmission-sig") ?? "",
-    transmissionTime: headers.get("paypal-transmission-time") ?? "",
-  };
-  if (e.PAYPAL_WEBHOOK_ID && h.transmissionSig) {
-    try {
-      verified = await paypal.verifyWebhookSignature(h, rawBody, e.PAYPAL_WEBHOOK_ID, `verify-${event.id}`);
-    } catch {
-      verified = false;
-    }
+  const verified = await verifySignature(event.id, rawBody, headers);
+  if (existing) {
+    // A forged copy can claim an event id first. A genuine, verifiable delivery of that id replaces it
+    // and is processed; another unverifiable copy changes nothing.
+    if (!verified) return { status: "duplicate", verified: false, ...base };
+    const upgraded = await db
+      .update(schema.webhookEvents)
+      .set({ verified: true, payload: event as never, processedAt: null, error: null })
+      .where(and(eq(schema.webhookEvents.eventId, event.id), eq(schema.webhookEvents.verified, false)))
+      .returning({ eventId: schema.webhookEvents.eventId });
+    return { status: upgraded.length ? "stored" : "duplicate", verified: true, ...base };
   }
-  if (!verified && e.DEV_ALLOW_UNVERIFIED_WEBHOOKS && process.env.NODE_ENV !== "production") verified = true;
 
   const resourceId = typeof event.resource?.id === "string" ? event.resource.id : null;
   const inserted = await db
@@ -53,8 +54,29 @@ export async function ingestWebhook(rawBody: string, headers: Headers): Promise<
     .values({ eventId: event.id, eventType: event.event_type, resourceId, verified, payload: event as never })
     .onConflictDoNothing()
     .returning({ eventId: schema.webhookEvents.eventId });
-  if (inserted.length === 0) return { status: "duplicate", verified, eventId: event.id, eventType: event.event_type };
-  return { status: "stored", verified, eventId: event.id, eventType: event.event_type };
+  return { status: inserted.length ? "stored" : "duplicate", verified, ...base };
+}
+
+async function verifySignature(eventId: string, rawBody: string, headers: Headers): Promise<boolean> {
+  const e = env();
+  const h = {
+    authAlgo: headers.get("paypal-auth-algo") ?? "",
+    certUrl: headers.get("paypal-cert-url") ?? "",
+    transmissionId: headers.get("paypal-transmission-id") ?? "",
+    transmissionSig: headers.get("paypal-transmission-sig") ?? "",
+    transmissionTime: headers.get("paypal-transmission-time") ?? "",
+  };
+  let verified = false;
+  if (e.PAYPAL_WEBHOOK_ID && h.transmissionSig) {
+    try {
+      // Request id per transmission: a resend of the same event is a new delivery to verify.
+      verified = await services().paypal.verifyWebhookSignature(h, rawBody, e.PAYPAL_WEBHOOK_ID, `verify-${eventId}-${h.transmissionId}`.slice(0, 100));
+    } catch {
+      verified = false;
+    }
+  }
+  if (!verified && e.DEV_ALLOW_UNVERIFIED_WEBHOOKS && process.env.NODE_ENV !== "production") verified = true;
+  return verified;
 }
 
 /** Step 2 (after responding 200): act on a stored, verified event exactly once. */
@@ -99,8 +121,15 @@ async function checkoutByOrderId(orderId: string | undefined) {
   return c ?? null;
 }
 
-async function route(event: WebhookEvent): Promise<boolean> {
+async function captureByPayPalId(paypalCaptureId: string) {
+  if (!paypalCaptureId) return null;
   const { db } = services();
+  const [cap] = await db.select().from(schema.captures).where(eq(schema.captures.paypalCaptureId, paypalCaptureId));
+  return cap ?? null;
+}
+
+async function route(event: WebhookEvent): Promise<boolean> {
+  const { db, paypal } = services();
   switch (event.event_type) {
     case "CHECKOUT.ORDER.APPROVED": {
       const order = event.resource as unknown as PayPalOrder;
@@ -138,10 +167,46 @@ async function route(event: WebhookEvent): Promise<boolean> {
       });
       return true;
     }
-    case "PAYMENT.CAPTURE.REFUNDED":
+    case "PAYMENT.CAPTURE.REFUNDED": {
+      // Covers refunds made anywhere, including by the merchant directly in PayPal (unhappy path #04).
+      const refund = event.resource as unknown as PayPalRefund;
+      const captureId = refundCaptureId(refund);
+      const cap = captureId ? await captureByPayPalId(captureId) : null;
+      if (!cap) return false;
+      // PayPal's own capture status decides full vs partial (we GET the capture rather than trust arithmetic).
+      const { data: live, debugId } = await paypal.getCapture(cap.paypalCaptureId, { context: { checkoutId: cap.checkoutId } });
+      const total = refund.seller_payable_breakdown?.total_refunded_amount?.value;
+      const refundedCents = total ? valueToCents(total) : cap.refundedCents + valueToCents(refund.amount?.value ?? "0");
+      await db
+        .update(schema.captures)
+        .set({ status: live.status, refundedCents: sql`greatest(${schema.captures.refundedCents}, ${refundedCents})` })
+        .where(eq(schema.captures.id, cap.id));
+      const r = await applyCheckoutEvent(cap.checkoutId, live.status === "REFUNDED" ? "REFUND_FULL" : "REFUND_PARTIAL", "webhook");
+      await recordEvent(db, {
+        actor: "webhook",
+        kind: "refund_reconciled",
+        checkoutId: cap.checkoutId,
+        sellerId: r?.checkout.sellerId,
+        summary: `PAYMENT.CAPTURE.REFUNDED · signature verified · $${refund.amount?.value ?? "?"} refunded ($${centsToValue(refundedCents)} in total) · ${r?.result.kind === "changed" ? `status → ${r.result.to}` : "confirms existing state"}`,
+        data: { eventId: event.id, refundId: refund.id, captureId: cap.paypalCaptureId, debugId },
+      });
+      return true;
+    }
     case "PAYMENT.CAPTURE.REVERSED": {
-      // Full reconciliation lands with refunds in Phase 4; for now record the evidence on the timeline.
-      await recordEvent(db, { actor: "webhook", kind: "refund_webhook", summary: `${event.event_type} received · signature verified`, data: { eventId: event.id } });
+      // A chargeback or reversal: the resource is the capture itself.
+      const resourceId = typeof event.resource?.id === "string" ? event.resource.id : "";
+      const cap = await captureByPayPalId(resourceId);
+      if (!cap) return false;
+      await db.update(schema.captures).set({ status: "REVERSED" }).where(eq(schema.captures.id, cap.id));
+      const r = await applyCheckoutEvent(cap.checkoutId, "CAPTURE_REVERSED", "webhook");
+      await recordEvent(db, {
+        actor: "webhook",
+        kind: "capture_reversed",
+        checkoutId: cap.checkoutId,
+        sellerId: r?.checkout.sellerId,
+        summary: `PAYMENT.CAPTURE.REVERSED · signature verified · ${r?.result.kind === "changed" ? `status → ${r.result.to}` : "confirms existing state"}`,
+        data: { eventId: event.id, captureId: cap.paypalCaptureId },
+      });
       return true;
     }
     default:

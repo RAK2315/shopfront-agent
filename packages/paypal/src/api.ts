@@ -37,6 +37,15 @@ export interface PayPalRefund {
   id: string;
   status: 'COMPLETED' | 'PENDING' | 'CANCELLED' | 'FAILED';
   amount?: { currency_code: string; value: string };
+  /** Cumulative across every refund of the capture (Payments v2 refund schema). */
+  seller_payable_breakdown?: { total_refunded_amount?: { currency_code: string; value: string } };
+  links?: PayPalLink[];
+}
+
+/** The capture a refund belongs to: its `up` link points at /v2/payments/captures/{id}. */
+export function refundCaptureId(refund: Pick<PayPalRefund, 'links'>): string | undefined {
+  const up = refund.links?.find((l) => l.rel === 'up' && /\/v2\/payments\/captures\//.test(l.href));
+  return up?.href.split('/').pop() || undefined;
 }
 
 export interface PayPalWebhook {
@@ -98,6 +107,18 @@ export function createPayPalApi(c: PayPalClient) {
       });
       return r.data.verification_status === 'SUCCESS';
     },
+
+    /** Ask PayPal to deliver a past event again (Dashboard "Resend"). Same event id, new transmission. */
+    resendWebhookEvent: (eventId: string, webhookIds: string[], requestId: string) =>
+      c.request<{ id: string }>('POST', `/v1/notifications/webhooks-events/${encodeURIComponent(eventId)}/resend`, {
+        body: { webhook_ids: webhookIds },
+        requestId,
+      }),
+
+    updateWebhookUrl: (webhookId: string, url: string) =>
+      c.request<PayPalWebhook>('PATCH', `/v1/notifications/webhooks/${encodeURIComponent(webhookId)}`, {
+        body: [{ op: 'replace', path: '/url', value: url }],
+      }),
 
     listWebhooks: () => c.request<{ webhooks: PayPalWebhook[] }>('GET', '/v1/notifications/webhooks'),
 

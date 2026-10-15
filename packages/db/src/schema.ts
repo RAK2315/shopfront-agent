@@ -135,6 +135,7 @@ export const checkouts = pgTable(
     approveUrl: text('approve_url'),
     confirmedVia: text('confirmed_via'), // webhook | poll | capture_response (how PAID was first set)
     webhookConfirmedAt: ts('webhook_confirmed_at'), // when a verified PAYMENT.CAPTURE.COMPLETED arrived
+    pollConfirmedAt: ts('poll_confirmed_at'), // when a fallback check (D-025) confirmed the capture with PayPal before any webhook
     buyerEmail: text('buyer_email'),
     buyerCountry: text('buyer_country'),
     shippingAddress: jsonb('shipping_address').$type<Record<string, string>>(),
@@ -221,7 +222,9 @@ export const webhookEvents = pgTable('webhook_events', {
   payload: jsonb('payload').notNull(),
   receivedAt: ts('received_at').notNull().defaultNow(),
   processedAt: ts('processed_at'),
-  attempts: integer('attempts').notNull().default(0),
+  attempts: integer('attempts').notNull().default(0), // processing claims
+  deliveries: integer('deliveries').notNull().default(1), // times PayPal delivered this event id (retries, Dashboard resends)
+  lastDeliveryAt: ts('last_delivery_at').notNull().defaultNow(),
   error: text('error'),
 });
 

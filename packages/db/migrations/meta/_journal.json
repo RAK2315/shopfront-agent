@@ -15,6 +15,20 @@
       "when": 1792073324213,
       "tag": "0001_parched_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792084281467,
+      "tag": "0002_chubby_vargas",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792085286682,
+      "tag": "0003_narrow_toad",
+      "breakpoints": true
     }
   ]
 }

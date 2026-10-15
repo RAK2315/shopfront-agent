@@ -11,7 +11,9 @@
     "seed": "node --env-file-if-exists=../../.env --import tsx scripts/seed.ts",
     "buyer-agent": "node --env-file-if-exists=../../.env --import tsx scripts/buyer-agent.ts",
     "gate": "node --env-file-if-exists=../../.env --import tsx scripts/gate-e2e.ts",
-    "phase1-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase1-checks.mts"
+    "phase1-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase1-checks.mts",
+    "phase2-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase2-checks.mts",
+    "screens": "node --import tsx scripts/screens.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
@@ -20,6 +22,8 @@
     "@shopfront/llm": "workspace:*",
     "@shopfront/mcp": "workspace:*",
     "@shopfront/paypal": "workspace:*",
+    "ag-studio": "3.0.0",
+    "ag-studio-react": "3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.57.0",

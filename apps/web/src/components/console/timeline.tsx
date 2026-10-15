@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   Bot,
@@ -97,22 +98,61 @@ export function TimelineEvent({ item }: { item: TimelineItem }) {
   );
 }
 
+export type WireState = "live" | "connecting" | "reconnecting" | "paused";
+
+const WIRE_LABEL: Record<WireState, string> = {
+  live: "Connected",
+  connecting: "Connecting…",
+  reconnecting: "Reconnecting…",
+  paused: "Paused",
+};
+
 /** The live wire: newest event on top, each one slides in. Rendered on the inverted ink panel. */
-export function Timeline({ items, live = true, className }: { items: TimelineItem[]; live?: boolean; className?: string }) {
+export function Timeline({
+  items,
+  live = true,
+  state,
+  title = "Live timeline",
+  emptyText = "Waiting for the first agent call. Try the buyer chat on the left.",
+  toolbar,
+  className,
+  listClassName,
+}: {
+  items: TimelineItem[];
+  live?: boolean;
+  state?: WireState;
+  title?: string;
+  emptyText?: string;
+  toolbar?: ReactNode;
+  className?: string;
+  listClassName?: string;
+}) {
   const reduce = useReducedMotion();
+  const wire: WireState = state ?? (live ? "live" : "paused");
   return (
-    <section
-      aria-label="Live event timeline"
-      className={cn("rounded-lg bg-ink-panel text-ink-panel-text", className)}
-    >
-      <header className="flex items-center justify-between border-b border-ink-panel-line px-4 py-2.5">
-        <h2 className="text-sm font-medium">Live timeline</h2>
-        <span className="inline-flex items-center gap-2 text-xs text-ink-panel-muted">
-          <span className={cn("size-2 rounded-pill", live ? "bg-success animate-live-pulse" : "bg-ink-panel-muted")} aria-hidden />
-          {live ? "Connected" : "Paused"}
-        </span>
+    <section aria-label={title} className={cn("flex min-h-0 flex-col rounded-lg bg-ink-panel text-ink-panel-text", className)}>
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink-panel-line px-4 py-2.5">
+        <h2 className="text-sm font-medium">{title}</h2>
+        <div className="flex items-center gap-3">
+          {toolbar}
+          <span className="inline-flex items-center gap-2 text-xs text-ink-panel-muted" role="status">
+            <span
+              className={cn(
+                "size-2 rounded-pill",
+                wire === "live" ? "bg-success animate-live-pulse" : wire === "paused" ? "bg-ink-panel-muted" : "bg-warning",
+              )}
+              aria-hidden
+            />
+            {WIRE_LABEL[wire]}
+          </span>
+        </div>
       </header>
-      <ol className="relative px-4 py-1 before:absolute before:top-4 before:bottom-4 before:left-[1.85rem] before:w-px before:bg-ink-panel-line">
+      <ol
+        className={cn(
+          "relative min-h-0 flex-1 px-4 py-1 before:absolute before:top-4 before:bottom-4 before:left-[1.85rem] before:w-px before:bg-ink-panel-line",
+          listClassName,
+        )}
+      >
         <AnimatePresence initial={false}>
           {items.map((item) => (
             <motion.li
@@ -127,11 +167,7 @@ export function Timeline({ items, live = true, className }: { items: TimelineIte
             </motion.li>
           ))}
         </AnimatePresence>
-        {items.length === 0 && (
-          <li className="py-6 text-center text-sm text-ink-panel-muted">
-            Waiting for the first agent call. Try the buyer chat on the left.
-          </li>
-        )}
+        {items.length === 0 && <li className="py-6 text-center text-sm text-ink-panel-muted">{emptyText}</li>}
       </ol>
     </section>
   );

@@ -1,3 +1,4 @@
+import { confirmationOf, type CheckoutStatus } from "@shopfront/core";
 import { eq, schema } from "@shopfront/db";
 import { services } from "@/server/services";
 import { verifyOrderToken } from "@/server/tokens";
@@ -16,6 +17,8 @@ export async function GET(req: Request, ctx: RouteContext<"/api/checkouts/[id]/s
     status: c.status,
     confirmedVia: c.confirmedVia,
     webhookConfirmedAt: c.webhookConfirmedAt?.toISOString() ?? null,
+    pollConfirmedAt: c.pollConfirmedAt?.toISOString() ?? null,
+    confirmation: confirmationOf({ ...c, status: c.status as CheckoutStatus }),
     paypalOrderId: c.paypalOrderId,
     captureId: cap?.paypalCaptureId ?? null,
   });

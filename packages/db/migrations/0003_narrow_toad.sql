@@ -1,0 +1,2 @@
+ALTER TABLE "webhook_events" ADD COLUMN "deliveries" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
+ALTER TABLE "webhook_events" ADD COLUMN "last_delivery_at" timestamp with time zone DEFAULT now() NOT NULL;

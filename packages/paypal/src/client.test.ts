@@ -2,7 +2,7 @@
 // Real PayPal calls are exercised by the Phase 1 gate against the sandbox, never mocked in the product.
 import { describe, expect, it, vi } from 'vitest';
 import { PayPalApiError, PayPalClient } from './client';
-import { createPayPalApi } from './api';
+import { createPayPalApi, refundCaptureId } from './api';
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', ...headers } });
@@ -81,5 +81,21 @@ describe('PayPalClient', () => {
 
   it('refuses a live base URL', () => {
     expect(() => new PayPalClient({ baseUrl: 'https://api-m.paypal.com', clientId: 'a', clientSecret: 'b' })).toThrow(/sandbox/);
+  });
+});
+
+describe('refundCaptureId', () => {
+  it('reads the capture id from the refund up link', () => {
+    expect(
+      refundCaptureId({
+        links: [
+          { rel: 'self', href: 'https://api.sandbox.paypal.com/v2/payments/refunds/1JU08902781691411' },
+          { rel: 'up', href: 'https://api.sandbox.paypal.com/v2/payments/captures/2GG279541U471931P' },
+        ],
+      }),
+    ).toBe('2GG279541U471931P');
+  });
+  it('is undefined without an up link', () => {
+    expect(refundCaptureId({ links: [] })).toBeUndefined();
   });
 });

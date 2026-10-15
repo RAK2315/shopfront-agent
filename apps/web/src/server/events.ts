@@ -35,7 +35,11 @@ export async function recordEvent(
       data: e.data ?? {},
     })
     .returning();
-  const ev: ShopEvent = { ...row!, createdAt: row!.createdAt.toISOString() };
+  const ev = toShopEvent(row!);
   bus.emit("event", ev);
   return ev;
+}
+
+export function toShopEvent(row: typeof schema.events.$inferSelect): ShopEvent {
+  return { ...row, createdAt: row.createdAt.toISOString() };
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "checkouts" ADD COLUMN "poll_confirmed_at" timestamp with time zone;

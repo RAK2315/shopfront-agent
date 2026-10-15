@@ -3,6 +3,7 @@ import { transition, type CheckoutEvent, type CheckoutStatus, valueToCents, newI
 import { eq, schema, sql } from "@shopfront/db";
 import { firstCapture, PayPalApiError, type PayPalCapture, type PayPalOrder } from "@shopfront/paypal";
 import { recordEvent } from "./events";
+import { scheduleFallbackChecks } from "./fallback";
 import { services } from "./services";
 
 type Checkout = typeof schema.checkouts.$inferSelect;
@@ -78,7 +79,7 @@ export type CaptureOutcome =
   | { ok: false; reason: "declined" | "not_approved" | "already_final" | "not_found" | "error"; message: string; debugId?: string };
 
 /** Server-side capture after the buyer approved in PayPal. Idempotent (PayPal-Request-Id = capture-<checkout>). */
-export async function captureCheckout(checkoutId: string, trigger: "pay_page" | "return_url" | "webhook_approved"): Promise<CaptureOutcome> {
+export async function captureCheckout(checkoutId: string, trigger: "pay_page" | "return_url" | "webhook_approved" | "fallback_check"): Promise<CaptureOutcome> {
   const { db, paypal } = services();
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
   if (!c?.paypalOrderId) return { ok: false, reason: "not_found", message: "Checkout not found." };
@@ -101,15 +102,19 @@ export async function captureCheckout(checkoutId: string, trigger: "pay_page" | 
   }
 
   const requestId = `capture-${checkoutId}`;
+  const via = trigger === "fallback_check" ? "poll" : "capture_response";
   try {
     const { data: order, debugId } = await paypal.captureOrder(c.paypalOrderId, requestId, { context: { checkoutId } });
-    return await settleFromOrder(checkoutId, order, "capture_response", { debugId, requestId, trigger });
+    const out = await settleFromOrder(checkoutId, order, via, { debugId, requestId, trigger });
+    // Paid by our own capture call: arm checks that confirm it with PayPal if the webhook never shows up (D-025).
+    if (out.ok && via === "capture_response") scheduleFallbackChecks(checkoutId, "paid");
+    return out;
   } catch (e) {
     if (e instanceof PayPalApiError) {
       const issue = JSON.stringify(e.details ?? "");
       if (/ORDER_ALREADY_CAPTURED/.test(issue)) {
         const { data: order } = await paypal.getOrder(c.paypalOrderId, { context: { checkoutId } });
-        return settleFromOrder(checkoutId, order, "capture_response", { requestId, trigger });
+        return settleFromOrder(checkoutId, order, via, { requestId, trigger });
       }
       if (/INSTRUMENT_DECLINED/.test(issue)) {
         await recordEvent(db, { actor: "paypal", kind: "capture_declined", checkoutId, sellerId: c.sellerId, summary: "Instrument declined — buyer asked to choose another method", data: { debugId: e.debugId } });

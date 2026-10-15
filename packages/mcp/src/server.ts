@@ -53,7 +53,7 @@ export type ToolName = keyof typeof TOOL_DEFINITIONS;
 
 export interface ServerOptions {
   /** Called for every tool call (timeline: actor "mcp"). */
-  onToolCall?: (e: { tool: ToolName; ctx: CallContext; ok: boolean; errorCode?: string; ms: number }) => void;
+  onToolCall?: (e: { tool: ToolName; ctx: CallContext; ok: boolean; errorCode?: string; ms: number; args: unknown; result?: unknown }) => void;
   newRequestId?: () => string;
 }
 
@@ -71,7 +71,7 @@ export function createShopMcpServer(port: ShopPort, opts: ServerOptions = {}): M
       const t0 = performance.now();
       try {
         const out = await fn(args, ctx);
-        opts.onToolCall?.({ tool, ctx, ok: true, ms: Math.round(performance.now() - t0) });
+        opts.onToolCall?.({ tool, ctx, ok: true, ms: Math.round(performance.now() - t0), args, result: out });
         return {
           structuredContent: out as Record<string, unknown>,
           content: [{ type: 'text', text: JSON.stringify(out) }],
@@ -79,7 +79,7 @@ export function createShopMcpServer(port: ShopPort, opts: ServerOptions = {}): M
       } catch (e) {
         const code = isShopError(e) ? e.code : 'UPSTREAM_ERROR';
         const message = isShopError(e) ? e.message : 'Something went wrong. Please try again.';
-        opts.onToolCall?.({ tool, ctx, ok: false, errorCode: code, ms: Math.round(performance.now() - t0) });
+        opts.onToolCall?.({ tool, ctx, ok: false, errorCode: code, ms: Math.round(performance.now() - t0), args });
         void extra;
         return { isError: true, content: [{ type: 'text', text: JSON.stringify({ error: { code, message } }) }] };
       }

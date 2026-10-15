@@ -10,7 +10,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { chromium } from "@playwright/test";
 import pg from "pg";
-import { runBuyerAgent } from "./buyer-agent.ts";
+import { runBuyerAgent } from "./buyer-agent.js";
 
 const args = process.argv.slice(2).filter((a) => a !== "--");
 const base = (args[args.indexOf("--base") + 1] ?? "").replace(/\/$/, "");

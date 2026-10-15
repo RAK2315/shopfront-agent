@@ -3,7 +3,8 @@
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleCheck, LoaderCircle, ShieldCheck, TriangleAlert } from "lucide-react";
-import type { CheckoutStatus } from "@shopfront/core";
+import type { CheckoutStatus, Confirmation } from "@shopfront/core";
+import { ConfirmationBadge } from "@/components/console/confirmation-badge";
 import { StatusPill } from "@/components/ui/status-pill";
 import { RequestId } from "@/components/ui/request-id";
 import { cn } from "@/lib/cn";
@@ -40,6 +41,8 @@ interface Status {
   status: CheckoutStatus;
   confirmedVia: string | null;
   webhookConfirmedAt: string | null;
+  pollConfirmedAt: string | null;
+  confirmation: Confirmation;
   paypalOrderId: string | null;
   captureId: string | null;
 }
@@ -121,7 +124,8 @@ export function PayPalApprove({
   }, [init]);
 
   // After payment, follow the order until PayPal's verified webhook confirms it (the live-wire moment).
-  const webhookDone = Boolean(status?.webhookConfirmedAt);
+  // Stop following once PayPal has confirmed the capture, by webhook or by a fallback check.
+  const webhookDone = status?.confirmation === "webhook" || status?.confirmation === "poll";
   useEffect(() => {
     if (phase !== "paid" || webhookDone) return;
     const first = setTimeout(() => void refreshStatus(), 0);
@@ -202,10 +206,14 @@ export function PayPalApprove({
             <RequestId label="Order" value={status?.paypalOrderId ?? orderId} tone="paypal" />
             {status?.captureId && <RequestId label="Capture" value={status.captureId} tone="paypal" />}
           </div>
-          <p className="inline-flex items-center gap-2 text-sm text-ink-2" data-testid="webhook-state">
-            {status?.webhookConfirmedAt ? (
+          <p className="inline-flex flex-wrap items-center gap-2 text-sm text-ink-2" data-testid="webhook-state" data-confirmation={status?.confirmation ?? ""}>
+            {status?.confirmation === "webhook" ? (
               <>
                 <span className="size-2 rounded-pill bg-success" aria-hidden /> PayPal webhook received and signature verified
+              </>
+            ) : status?.confirmation === "poll" ? (
+              <>
+                <ConfirmationBadge confirmation="poll" /> No webhook yet; PayPal confirmed the capture when we checked
               </>
             ) : (
               <>

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { Bot } from "lucide-react";
-import { centsToValue, optionsLabel, type CheckoutStatus } from "@shopfront/core";
+import { centsToValue, optionsLabel, PAY_PAGE_DELAYS_MS, type CheckoutStatus } from "@shopfront/core";
 import { eq, schema } from "@shopfront/db";
 import { Money } from "@/components/ui/money";
 import { PayPalApprove } from "@/components/pay/paypal-approve";
 import { env } from "@/server/env";
+import { scheduleFallbackChecks } from "@/server/fallback";
 import { services } from "@/server/services";
 import { verifyOrderToken } from "@/server/tokens";
 
@@ -28,6 +30,9 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
   const items = await db.select().from(schema.checkoutItems).where(eq(schema.checkoutItems.checkoutId, id));
   const ck = c.checkout;
   const expired = ck.status === "created" && ck.expiresAt < new Date();
+  // The buyer is here to approve: arm fallback checks from now, so an approval whose capture never arrives
+  // (tab closed, webhook lost) is still captured within about a minute. An expired one is checked at once (D-025).
+  if (["created", "approved", "capture_pending"].includes(ck.status)) after(() => scheduleFallbackChecks(id, expired ? "expiry" : "pay_page", expired ? [0] : PAY_PAGE_DELAYS_MS));
 
   return (
     <main className="mx-auto grid min-h-dvh max-w-[64rem] grid-cols-[minmax(0,1fr)] content-start gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:py-16">
