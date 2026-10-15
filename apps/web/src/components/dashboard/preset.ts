@@ -48,10 +48,11 @@ export function spikeAlertWidget(count: number, windowMinutes: number) {
     type: "text",
     dataMapping: {},
     format: {
-      title: { text: "Refund spike" },
+      title: { enabled: true, text: "Refund spike", typography: { fontSize: 13, fontWeight: "bold" as const } },
       style: {
         text: `${count} refunds in the last ${windowMinutes} minutes, above the alert threshold of 4. Check the products involved in the ledger before approving more; refunds inside your policy keep running automatically.`,
-        color: "oklch(0.53 0.17 27)",
+        color: "#b3261e",
+        typography: { fontSize: 15 },
       },
     },
   };

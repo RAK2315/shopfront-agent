@@ -1,6 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { createShopMcpServer, TOOL_DEFINITIONS, type ToolName } from "@shopfront/mcp";
 import { recordEvent } from "@/server/events";
+import { rateLimit } from "@/server/rate-limit";
 import { services } from "@/server/services";
 import { shop } from "@/server/shop";
 
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 // Public, stateless MCP endpoint (Streamable HTTP, JSON responses): one server per request.
 // Any MCP client — Claude Desktop, MCP Inspector, our hosted buyer agent — calls the same tools.
 async function handle(req: Request) {
+  const limited = rateLimit(req, "mcp");
+  if (limited) return limited;
   if (req.method === "POST") await recordBlockedCalls(req.clone());
   const server = createShopMcpServer(shop, {
     onToolCall: ({ tool, ctx, ok, errorCode, ms, args, result }) => {

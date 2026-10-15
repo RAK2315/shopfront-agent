@@ -50,9 +50,6 @@ importers:
       ag-grid-community:
         specifier: 36.2.0
         version: 36.2.0
-      ag-grid-enterprise:
-        specifier: 36.2.0
-        version: 36.2.0
       ag-grid-react:
         specifier: 36.2.0
         version: 36.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

@@ -1,9 +1,12 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { newId } from "@shopfront/core";
 import { and, desc, eq, inArray, schema } from "@shopfront/db";
 import {
   geminiProvider,
   groqProvider,
+  LlmProviderError,
   LlmRouter,
   MemoryBudget,
   type CallRecord,
@@ -55,6 +58,38 @@ async function logRun(r: CallRecord) {
   }
 }
 
+// ---------- test hook (AT-6): force one provider to answer 429 for a single request ----------
+// Enabled only by a header signed with SESSION_SECRET, so nobody else can steer traffic or burn quota with it.
+const forced = new AsyncLocalStorage<ReadonlySet<string>>();
+
+export function forceFailureSignature(providersCsv: string) {
+  return createHmac("sha256", env().SESSION_SECRET).update(`force-fail:${providersCsv}`).digest("base64url");
+}
+
+/** Runs `fn` with the providers named in a correctly signed `x-shopfront-force-fail` header failing with 429. */
+export function withTestHooks<T>(req: Request, fn: () => Promise<T>): Promise<T> {
+  const list = req.headers.get("x-shopfront-force-fail");
+  const sig = req.headers.get("x-shopfront-test-sig");
+  if (!list || !sig) return fn();
+  const a = Buffer.from(forceFailureSignature(list));
+  const b = Buffer.from(sig);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return fn();
+  return forced.run(new Set(list.split(",").map((x) => x.trim())), fn);
+}
+
+function hooked(p: LlmProvider): LlmProvider {
+  const fail = () => {
+    if (forced.getStore()?.has(p.id)) throw new LlmProviderError(p.id, "forced 429 (test hook)", 429, false);
+  };
+  return {
+    id: p.id,
+    model: p.model,
+    capabilities: p.capabilities,
+    generateObject: (req) => (fail(), p.generateObject(req)),
+    chatStep: (req) => (fail(), p.chatStep(req)),
+  };
+}
+
 function providers(list: string): LlmProvider[] {
   const e = env();
   const make: Record<string, () => LlmProvider | null> = {
@@ -64,7 +99,8 @@ function providers(list: string): LlmProvider[] {
   return list
     .split(",")
     .map((p) => make[p.trim()]?.())
-    .filter((p): p is LlmProvider => !!p);
+    .filter((p): p is LlmProvider => !!p)
+    .map(hooked);
 }
 
 const g = globalThis as unknown as { __llm?: { agent: LlmRouter; vision: LlmRouter; long: LlmRouter } };

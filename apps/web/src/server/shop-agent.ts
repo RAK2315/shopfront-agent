@@ -64,7 +64,7 @@ export async function runShopAgent(sessionId: string | null, message: string, cl
       await recordEvent(db, {
         actor: "buyer_agent",
         kind: "agent_step",
-        summary: step.toolCalls.length ? `Decided to call ${step.toolCalls.map((c) => c.name).join(", ")}` : "Replied to the shopper",
+        summary: `${step.toolCalls.length ? `Decided to call ${step.toolCalls.map((c) => c.name).join(", ")}` : "Replied to the shopper"}${r.fallbackReason ? ` · fallback after ${r.fallbackReason}` : ""}`,
         data: { source: r.source, model: r.model, ms, fallbackReason: r.fallbackReason },
       });
       messages.push({ role: "assistant", content: step.text, toolCalls: step.toolCalls });

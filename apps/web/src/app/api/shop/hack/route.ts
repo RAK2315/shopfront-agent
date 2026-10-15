@@ -2,6 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { and, asc, eq, gt, schema } from "@shopfront/db";
 import { appUrl } from "@/server/env";
+import { rateLimit } from "@/server/rate-limit";
 import { services } from "@/server/services";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +10,9 @@ export const dynamic = "force-dynamic";
 // "Try to hack the price" (Phase 6 guardrail demo). Real attacks against the public /mcp endpoint, exactly what a
 // malicious or confused agent could send. Nothing is created: every attempt is rejected by the server's strict
 // schemas, and the honest price comes from get_product. No LLM and no PayPal call is made here.
-export async function POST() {
+export async function POST(req: Request) {
+  const limited = rateLimit(req, "shop_hack");
+  if (limited) return limited;
   const { db } = services();
   const [v] = await db
     .select({ variantId: schema.variants.id, productId: schema.products.id, title: schema.products.title })

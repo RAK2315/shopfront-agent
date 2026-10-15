@@ -69,6 +69,7 @@ export async function requestRefund(input: RequestRefundInput): Promise<RefundRe
     .where(and(eq(schema.refundRequests.checkoutId, c.id), inArray(schema.refundRequests.status, ["pending", "approved"])));
   if (open) return view(open, "A refund request for this order is already open.");
 
+  // Judge mode (D-011): for the shared demo seller the per-buyer count restarts at each demo reset.
   const [seller] = await db.select().from(schema.sellers).where(eq(schema.sellers.id, c.sellerId));
   const items = await db.select().from(schema.checkoutItems).where(eq(schema.checkoutItems.checkoutId, c.id));
   const remaining = cap.amountCents - cap.refundedCents;
@@ -84,7 +85,7 @@ export async function requestRefund(input: RequestRefundInput): Promise<RefundRe
           await db.execute<{ n: number }>(sql`
             select count(*)::int n from ${schema.refundRequests} r join ${schema.checkouts} k on k.id = r.checkout_id
             where k.buyer_email = ${c.buyerEmail} and r.decision = 'auto_approve' and r.status = 'executed'
-              and r.created_at > now() - interval '30 days'`)
+              and r.created_at > greatest(now() - interval '30 days', ${seller!.demoResetAt ?? new Date(0)})`)
         ).rows[0]?.n ?? 0,
       )
     : 0;

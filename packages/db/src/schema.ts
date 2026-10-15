@@ -48,6 +48,7 @@ export const sellers = pgTable('sellers', {
   shipsTo: jsonb('ships_to').$type<string[]>().notNull().default(['US']),
   refundPolicy: jsonb('refund_policy').$type<RefundPolicy>().notNull(),
   dashboardState: jsonb('dashboard_state'), // the seller's saved AG Studio layout (Phase 5)
+  demoResetAt: ts('demo_reset_at'), // judge mode (D-011): last reset; per-buyer refund counts start here
   createdAt: createdAt(),
 });
 
@@ -289,4 +290,11 @@ export const buyerSessions = pgTable('buyer_sessions', {
   checkouts: jsonb('checkouts').$type<Array<{ checkout_id: string; order_token: string }>>().notNull().default([]),
   createdAt: createdAt(),
   updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+/** Judge mode (D-011): the frozen demo catalog that a reset restores. */
+export const demoSnapshots = pgTable('demo_snapshots', {
+  id: text('id').primaryKey(), // seller id
+  data: jsonb('data').notNull(),
+  createdAt: createdAt(),
 });
