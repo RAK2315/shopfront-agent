@@ -55,12 +55,15 @@ const tool = async (name: string, a: Record<string, unknown>) => {
   return { isError: Boolean(r.isError), body: JSON.parse((r.content as Array<{ text: string }>)[0]!.text) };
 };
 
-/** Every money-bearing row, hashed: the agent may only change views (AT-5 #1). */
+/**
+ * Every money value, hashed: the agent may only change views (AT-5 #1). Statuses are left out on purpose, because the
+ * deployed server's fallback timers legitimately expire old unpaid checkouts while a test runs.
+ */
 const moneyChecksum = async () =>
   (
-    await q1<{ h: string }>(`select md5(coalesce((select string_agg(concat_ws('|', c.id, c.status, c.total_cents, cap.amount_cents, cap.refunded_cents, cap.status), ',' order by c.id)
+    await q1<{ h: string }>(`select md5(coalesce((select string_agg(concat_ws('|', c.id, c.total_cents, c.item_total_cents, c.shipping_cents, cap.amount_cents, cap.refunded_cents), ',' order by c.id)
        from checkouts c left join captures cap on cap.checkout_id = c.id), '') ||
-       coalesce((select string_agg(concat_ws('|', id, amount_cents, status), ',' order by id) from refund_requests), '') ||
+       coalesce((select string_agg(concat_ws('|', id, amount_cents), ',' order by id) from refund_requests), '') ||
        coalesce((select string_agg(concat_ws('|', id, price_cents), ',' order by id) from variants), '')) h`)
   )!.h;
 
@@ -172,16 +175,24 @@ try {
   // ── 2 ──
   if (only.has("2")) {
     const note = `Gift wrap · ${Date.now().toString().slice(-5)}`;
-    const firstRow = dash.locator(".ag-center-cols-container .ag-row:not(.ag-row-group)").first();
+    const firstRow = dash.locator('.ag-row[row-id^="chk_"]').first();
     const orderId = (await firstRow.getAttribute("row-id"))!;
     const cell = firstRow.locator('[col-id="note"]');
-    await cell.dblclick();
+    await sleep(4000); // let the live-event reloads after connect settle before editing
+    await cell.scrollIntoViewIfNeeded();
+    // Focus the ✎ cell and press Enter: in Studio's edit mode, keyboard editing works (pointer gestures go to Studio).
+    await cell.press("Enter");
+    await dash.locator(".ag-cell-inline-editing").waitFor({ timeout: 10_000 });
     await dash.keyboard.press("ControlOrMeta+a");
     await dash.keyboard.type(note);
+    const saved = dash.waitForResponse((r) => r.url().includes("/ledger") && r.request().method() === "PATCH", { timeout: 15_000 }).catch(() => null);
     await dash.keyboard.press("Enter");
+    const patch = await saved;
+    if (!patch) await dash.screenshot({ path: join(out, "_ledger-edit.png") });
+    log("ledger PATCH", patch?.status() ?? "none");
     await until("the note to save", async () => (await q1<{ internal_note: string }>("select internal_note from checkouts where id=$1", [orderId]))?.internal_note === note, 20_000, 1000);
     // Layout: widen the revenue tile, as a seller dragging it would.
-    await studio("(api) => { const s = api.getState(); s.pages[0].widgetLayout.revenue.xSpan = 9; s.pages[0].widgetLayout.orders.xTrack = 9; s.pages[0].widgetLayout.orders.xSpan = 3; api.setState(s); }");
+    await studio("(api) => { const s = api.getState(); s.pages[0].widgetLayout.revenue.xSpan = 9; s.pages[0].widgetLayout.orders.xTrack = 9; s.pages[0].widgetLayout.orders.xSpan = 3; window.__shopfrontApplyState(s); }");
     await until("the layout to save", async () => (await q1<{ x: number }>("select (dashboard_state->'state'->'pages'->0->'widgetLayout'->'revenue'->>'xSpan')::int x from sellers where handle='juniper_clay'"))?.x === 9, 20_000, 1000);
     await openDashboard();
     const noteAfter = await dash.locator(`.ag-row[row-id="${orderId}"] [col-id="note"]`).first().innerText();

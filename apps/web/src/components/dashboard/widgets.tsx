@@ -161,14 +161,14 @@ export function LedgerWidget() {
       { field: "product", rowGroup: true, hide: true },
       { field: "date", width: 110, sort: "desc" },
       { field: "order", width: 150, cellClass: "font-mono text-xs" },
+      { field: "note", headerName: "Note ✎", minWidth: 200, flex: 1, editable: true },
+      { field: "ship_by", headerName: "Ship by ✎", width: 130, editable: true, cellEditor: "agDateStringCellEditor" },
       { field: "status", width: 130 },
       { field: "total_usd", headerName: "Total", width: 100, aggFunc: "sum", valueFormatter: (p) => (p.value == null ? "" : `$${Number(p.value).toFixed(2)}`), cellClass: "tabular" },
       { field: "refunded_usd", headerName: "Refunded", width: 110, aggFunc: "sum", valueFormatter: (p) => (p.value ? `$${Number(p.value).toFixed(2)}` : ""), cellClass: "tabular" },
       { field: "confirmed_via", headerName: "Confirmed", width: 120 },
       { field: "buyer_country", headerName: "Country", width: 95 },
       { field: "shipped", width: 90 },
-      { field: "ship_by", headerName: "Ship by ✎", width: 130, editable: true, cellEditor: "agDateStringCellEditor" },
-      { field: "note", headerName: "Note ✎", flex: 1, minWidth: 180, editable: true },
     ],
     [],
   );
@@ -180,7 +180,8 @@ export function LedgerWidget() {
     if (!r.ok) e.node.setDataValue(e.colDef.field!, e.oldValue);
   };
   return (
-    <div className="h-full min-h-0 p-1" data-testid="widget-ledger">
+    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-1 p-1" data-testid="widget-ledger">
+      <p className="px-1 text-xs text-muted">Select a ✎ cell and start typing to add a note or a ship-by date. Saved for you only.</p>
       <AgGridReact<LedgerRow>
         theme={theme}
         rowData={rows}
@@ -190,6 +191,9 @@ export function LedgerWidget() {
         groupDefaultExpanded={1}
         grandTotalRow="bottom"
         suppressAggFuncInHeader
+        suppressColumnVirtualisation
+        // Studio's edit mode takes double-clicks for itself; the two ✎ columns edit on a single click instead.
+        singleClickEdit
         rowHeight={34}
         headerHeight={36}
         onCellValueChanged={onEdit}

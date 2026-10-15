@@ -60,6 +60,7 @@
 | D-049 | 2026-10-15 | Phase 3: bound-free model schema + code-side limits, honest cataloger prompt, judge-mode seller cookie, publish rules, storefront + llms.txt | ACCEPTED | R2, R3, J1, J2 |
 | D-050 | 2026-10-15 | Phase 3 AT waits for real photos while Phase 4 starts; `@vitest/coverage-v8` added for AT-4 branch coverage | ACCEPTED | J1, P6 |
 | D-051 | 2026-10-15 | Phase 4: refund rules + locked executor, number-free AI notes with code-appended facts, label → confirm → /track | ACCEPTED | R2, R3, J1 |
+| D-052 | 2026-10-15 | Phase 5: AG Studio dashboard, custom widgets, runtime-resolved theme, insights agent + delegation, Gemini-first long turns, spike rule | ACCEPTED | P9, J2, J1 |
 
 ---
 
@@ -478,6 +479,31 @@
   - We store PayPal's tracker id from the response. Tracking numbers must contain a digit, so free text is never accepted as a number.
 - **Orders screen** (`/studio/orders`, craft-retail register until Phase 5 moves it into AG Studio): the refund queue comes first (human decisions lead), then orders with ship actions, notes, refunds and PayPal ids.
 - **Serves:** R2, R3, J1, D-002, D-008, D-013, D-014, G9 #04.
+
+
+## D-052: Phase 5 design choices (AG Studio dashboard)
+- **Surface:** `/studio/dashboard` is an AG Studio instance (`ag-studio@3.0.0`, edit mode) with three data sources from `dashboardData()`:
+  - `orders`, `lines` and `refunds`.
+  - Each has explicit field definitions: readable names, `currencyFormat` for money, `dateFormat` for dates.
+- **Dependencies:** `ag-grid-react`, `ag-grid-enterprise` and `ag-grid-community` were added at **exactly 36.2.0**, the versions AG Studio already ships, so the ledger widget shares one AG Grid. They use the same trial licence key.
+- **Custom widgets** (registered with `createWidgets`, in a "Shopfront" menu group):
+  - Live agent timeline (one shared SSE stream per page, debounced reloads).
+  - Refund queue (one tap; it calls the same deterministic executor as AT-4).
+  - Order ledger (AG Grid, grouped by product, grand total). Inline `note` and `ship_by` edits go to a strict PATCH that can write nothing else.
+- **Built-in widgets in the preset:** 4 KPI tiles and revenue by product. A saved seller layout (`sellers.dashboard_state = { preset, state }`) overrides the preset. **Our preset version lives beside Studio's state, never inside it:** a custom `version` field there made Studio reject the whole state.
+- **Theme:** Studio's default `studioTheme` with our tokens. AG Charts draws on canvas and parses colours itself, so `var(--…)`/`oklch()` values crashed its data engine ("str.toLowerCase is not a function"). Tokens are resolved to hex at runtime through a 1×1 canvas. The chart palette starts with clay (one accent), then warm neutrals and the status hues.
+- **Agents:**
+  - Our **insights agent** (`directLlmRunner`, primary) has two read-only tools and answers with figures labelled `[db]`/`[paypal]`:
+    - `db_sales_summary` (our DB, real time).
+    - `paypal_transactions` (Transaction Search, verified against the published v1 spec; sales = event codes `T00xx` > 0, refunds = `T1107`; the sandbox's `T1900` starting balance is excluded).
+  - For "show / chart / add" requests it **delegates to Studio's page agent** with a precise brief, and asks for widget-level filters only. Studio's page, widget and data agents run on the same adapter.
+  - The models change views and widgets only (AT-5 checks a checksum of every money row).
+- **Token budget (D-043 follow-up):** `/api/studio/turn` sends turns over ~6.5k tokens to `llm().long` (Gemini → Groq), because Groq's free tier is 8k tokens/minute. Smaller turns stay on Groq. Measured locally: the insights turns ran on Groq at 0.7–1.5k tokens; the page agent's 11–13k-token turns ran on Gemini; one full "show refunds by product" run took about 17 s.
+- **Refund spike:** a deterministic server rule (`checkRefundSpike`, ≥ 4 executed refunds in 10 minutes, at most one alert per 10 minutes) emits a `refund_spike` event. The open dashboard inserts a full-width alert text widget with the explanation. No model is involved.
+- **Test handle:** `window.__shopfrontStudio` exposes the Studio API (read and setState) for AT-5. It grants nothing beyond what the seller's own page can already do.
+- **Local development:** `next dev` on this Windows machine recompiles and reloads on every request (a dev-server/HMR quirk; the files were unchanged), so Phase 5 was verified on a local **production** build (`next build && next start`) and then on Render.
+- **Lighthouse** runs through `npx lighthouse@12.8.2` inside the AT-5 script. It is not a project dependency, and its cookie-header file is written to the OS temp dir, not the repo.
+- **Serves:** P9, J2, J1, R2, D-007, D-023, D-043.
 
 ---
 

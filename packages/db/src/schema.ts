@@ -281,3 +281,12 @@ export const agentRuns = pgTable(
   },
   (t) => [index('agent_runs_input_hash').on(t.inputHash)],
 );
+
+/** Hosted /shop buyer-agent conversations (short transcripts; the agent shops through the public /mcp). */
+export const buyerSessions = pgTable('buyer_sessions', {
+  id: text('id').primaryKey(),
+  transcript: jsonb('transcript').$type<unknown[]>().notNull().default([]),
+  checkouts: jsonb('checkouts').$type<Array<{ checkout_id: string; order_token: string }>>().notNull().default([]),
+  createdAt: createdAt(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});

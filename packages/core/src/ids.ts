@@ -11,6 +11,7 @@ export const ID_PREFIXES = {
   message: 'msg',
   event: 'evt',
   agentRun: 'run',
+  buyerSession: 'bys',
   extraction: 'ext',
 } as const;
 
