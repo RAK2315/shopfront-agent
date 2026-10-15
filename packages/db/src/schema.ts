@@ -133,7 +133,8 @@ export const checkouts = pgTable(
     currency: text('currency').notNull().default('USD'),
     paypalOrderId: text('paypal_order_id').unique(),
     approveUrl: text('approve_url'),
-    confirmedVia: text('confirmed_via'), // webhook | poll | capture_response
+    confirmedVia: text('confirmed_via'), // webhook | poll | capture_response (how PAID was first set)
+    webhookConfirmedAt: ts('webhook_confirmed_at'), // when a verified PAYMENT.CAPTURE.COMPLETED arrived
     buyerEmail: text('buyer_email'),
     buyerCountry: text('buyer_country'),
     shippingAddress: jsonb('shipping_address').$type<Record<string, string>>(),

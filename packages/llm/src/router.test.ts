@@ -146,7 +146,7 @@ describe('LlmRouter resilience chain (D-029)', () => {
       promptVersion: 'v1',
       system: 's',
       messages: [{ role: 'user', content: 'blue mug' }],
-      tools: [{ name: 'search_products', description: 'search', inputSchema: z.object({ query: z.string() }) }],
+      tools: [{ name: 'search_products', description: 'search', parameters: z.toJSONSchema(z.object({ query: z.string() })) }],
     });
     expect(r.source).toBe('groq');
     expect(r.value.toolCalls[0]!.name).toBe('search_products');

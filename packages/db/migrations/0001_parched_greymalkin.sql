@@ -1,0 +1,1 @@
+ALTER TABLE "checkouts" ADD COLUMN "webhook_confirmed_at" timestamp with time zone;

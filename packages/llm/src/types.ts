@@ -24,8 +24,8 @@ export interface ChatMessage {
 export interface ToolSpec {
   name: string;
   description: string;
-  /** Strict Zod object. Tool args are validated again by the MCP layer before anything executes. */
-  inputSchema: ZodType;
+  /** JSON Schema (from MCP listTools or z.toJSONSchema). Args are validated again by the MCP layer before anything executes. */
+  parameters: Record<string, unknown>;
 }
 
 export interface ToolCall {

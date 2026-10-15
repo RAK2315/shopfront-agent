@@ -8,6 +8,13 @@
       "when": 1792069902259,
       "tag": "0000_burly_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792073324213,
+      "tag": "0001_parched_greymalkin",
+      "breakpoints": true
     }
   ]
 }
