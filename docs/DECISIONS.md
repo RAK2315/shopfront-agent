@@ -63,6 +63,7 @@
 | D-052 | 2026-10-15 | Phase 5: AG Studio dashboard, custom widgets, runtime-resolved theme, insights agent + delegation, Gemini-first long turns, spike rule | ACCEPTED | P9, J2, J1 |
 | D-053 | 2026-10-15 | Ledger on AG Grid Community (Studio key does not license standalone Grid); deterministic add_chart; one layout save path; Lighthouse report hygiene | ACCEPTED | P9, J2, J1 |
 | D-054 | 2026-10-15 | Phase 6: hosted /shop agent over our own /mcp, hack demo, blocked calls on the timeline, rate limits, signed failover hook (Groq primary), judge-mode reset | ACCEPTED | P8, P7, J1, J5 |
+| D-055 | 2026-10-15 | Replay keys: recorded-transcript replay ignores tool-result contents (migration 0007) | ACCEPTED | P6, R4 |
 
 ---
 
@@ -540,6 +541,15 @@
   - For the demo seller, the per-buyer automatic-refund count starts at the last reset, so shared sandbox buyers can't exhaust automatic refunds for a month (HANDOFF risk 11). The rule itself is unchanged.
   - cron-job.org calls the reset nightly from Nov 8 (owner sets it up with the keep-alive pinger).
 - **Serves:** P8, P7, J1, J5, S3.b, G9, D-011, D-029.
+
+
+## D-055: Replay keys for the zero-AI demo (refines D-029)
+- **Problem:** replay looked up recorded answers by the exact input hash. That hash includes tool results (stock counts, prices, ids, timestamps), so after any data change a recorded agent conversation no longer matched, and `LLM_MODE=replay` would fail mid-demo.
+- **Decision:** chat steps also compute a **replay key**: route, prompt version, system prompt, user and assistant text, tool **names** in order, and the tool list. Tool-result **contents** are left out.
+  - Every logged call stores it (`agent_runs.replay_key`, migration `0007`).
+  - Replay mode looks up by replay key. The cache still uses the exact input hash, so live mode never serves an answer computed on different data.
+- **Why this is safe:** in replay mode the PayPal calls and tool results stay live. Only the model's words and tool choices are replayed, and money still goes through the deterministic code. A unit test covers a recorded step replaying after the stock changed.
+- **Serves:** P6, R4, D-029.
 
 ---
 

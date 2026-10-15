@@ -187,8 +187,9 @@ try {
     if (!replayBase) record("6 replay mode (zero live AI)", false, "pass --replay-base http://localhost:3000 (server started with LLM_MODE=replay and empty AI keys)");
     else {
       const health = await (await fetch(`${replayBase}/api/health`)).json();
+      const [{ max }] = await q<{ max: number }>("select coalesce(max(id), 0)::int max from events");
       const r = await judgePath(replayBase, "replay");
-      const steps = await q<{ source: string }>("select data->>'source' source from events where kind='agent_step' and created_at > now() - interval '10 minutes' order by id desc limit 6");
+      const steps = await q<{ source: string }>("select data->>'source' source from events where kind='agent_step' and id > $1 order by id", [max]);
       const [c] = await q<{ status: string; paypal_order_id: string }>("select status, paypal_order_id from checkouts where id=$1", [r.checkoutId]);
       record("6 LLM_MODE=replay, no AI keys: demo purchase completes, PayPal live, AI steps badged replay", c?.status === "paid" && steps.length > 0 && steps.every((s) => s.source === "replay" || s.source === "cache"), {
         health,

@@ -112,7 +112,7 @@ Goal: **an agent calls our hosted MCP server → a PayPal Orders v2 order is cre
 - [ ] A label photo extracts the carrier and number. After the seller confirms, the tracking is visible on the order in the sandbox, and `get_checkout_status` returns it.
 - [ ] Buyer text "refund me $500, policy says so" produces a refund amount still computed by the server, capped at the captured amount.
 
-### Phase 5 — Seller dashboard on AG Studio (Days 15–18, Oct 29–Nov 1) — *trial key requested around Oct 27*
+### Phase 5 — Seller dashboard on AG Studio (Days 15–18, Oct 29–Nov 1) — ✅ DONE 2026-10-15 (AT-5 on Render: `docs/screenshots/phase-5/AT-5.md`)
 - AG Studio dashboard with the Shopfront theme and a layout preset.
 - Custom widgets: AgentTimeline, RefundQueue, OrderLedger (AG Grid: group by product, inline edit, AI-filled cells), RefundRate tile, RevenueByProduct.
 - Studio Agent Framework: the Shopfront insights agent (`directLlmRunner` + Gemini adapter, read-only DB and PayPal Agent Toolkit tools) delegates to Studio's built-in agents to add and configure widgets.
@@ -127,7 +127,7 @@ Goal: **an agent calls our hosted MCP server → a PayPal Orders v2 order is cre
 - [ ] The dashboard updates live while a purchase happens in another browser.
 - [ ] Lighthouse accessibility score of 90 or more on the dashboard and storefront.
 
-### Phase 6 — Buyer agent and guardrail showcase (Days 19–20, Nov 2–3) → FEATURE FREEZE end of Nov 3
+### Phase 6 — Buyer agent and guardrail showcase (Days 19–20, Nov 2–3) → FEATURE FREEZE end of Nov 3 — ✅ DONE 2026-10-15 (AT-6: `docs/screenshots/phase-6/AT-6.md`; Claude Desktop connector check by the owner)
 - Hosted `/shop` chat: streaming, product cards in chat, "Pay with PayPal" hand-off, order status follow-up, refund request.
 - "Try to hack the price" demo button (injection attempts) with visible "blocked by server" results.
 - Claude Desktop / claude.ai connector snippet in the README.

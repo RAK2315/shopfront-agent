@@ -5,7 +5,15 @@
 - **Phase 2: DONE.** AT-2 passed on Render. Proof: `docs/screenshots/phase-2/AT-2.md`. Run it again with `pnpm --filter web phase2-checks -- --base <app>`.
 - **Phase 3: BUILT, AT-3 pending.** The owner is shooting 6 real product photos plus 1 shipping label into `docs/demo-photos/` (format in D-049). Then run `pnpm --filter web phase3-checks -- --base <app> --photos ../../docs/demo-photos --injection <file> --keep`. Strip EXIF/GPS before committing the photos.
 - **Phase 4: DONE.** AT-4 passed on Render. Proof: `docs/screenshots/phase-4/AT-4.md`. Re-run the label check with the real label photo.
-- **Phase 5: in progress.** Dashboard data, ledger edits, layout persistence, insights tools and the refund-spike rule are in `server/dashboard.ts`. Migration `0004` is applied. AG Studio UI next.
+- **Phase 5: DONE.** AT-5 passed on Render. Proof: `docs/screenshots/phase-5/AT-5.md`. Dashboard at `/studio/dashboard` (D-052, D-053).
+- **Phase 6: DONE.** AT-6 passed. Proof: `docs/screenshots/phase-6/AT-6.md`. The owner still verifies the Claude Desktop / claude.ai connector from the README.
+- **Open owner items:**
+  - The 6 demo photos and the label photo, then AT-3 and re-freezing the demo catalog (`POST /api/admin/demo {freeze}`).
+  - The Claude connector check.
+  - Sandbox buyer credentials into the README on submission day.
+  - cron-job.org from Nov 8: keep-warm ping plus nightly reset.
+  - The AG Studio trial extension email around Nov 20.
+- **Admin token:** `HMAC-SHA256(SESSION_SECRET, "admin:demo-reset")`, base64url. Compute it locally; never commit it.
 - New surfaces:
   - `/live`: public console.
   - `/studio`: seller studio, judge-mode sign-in.
