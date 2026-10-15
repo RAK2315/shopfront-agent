@@ -45,6 +45,9 @@ export default async function StudioPage() {
           <p className="max-w-[60ch] text-base text-ink-2">{seller.bio}</p>
         </div>
         <nav className="flex items-center gap-4 text-base font-medium">
+          <Link href="/studio/orders" className="text-ink underline-offset-4 hover:underline">
+            Orders
+          </Link>
           <Link href={`/s/${seller.handle}`} className="text-clay-strong underline-offset-4 hover:underline">
             Storefront
           </Link>

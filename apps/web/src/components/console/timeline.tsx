@@ -79,7 +79,8 @@ export function TimelineEvent({ item }: { item: TimelineItem }) {
           >
             {item.title}
           </span>
-          <span className="ml-auto shrink-0 font-mono text-xs tabular text-ink-panel-muted">
+          {/* Local time: server (UTC) and browser render differently, which is expected for a clock. */}
+          <span className="ml-auto shrink-0 font-mono text-xs tabular text-ink-panel-muted" suppressHydrationWarning>
             {time.format(new Date(item.at))}
             {item.durationMs !== undefined && <span className="opacity-70"> · {item.durationMs}ms</span>}
           </span>

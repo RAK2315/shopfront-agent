@@ -7,3 +7,4 @@ export * from './checkout-state';
 export * from './refund-policy';
 export * from './reconcile';
 export * from './catalog';
+export * from './shipping';

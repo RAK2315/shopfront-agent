@@ -131,7 +131,7 @@ export function LiveWire({ initialEvents, initialCheckouts }: { initialEvents: S
                     <StatusPill status={c.status} />
                     <ConfirmationBadge confirmation={c.confirmation} />
                     {c.buyerCountry && <Badge title="Buyer country, from PayPal">{c.buyerCountry}</Badge>}
-                    <span className="ml-auto text-xs text-muted tabular" title={new Date(c.createdAt).toISOString()}>
+                    <span className="ml-auto text-xs text-muted tabular" title={new Date(c.createdAt).toISOString()} suppressHydrationWarning>
                       {now ? ago(c.createdAt, now) : clock.format(new Date(c.createdAt))}
                     </span>
                   </div>

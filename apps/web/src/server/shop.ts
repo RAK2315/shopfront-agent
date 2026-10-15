@@ -17,6 +17,7 @@ import type { CallContext, ShopPort } from "@shopfront/mcp";
 import { appUrl } from "./env";
 import { recordEvent } from "./events";
 import { scheduleExpiryCheck, scheduleFallbackChecks } from "./fallback";
+import { requestRefund } from "./refunds";
 import { services } from "./services";
 import { hashToken, orderTokenFor, verifyOrderToken } from "./tokens";
 
@@ -286,9 +287,8 @@ export const shop: ShopPort = {
     };
   },
 
-  async requestRefund() {
-    // Phase 4 (PLAN.md): policy engine + PayPal refunds. Until then the tool is honest about it.
-    throw new ShopError("NOT_REFUNDABLE", "Refund requests open in a later build. Please contact the seller.");
+  async requestRefund(input) {
+    return requestRefund(input);
   },
 };
 

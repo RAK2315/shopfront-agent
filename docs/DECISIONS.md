@@ -58,6 +58,7 @@
 | D-047 | 2026-10-15 | AT-2 test methods: REST resend, webhook URL swap, simulated expiry, Render restart; second buyer waits on owner | ACCEPTED | G9, D-040 |
 | D-048 | 2026-10-15 | Phase 2 findings on Render: failing builds fixed, two pay-page bugs fixed, sandbox resend/popup behaviour handled in AT-2 | ACCEPTED | G9, J1, S3.b |
 | D-049 | 2026-10-15 | Phase 3: bound-free model schema + code-side limits, honest cataloger prompt, judge-mode seller cookie, publish rules, storefront + llms.txt | ACCEPTED | R2, R3, J1, J2 |
+| D-050 | 2026-10-15 | Phase 3 AT waits for real photos while Phase 4 starts; `@vitest/coverage-v8` added for AT-4 branch coverage | ACCEPTED | J1, P6 |
 
 ---
 
@@ -444,6 +445,13 @@
 - **Local dev:** `SHOPFRONT_DISABLE_TIMERS=1` stops a local server from re-arming fallback timers against the shared database.
 - **Demo photos:** the owner will shoot 6 real phone photos plus a label photo (2026-10-15). Until then, rendered placeholders exercise the pipeline. AT-3 runs on the real set.
 - **Serves:** R2, R3, J1, J2, D-012, D-013, D-016.
+
+
+## D-050: Phase order and one dev dependency
+- **Phase 3 → 4 overlap (deviation from PLAN's sequence):** AT-3 needs the owner's 6 real product photos. The owner chose to shoot them within 2 days rather than use generated or stock images. So Phase 3 is built and deployed but not closed, and Phase 4 starts now. AT-3 runs as soon as the photos land. If they are not ceramics, the demo studio is renamed to match the items (owner, 2026-10-15).
+- **`@vitest/coverage-v8@5.0.4` (dev only, root):** AT-4 requires measured 100% branch coverage of the refund policy engine, and Vitest needs a coverage provider to measure it. This is a tooling addition made because an acceptance test requires it, which is within the owner's "no tooling changes unless something breaks" spirit. It is never shipped.
+- **Order tokens in screenshot filenames:** the screenshot script once named files after pay URLs, which contain the order token. The files were renamed before any commit, and the script now drops query strings.
+- **Serves:** J1, P6, R4.
 
 ---
 

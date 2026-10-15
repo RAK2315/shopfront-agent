@@ -1,15 +1,17 @@
 # HANDOFF: Shopfront Agent (written 2026-10-15, end of session "part 1")
 
-## Where we are
-- **Phase 1 (gate): DONE and confirmed by the owner.** The proof is in `docs/screenshots/phase-1/GATE-PROOF.md`.
-- **Exact next step:** start **Phase 2** (`docs/PLAN.md` §1): events, webhooks, reliability.
-  1. Per-checkout fallback timers in `apps/web/src/instrumentation.ts` (D-025), with the `confirmed_via` badge.
-  2. An SSE route `/api/events` fed by `apps/web/src/server/events.ts` (`bus`).
-  3. Live timeline v0, using `components/console/timeline.tsx`.
-  4. Refund and reversal reconciliation stubs, which already exist in `server/webhooks.ts`.
-  5. A 2-hour AG Studio spike.
-  6. Then run AT-2, including resending a webhook from the Dashboard, a forged webhook, popup cancel and a second US buyer (D-040).
-- **Do not** skip the owner's standing rules below.
+## Where we are (updated 2026-10-15, session "part 2")
+- **Phase 1: DONE.** Proof: `docs/screenshots/phase-1/GATE-PROOF.md`.
+- **Phase 2: DONE.** AT-2 passed on Render. Proof: `docs/screenshots/phase-2/AT-2.md`. Run it again with `pnpm --filter web phase2-checks -- --base <app>`.
+- **Phase 3: BUILT, AT-3 pending.** The owner is shooting 6 real product photos plus 1 shipping label into `docs/demo-photos/` (format in D-049). Then run `pnpm --filter web phase3-checks -- --base <app> --photos ../../docs/demo-photos --injection <file> --keep`. Strip EXIF/GPS before committing the photos.
+- **Phase 4: in progress.** Refund service, messages, tracking and the Orders screen are written. AT-4 script next.
+- New surfaces:
+  - `/live`: public console.
+  - `/studio`: seller studio, judge-mode sign-in.
+  - `/studio/orders`: refund queue + shipping.
+  - `/s/[handle]` and `/s/[handle]/[productId]`: storefront.
+  - `/llms.txt`.
+  - `/spike/studio`: internal AG Studio spike.
 
 ## Deployed
 - **URL:** https://shopfront-agent.onrender.com. Render free tier, service `srv-db8e76dg1s2s739vvv0g`, region Ohio, auto-deploy on push to `main`.
@@ -48,7 +50,7 @@
 - **PayPal:** `PAYPAL_BASE_URL`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`.
 - **LLM:** `LLM_MODE`, `LLM_AGENT_PROVIDERS` (=groq,gemini), `LLM_VISION_PROVIDERS` (=gemini), `GEMINI_API_KEY`, `GEMINI_MODEL` (gemini-3.5-flash-lite), `GEMINI_MODEL_STRONG`, `GROQ_API_KEY`, `GROQ_MODEL` (openai/gpt-oss-120b), `LLM_MAX_CALLS_PER_DAY`, `LLM_MAX_CALLS_PER_IP_PER_HOUR`.
 - **App:** `DATABASE_URL` (pooled, `sslmode=verify-full`), `DATABASE_URL_UNPOOLED` (migrations), `APP_URL`, `SESSION_SECRET`, `NEXT_PUBLIC_AG_LICENSE_KEY`.
-- **Local only:** `SANDBOX_BUYER_EMAIL`, `SANDBOX_BUYER_PASSWORD`, `DEV_ALLOW_UNVERIFIED_WEBHOOKS`, `RENDER_API_KEY`. These are never sent to Render.
+- **Local only:** `SANDBOX_BUYER_EMAIL`, `SANDBOX_BUYER_PASSWORD`, `SANDBOX_BUYER2_EMAIL`, `SANDBOX_BUYER2_PASSWORD`, `DEV_ALLOW_UNVERIFIED_WEBHOOKS`, `RENDER_API_KEY`, `SHOPFRONT_DISABLE_TIMERS` (set to 1 when running a local server against the shared DB). These are never sent to Render.
 
 ## Commands
 - **Day to day:** `pnpm dev`, `pnpm test` (48 tests), `pnpm typecheck`, `pnpm lint`.
@@ -61,6 +63,7 @@
 - `pnpm paypal:toolkit-token` refreshes the PayPal AI Toolkit token in `~/.claude/settings.json`. **Restart Claude Code after running it.**
 
 ## Open risks and known quirks
+0. **Sandbox popup flakiness (D-048).** After many automated logins the sandbox sometimes refuses or won't open the popup. Use a fresh browser context per purchase and retry. Resends of fresh webhook events can take minutes.
 1. **Headless PayPal popup fails.** In headless Chromium, the sandbox shows "Things don't appear to be working at the moment" after login. Run automated approval **headed** (`--headed`); the gate script already defaults to the full Chromium channel.
 2. **Gemini latency.** The free tier takes ~12–14 s per call, including vision. So Groq leads for agent and chat (D-038), and Gemini is for vision only, hidden behind the card animation and cached by image hash. `gemini-3.8-flash` returned 503 once.
 3. **Token expiry.** PayPal tokens last about 8–9 h. The app refreshes its own automatically. The Claude Code PayPal AI Toolkit MCP token does not: run `pnpm paypal:toolkit-token`, then restart, or use `/paypal:setup refresh`.
@@ -70,7 +73,8 @@
 7. **The prompt-injection live test is weak.** The agent declined rather than checking out; add a stronger test in Phase 6.
 8. **Merchant display name:** renamed to "Juniper Clay Studio" by the owner (2026-10-15). Payments made before the rename still show "Test Store".
 9. **MCP client name isn't stored.** In stateless mode the client name doesn't reach later requests, so `checkouts.mcp_client_name` is null. Pass it via a header or initialize info in Phase 6.
-10. **`request_refund` is honestly unimplemented.** It returns `NOT_REFUNDABLE` until Phase 4.
+10. **`request_refund` is implemented** (Phase 4, `server/refunds.ts`): policy engine → server-computed amount → GET capture → refund with `PayPal-Request-Id = refund-{id}`.
+11. **Repeat-buyer limit vs. the demo:** the policy allows 2 automatic refunds per buyer per 30 days. Judges and test runs share the sandbox buyers, so automatic refunds will start going to the seller queue. Decide in Phase 6 (judge-mode reset or a higher demo limit).
 
 ## Standing rules from the owner (apply to Phases 2–8)
 - **Run Phases 2–8 per PLAN.md without waiting between phases**, except:

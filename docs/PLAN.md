@@ -68,7 +68,7 @@ Goal: **an agent calls our hosted MCP server → a PayPal Orders v2 order is cre
 - [ ] Repeating `create_checkout` with the same `client_request_id` returns the same checkout and order (idempotency).
 - [ ] The sandbox Business account shows the payment received; the Personal account shows it sent.
 
-### Phase 2 — Events, webhooks, reliability (Days 4–6, Oct 18–20)
+### Phase 2 — Events, webhooks, reliability (Days 4–6, Oct 18–20) — ✅ DONE 2026-10-15 (AT-2 on Render: `docs/screenshots/phase-2/AT-2.md`)
 - `/webhooks/paypal` with signature verification, `webhook_events` keyed by event_id, pg-boss handlers.
 - Per-checkout fallback timers (D-025); `confirmed_via` badge.
 - **AG Studio spike, 2 h:** run the sponsor's AG Studio + PayPal boilerplate locally (watermark is fine); confirm `directLlmRunner` works with our AI SDK adapter.
@@ -84,7 +84,7 @@ Goal: **an agent calls our hosted MCP server → a PayPal Orders v2 order is cre
 - [ ] A second sandbox buyer from another country (GB or CA Personal) completes a purchase of the USD order. The ledger shows their country, and nothing breaks (D-035 #03).
 - [ ] The timeline shows every step of one purchase in order, with live updates, without a page refresh.
 
-### Phase 3 — Photos → catalog (Days 7–10, Oct 21–24)
+### Phase 3 — Photos → catalog (Days 7–10, Oct 21–24) — BUILT 2026-10-15; AT-3 waits for the owner's 6 real demo photos (D-049). Phase 4 proceeds in parallel.
 - Upload, hash, resize, `/img/:sha`.
 - Vision cataloger (structured output, per-field confidence, cache).
 - Draft review UI: low-confidence highlights, mandatory price confirm, approve.

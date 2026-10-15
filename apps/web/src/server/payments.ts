@@ -4,6 +4,7 @@ import { eq, schema, sql } from "@shopfront/db";
 import { firstCapture, PayPalApiError, type PayPalCapture, type PayPalOrder } from "@shopfront/paypal";
 import { recordEvent } from "./events";
 import { scheduleFallbackChecks } from "./fallback";
+import { publishMessage } from "./messages";
 import { services } from "./services";
 
 type Checkout = typeof schema.checkouts.$inferSelect;
@@ -37,6 +38,10 @@ export async function applyCheckoutEvent(
       await tx.update(schema.checkouts).set({ ...extra, updatedAt: new Date() }).where(eq(schema.checkouts.id, checkoutId));
     }
     return { checkout: c, result: r };
+  }).then((out) => {
+    // First time an order becomes paid (by any path): the seller agent publishes a thank-you note (D-008).
+    if (out?.result.kind === "changed" && out.result.to === "paid") void publishMessage(checkoutId, "thank_you");
+    return out;
   });
 }
 

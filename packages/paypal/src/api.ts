@@ -82,6 +82,14 @@ export function createPayPalApi(c: PayPalClient) {
     captureOrder: (orderId: string, requestId: string, o: Ctx = {}) =>
       c.request<PayPalOrder>('POST', `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, { body: {}, requestId, ...o }),
 
+    /** Orders v2 tracking (verified against the published Orders v2 spec, 2026-10-15; D-019). */
+    addTracking: (
+      orderId: string,
+      body: { capture_id: string; tracking_number: string; carrier: string; carrier_name_other?: string; notify_payer?: boolean },
+      requestId: string,
+      o: Ctx = {},
+    ) => c.request<PayPalOrder>('POST', `/v2/checkout/orders/${encodeURIComponent(orderId)}/track`, { body, requestId, ...o }),
+
     getCapture: (captureId: string, o: Ctx = {}) => c.request<PayPalCapture>('GET', `/v2/payments/captures/${encodeURIComponent(captureId)}`, o),
 
     refundCapture: (captureId: string, body: { amount: { value: string; currency_code: string }; note_to_payer?: string }, requestId: string, o: Ctx = {}) =>

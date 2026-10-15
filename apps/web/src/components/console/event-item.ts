@@ -7,6 +7,7 @@ const ID_KEYS: Array<{ key: string; label: string; paypal?: boolean }> = [
   { key: "captureId", label: "Capture", paypal: true },
   { key: "refundId", label: "Refund", paypal: true },
   { key: "catalogId", label: "Catalog", paypal: true },
+  { key: "trackingNumber", label: "Tracking", paypal: true },
   { key: "productId", label: "Product" },
   { key: "eventId", label: "Event", paypal: true },
   { key: "debugId", label: "Debug", paypal: true },

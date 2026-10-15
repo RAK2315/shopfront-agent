@@ -32,11 +32,12 @@ for (const [label, viewport] of [
     await page.goto(base + p, { waitUntil: "load", timeout: 120_000 });
     await page.waitForTimeout(settle);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    const name = `${(p.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "-") || "home").replace(/-$/, "")}-${label}.png`;
+    // Never put the query string in a filename: pay URLs carry an order token (a bearer secret).
+    const name = `${(p.split("?")[0]!.replace(/^\//, "").replace(/[^a-z0-9]+/gi, "-") || "home").replace(/-$/, "")}-${label}.png`;
     await page.screenshot({ path: join(out, name), fullPage: true });
     const ok = errors.length === 0 && overflow <= 0;
     if (!ok) failures++;
-    console.log(`${ok ? "OK  " : "FAIL"} ${label.padEnd(7)} ${p} → ${name}${overflow > 0 ? ` overflow=${overflow}px` : ""}${errors.length ? ` errors=${JSON.stringify(errors.slice(0, 3))}` : ""}`);
+    console.log(`${ok ? "OK  " : "FAIL"} ${label.padEnd(7)} ${p.split("?")[0]} → ${name}${overflow > 0 ? ` overflow=${overflow}px` : ""}${errors.length ? ` errors=${JSON.stringify(errors.slice(0, 3))}` : ""}`);
     await page.close();
   }
   await ctx.close();
