@@ -1,0 +1,359 @@
+# DECISIONS — append-only log
+
+> Every change to scope, stack, design or plan gets an entry here **before** the code changes.
+> Each entry **must cite the requirement IDs** it serves (`REQUIREMENTS.md`: R*, S*, D*, J*, P*, G*).
+> Never delete entries. To reverse one, add a new entry that says "Supersedes D-0xx".
+> Status values: `ACCEPTED` · `PROPOSED` (awaiting owner) · `SUPERSEDED` · `REJECTED`.
+
+## Index
+
+| ID | Date | Title | Status | Serves |
+|----|------|-------|--------|--------|
+| D-001 | 2026-10-15 | Build Shopfront Agent; Rescue is the day-3 fallback | ACCEPTED | R0, J1–J5, P1–P3, P7, P8 |
+| D-002 | 2026-10-15 | Money actions only by deterministic code from validated JSON | ACCEPTED | R2, J1, G1 |
+| D-003 | 2026-10-15 | Drop "temperature 0"; use structured outputs, caching and fixtures (LLM parts superseded by D-021) | SUPERSEDED | J1, P6, S6.2 |
+| D-004 | 2026-10-15 | Plan to the earlier deadline; submit on Nov 11 | ACCEPTED | D1–D3 |
+| D-005 | 2026-10-15 | Render paid tier (not free) through the end of judging (superseded by D-022) | SUPERSEDED | S3.b, P13 |
+| D-006 | 2026-10-15 | Single-merchant settlement in the build; multi-seller payouts stated as roadmap | ACCEPTED | R1, R5, J3 |
+| D-007 | 2026-10-15 | Insights = real-time DB + PayPal Transaction Search (lags up to ~3 h) | ACCEPTED | G6, P7, R2 |
+| D-008 | 2026-10-15 | Customer messages are published in-app, not emailed | ACCEPTED | R4 (scope) |
+| D-009 | 2026-10-15 | Stock checked at checkout, decremented at capture | ACCEPTED | J1 |
+| D-010 | 2026-10-15 | Tech stack (see STACK.md) | PROPOSED | J1, J2, P9, P13, S3 |
+| D-011 | 2026-10-15 | Hosted "judge mode" seller with nightly reset | PROPOSED | S3.b, R4 |
+| D-012 | 2026-10-15 | Reword "discoverable" to "agent-buyable"; add one network MCP endpoint + JSON-LD storefronts | ACCEPTED (owner, D-033) | J3, J4, R5 |
+| D-013 | 2026-10-15 | Tracking numbers come from a label photo or manual entry; never generated | ACCEPTED | R3, J1 |
+| D-014 | 2026-10-15 | Add MCP tools `get_checkout_status` and `request_refund` (order-token auth) | ACCEPTED | P8, J1 |
+| D-015 | 2026-10-15 | Video uses our hosted buyer agent; no third-party logos or UIs | ACCEPTED | S6.4, P6 |
+| D-016 | 2026-10-15 | Catalog Products is a mirror (no price there); prices live only in our DB | ACCEPTED | R2, R5 |
+| D-017 | 2026-10-15 | AG Grid Enterprise + AG Grid AI Toolkit for the ledger (superseded by D-023) | SUPERSEDED | P9, J2 |
+| D-018 | 2026-10-15 | JS SDK v6 with client-ID auth (verify on day 1) | PROPOSED | R2, G11 |
+| D-019 | 2026-10-15 | Tracking via the Orders v2 `/track` endpoint (verify with AI Toolkit) | PROPOSED | R2, G11 |
+| D-020 | 2026-10-15 | Hosted URL is the primary S3 path; local `docker compose` needs the judge's own keys | ACCEPTED | S3.a, S3.b, S5.1 |
+| D-021 | 2026-10-15 | $0 LLM: Gemini free (primary) + Groq free (fallback) via Vercel AI SDK; supersedes the LLM parts of D-003/D-010 | ACCEPTED (owner) | R3, R8 |
+| D-022 | 2026-10-15 | Render **free** single web service + Neon free Postgres + keep-warm ping; supersedes D-005 | ACCEPTED (owner) | S3.b, P13 |
+| D-023 | 2026-10-15 | Dashboard on **AG Studio** + Studio Agent Framework (sponsor brief); supersedes D-017 | PROPOSED | P9, J2 |
+| D-024 | 2026-10-15 | Handle both `PAYMENT.CAPTURE.DENIED` and `.DECLINED` (webinar slide wording) | ACCEPTED | G7, G9 |
+| D-025 | 2026-10-15 | Fallback checks are per-checkout timers, not a polling loop | ACCEPTED | G7, S3.b |
+| D-026 | 2026-10-15 | Vite + React SPA served by Fastify (one service) instead of Next.js + API (superseded by D-027) | SUPERSEDED | S3.b, J2 |
+| D-027 | 2026-10-15 | One Render free service running **Next.js** (UI + route handlers + timers); domain logic in framework-free packages | PROPOSED | S3.b, J1, J2 |
+| D-028 | 2026-10-15 | LLM models pinned from live free-tier tests; provider-agnostic adapter logs provider and model per call | ACCEPTED | R3, J1 |
+| D-029 | 2026-10-15 | Free-tier resilience chain: cache → primary with backoff → fallback → recorded replay (zero live AI possible) | ACCEPTED | P6, R4 |
+| D-030 | 2026-10-15 | Keep-alive only in dated windows; health ping never touches the DB; Neon compute pinned to 0.25 CU | ACCEPTED | S3.b |
+| D-031 | 2026-10-15 | Design language: warm editorial craft; tokens; PayPal blue only on PayPal elements; must-have visuals | ACCEPTED (owner) | J2, J5, P6 |
+| D-032 | 2026-10-15 | AG Studio Pro trial received (expires Nov 29); request extension ~Nov 20; ledger must-haves | ACCEPTED | P9 |
+| D-033 | 2026-10-15 | Owner agrees to critique fixes D-003/D-021, D-006, D-007, D-012, D-013, D-014 | ACCEPTED (owner) | J1, J4, R5 |
+| D-034 | 2026-10-15 | Sandbox accounts fixed: US Personal buyer and US Business merchant; app verified | ACCEPTED | G3, G4 |
+| D-035 | 2026-10-15 | Adopt the webinar "unhappy paths" matrix as acceptance tests, incl. a second buyer from another country | ACCEPTED | G9 |
+| D-036 | 2026-10-15 | PayPal AI Toolkit dev setup via token script | ACCEPTED | G11 |
+| D-037 | 2026-10-15 | Design system v1: surface mapping, neutral off-white, Alegreya + Geist + Geist Mono, WCAG 2.2 AA | ACCEPTED (owner) | J2, J5 |
+| D-038 | 2026-10-15 | Groq primary for agent tool-calling + chat; Gemini primary for vision cataloging only (amends D-028) | ACCEPTED (owner) | P6, J5, R3 |
+| D-039 | 2026-10-15 | Stack v3 LOCKED; repo `RAK2315/shopfront-agent` (public, MIT); Render deploy via API key; PayPal webhook created via REST API | ACCEPTED (owner) | S3.b, S5, P13 |
+| D-040 | 2026-10-15 | Owner skips the second-country sandbox buyer; unhappy path #03 is covered by a second **US** buyer only | ACCEPTED (owner) | G9 |
+
+---
+
+## D-001: Build Shopfront Agent; Rescue is the day-3 fallback
+- **Context:** Claude web research ranked 7 ideas. Shopfront scored highest (42/50), and its merchant-side agentic commerce is less crowded than buyer-side shopping agents.
+- **Decision:** Build Shopfront Agent. If the day-3 gate fails (PLAN.md Phase 1), pivot to "Rescue" (a failed-subscription recovery agent). The first step of Rescue would be to verify that the sandbox can force a renewal failure.
+- **Serves:** R0 (PayPal and AI both central), P8 (agentic commerce), P7, J4.
+
+## D-002: Money actions only by deterministic code
+- **Decision:**
+  - Orders, captures, refunds and tracking are called only by services that take schema-validated input.
+  - Prices and totals are computed from the DB.
+  - No LLM is given a tool that moves money.
+- **Serves:** J1, G1. It also makes the prompt-injection demo credible to PayPal engineer judges.
+
+## D-003: Drop "temperature 0"
+- **Context:** The owner's hard rule asked for temperature 0. **Current Claude models (Opus 5.5, Sonnet 5.5, Haiku 5.5) return HTTP 400 for non-default sampling parameters.**
+- **Decision:** We get reproducibility from these instead:
+  1. Structured outputs (`output_config.format` / `messages.parse`) and `strict: true` tools.
+  2. A vision cache keyed by `sha256(image) + model + prompt_version`.
+  3. A fixed demo photo set.
+  4. Recorded agent transcripts, replayable if a live call misbehaves during recording.
+  5. Adaptive thinking at low effort for chat routes.
+- **Serves:** J1, P6 (demo reliability).
+
+## D-004: Deadline
+- **Context:** The webinar says Nov 12, 2:00 PM PT. Devpost says Nov 12, 3:00 PM EST, which is **Nov 13, 01:30 IST**.
+- **Decision:** Treat Nov 13, 01:30 IST as hard. Feature freeze Nov 3, record Nov 9–10, **submit Nov 11**.
+- **Serves:** D1–D3.
+
+## D-005: Render paid tier
+- **Context:**
+  - A free Render Postgres **expires 30 days after creation**. One created Oct 15 dies around Nov 14, during judging.
+  - Free web services spin down after 15 minutes idle, so a judge's first load is slow.
+- **Decision (proposed):** 2 × Starter web services plus Basic Postgres, roughly $20–30/month, kept until results are announced. Alternative: free web services with Neon free Postgres. That is cheaper but weakens the Render prize story.
+- **Serves:** S3.b, P13.
+
+## D-006: Single-merchant settlement
+- **Context:**
+  - Paying each seller directly needs PayPal multiparty (Commerce Platform partner onboarding, which is gated).
+  - Alternatively the `payee` field, which gets complicated for refunds.
+- **Decision:** In the build, all sales settle to our US sandbox Business account. The schema keeps `paypal_merchant_id` per seller. The README states the production path honestly.
+- **Serves:** R1, R5 (honest documentation), J3.
+
+## D-007: Insights data sources
+- **Context:** PayPal Transaction Search results can lag (documented up to about 3 hours), and the feature must be enabled on the app (G6).
+- **Decision:** The insights agent answers "today" from our DB and history from PayPal (`list_transactions`, `get_merchant_insights`), and labels each figure's source. Seed sandbox sales at least 1 day before recording.
+- **Serves:** G6, P7.
+
+## D-008: Messages in-app
+- **Decision:** Thank-you, shipped and refund messages are drafted by the agent and published to the buyer's order status page and the `get_checkout_status` tool. No email provider.
+- **Serves:** Scope control (R4 on time).
+
+## D-009: Stock handling
+- **Decision:** Stock is checked at `create_checkout` and decremented on capture. If stock is gone at capture time, we don't capture: the order is voided and a "sold out" message is shown.
+- **Serves:** J1.
+
+## D-010: Tech stack
+- **Decision:** See `STACK.md`. **Locked only after owner approval.**
+- **Serves:** J1, J2, P9, P13, S3.
+
+## D-011: Judge mode
+- **Decision (proposed):**
+  - A shared demo seller, "Juniper Clay Studio", with pre-approved products.
+  - A "Try as seller" button that logs in as the judge seller.
+  - Nightly reset job that restores the seed catalog and keeps the order history.
+  - Sandbox buyer credentials are in the README and the Devpost testing notes.
+- **Serves:** S3.b, R4.
+
+## D-012: Reposition "discoverable"
+- **Context:** No AI assistant automatically discovers a random MCP server. Saying "ChatGPT/Claude can find her shop" would be an overclaim that judges will catch.
+- **Decision (proposed):**
+  1. One **network-level** MCP endpoint covers every Shopfront seller (install once, shop all sellers).
+  2. Every storefront page is server-rendered with **schema.org Product/Offer JSON-LD**, plus `/llms.txt`, so crawler-based agents can read it.
+  3. The pitch says "agent-buyable in 90 seconds", not "discoverable everywhere".
+- **Serves:** J3, J4, R5.
+
+## D-013: Tracking numbers
+- **Decision:** The seller snaps a shipping label photo (vision extracts carrier and number) or types the number. The agent never fabricates tracking. In the demo the label is a printed sandbox label with a fake number.
+- **Serves:** R3 (meaningful AI), J1.
+
+## D-014: Extra MCP tools
+- **Context:** The plan had no way for a buyer agent to see whether an order was paid or to start a refund, yet the demo story needs refunds.
+- **Decision:** Add `get_checkout_status` and `request_refund`. Both are authenticated with a secret `order_token` returned by `create_checkout`. Refund amounts are always computed by the server.
+- **Serves:** P8, J1.
+
+## D-015: Video and trademarks
+- **Decision:**
+  - The split-screen video uses our hosted `/shop` buyer agent.
+  - No Instagram, WhatsApp, Etsy, OpenAI or Claude Desktop logos or UIs; we name them in words only if needed.
+  - Music is royalty-free with a license, or there is none.
+  - PayPal's checkout popup is shown because it is the product functioning.
+- **Serves:** S6.4, P6.
+
+## D-016: Catalog Products positioning
+- **Context:** The PayPal Catalog Products API stores name, description, type, category and image URL. It has **no price**, and its main use is subscriptions.
+- **Decision:** Sync approved products to it, using its ID as an Orders v2 line-item reference. We present it as "mirrored into PayPal's catalog", not as the system that powers pricing.
+- **Serves:** R2, R5.
+
+## D-017: AG Grid Enterprise and the AI Toolkit
+- **Context:** Row grouping and the AI Toolkit (natural language → `setState`, v34.3+) are Enterprise features. Without them the grid is decorative, and that loses P9.
+- **Decision (proposed):** Request an AG Grid trial or sponsor key. The ledger gets:
+  - Grouping by product.
+  - Inline edit of internal notes and ship-by date.
+  - AI-filled cells: refund-risk tag and reason summary.
+  - A natural-language command bar.
+- **Serves:** P9, J2.
+
+## D-018: JS SDK v6 auth
+- **Context:** PayPal's current setup docs say client-ID auth is the default for standard one-time payments, and the client token is needed only for Fastlane and vaulting. Older pages disagree.
+- **Decision (proposed):** Use client-ID auth. On day 1, verify with `/paypal:doctor` and the v6 docs. Fall back to a server-minted browser-safe client token (15-minute TTL).
+- **Serves:** R2, G11.
+
+## D-019: Tracking endpoint
+- **Decision (proposed):** Use `POST /v2/checkout/orders/{id}/track` (current). Confirm with the AI Toolkit's `paypal-best-practices` that it is not deprecated, before Phase 4.
+- **Serves:** R2, G11.
+
+## D-020: How judges run it
+- **Context:** `docker compose up` cannot work without PayPal sandbox credentials and an Anthropic key, and we will never commit those.
+- **Decision:**
+  - The **hosted URL** (S3.b) is the primary path.
+  - The README gives a full local path (S3.a) where the judge creates their own sandbox app and pastes keys into `.env`.
+  - Seed data loads automatically.
+- **Serves:** S3.a, S3.b, S5.1.
+
+## D-021: $0 LLM stack
+- **Context:** The owner won't pay for an LLM API. Anthropic has no free API tier.
+- **Decision:**
+  - Primary: **Google Gemini API free tier** (AI Studio key): vision, JSON-schema structured output, function calling, `temperature: 0`.
+  - Fallback: **Groq free tier** for text and tool calls.
+  - Both accessed through the **Vercel AI SDK**, which also gives us the PayPal Agent Toolkit's AI SDK adapter.
+  - `temperature: 0` is restored (the owner's original rule), with structured outputs, caching and replay on top.
+- **Trade-offs:**
+  - Free-tier quotas are small and change. Mitigation: caching, per-IP caps, fallback provider, replay mode.
+  - Google may use free-tier prompts to improve products. Acceptable, because only sandbox and demo data is sent.
+- **Supersedes:** the LLM parts of D-003 and D-010. **Serves:** R3, R8 ("Any AI tool works").
+
+## D-022: Render free + Neon
+- **Context:** The owner wants Render free.
+  - Free Postgres expires after 30 days.
+  - Free web services sleep after 15 minutes.
+  - 750 instance-hours/month per workspace.
+- **Decision:**
+  - **One** Render free web service.
+  - **Neon free** Postgres, which doesn't expire.
+  - A free uptime pinger every 10 minutes on `/health/live`, which doesn't touch the DB.
+  - No background loops that keep the DB awake.
+- **Supersedes:** D-005. **Serves:** S3.b, P13.
+
+## D-023: AG Studio
+- **Context:** The sponsor brief says the AG Grid prize judges "what your dashboard looks like and how you build it": custom widgets, theming, layout, and the **Studio Agent Framework** ("a custom agent talking to Studio's built-in agents, or a swapped-in harness"). A 45-day trial and a PayPal boilerplate are offered.
+- **Decision (proposed):** The seller dashboard is an AG Studio dashboard with:
+  - Custom widgets:
+    - Live agent→MCP→PayPal→webhook timeline.
+    - Refund approval queue.
+    - Order ledger (AG Grid).
+    - Refund-rate tile.
+    - Revenue by product.
+  - Our theme.
+  - Our insights agent registered in the Studio harness through `directLlmRunner` with our Gemini adapter. It delegates to Studio's built-in agents to create or edit widgets ("show refunds by product this week" → new widget).
+  - An anomaly rule: a refund spike creates an alert widget.
+- **Timing:** Request the trial around Oct 27, so it lasts through judging.
+- **Supersedes:** D-017. **Serves:** P9, J2.
+
+## D-024: Capture-declined event name
+- **Context:** The webinar slide lists `PAYMENT.CAPTURE.DECLINED`, but PayPal's event reference uses `PAYMENT.CAPTURE.DENIED`.
+- **Decision:** Subscribe to all events and map both to `capture_denied`. Confirm with the webhook simulator.
+- **Serves:** G7, G9.
+
+## D-025: Fallback timers instead of a polling loop
+- **Decision:** When a checkout is created or approved, schedule in-process checks at +60 s, +3 min and +10 min. Those checks GET the order and reconcile it only if no webhook has arrived. On boot, re-schedule for open checkouts. This keeps webhooks primary (the slide says "Don't poll. Let PayPal tell you") and lets Neon sleep.
+- **Serves:** G7, S3.b.
+
+## D-026: One service (Vite SPA + Fastify)
+- **Decision (proposed):**
+  - Drop Next.js.
+  - Fastify serves the API, MCP, webhooks and SSE, plus the static Vite build.
+  - Storefront pages `/s/:handle` are rendered server-side as plain HTML with JSON-LD.
+- **Serves:** S3.b (free-tier hours), J2.
+
+## D-027: One Next.js service on Render free
+- **Context:** The owner requires Next.js and top visual quality, and was open to Next.js + Fastify if that's better. Render free is 750 instance-hours per workspace per month (verified 2026-10-15). Two always-on services need about 1,440 h.
+- **Options:**
+  - (a) Next.js + Fastify, both allowed to sleep: two ~1-minute cold starts, and the webhook and MCP endpoints sleep separately from the UI.
+  - (b) **One Next.js service.** Route handlers provide `/mcp`, `/webhooks/paypal`, `/api/*` and SSE. `instrumentation.ts` starts the fallback timers. It fits in 750 h with headroom, and there's one cold start.
+  - (c) Fastify serving a Vite SPA (D-026). Rejected, because the owner requires Next.js.
+- **Decision (proposed):** (b). Domain logic stays in `packages/*` (core, db, llm, mcp) with no framework imports. Moving the API to Fastify later only changes the transport layer. The frontend isn't affected.
+- **Supersedes:** D-026. **Serves:** S3.b, J1, J2.
+
+## D-028: LLM models (live-tested 2026-10-15 on the owner's free keys)
+- **Gemini**:
+  - `gemini-3.5-flash-lite` did vision + JSON schema in 3–11 s and handled function calling (10 s). It is the **primary for every route**.
+  - `gemini-flash-latest` resolves to `gemini-3.8-flash`. It worked for vision but took 41 s, and the next call returned **503 (overloaded)**. It is **optional** and used only for offline cataloging, with retry.
+- **Groq**: `openai/gpt-oss-120b` handled tool calling. Limits are **1,000 requests/day, 8,000 tokens/min**. It is the **fallback** for text and tools (no vision).
+- **Pinned versions instead of `-latest` aliases**, so cache keys and behaviour don't drift.
+- Every call records `{provider, model, route, latency, tokens, cache_hit, fallback_reason}` to `agent_runs`, and the timeline shows it.
+- **Serves:** R3, J1.
+
+## D-029: Free-tier resilience chain
+- **Order:**
+  1. Cache hit by input hash (`sha256(route + model-family + prompt_version + normalized input)`).
+  2. Primary provider, with exponential backoff and jitter on 429/503 (max 2 retries, honours `retry-after`).
+  3. Fallback provider.
+  4. **Recorded transcript replay** (for agent routes) or a "needs manual input" UI state (for extraction).
+- The demo can run with **zero live AI calls**, while the PayPal calls stay live. The timeline badges each AI step: `gemini` / `groq` / `cache` / `replay`.
+- **Serves:** P6, R4.
+
+## D-030: Keep-alive windows and DB protection
+- The pinger (cron-job.org, free) hits `/api/health/live`, which **never queries the DB**. Neon free is 100 CU-hours/month (verified), so pinging the DB every 10 minutes would keep it awake and exhaust compute in about 17 days.
+- Neon compute is fixed at **0.25 CU min and max**.
+- Windows are dated in PLAN.md §5.
+- **Serves:** S3.b.
+
+## D-031: Design language (owner directive)
+- **Palette:** warm editorial craft. Off-white paper, ink text, **one clay accent**. Serif headings (Fraunces), sans for data (Inter, tabular numbers), mono for request IDs (JetBrains Mono).
+- **PayPal blue appears only on real PayPal elements** (the PayPal button, PayPal-sourced events, PayPal IDs).
+- **Must-have visuals:**
+  - Photo → product-card morph.
+  - Split-screen buyer agent and seller dashboard.
+  - Live timeline Agent → MCP → PayPal → Webhook → Seller agent, with **real request IDs**.
+  - AG Grid ledger with grouping, inline edits, AI-filled cells, and low-confidence highlighting.
+- **Rule:** never trade visual quality for a simpler stack.
+- **Serves:** J2, J5, P6.
+
+## D-032: AG Studio trial
+- **Context:** The owner received an **AG Studio Pro** 45-day trial key on 2026-10-15. It **deactivates Nov 29, 2026**, likely before judging ends. The email offers extensions via AG Grid sales.
+- **Decision:**
+  - The key lives in env only, never in git (`NEXT_PUBLIC_AG_LICENSE_KEY`; front-end keys end up in the bundle, which is normal for AG Grid).
+  - **~Nov 20:** email AG Grid asking for a trial extension through judging (to Dec 31).
+  - If the key lapses, the watermark is acceptable to the owner.
+  - Ledger must-haves are as in D-031.
+- **Amends:** the trial timing in D-023. **Serves:** P9.
+
+## D-033: Critique fixes accepted by owner
+- The owner agreed to D-003 (now realised through D-021/D-028/D-029), D-006, D-007, D-012, D-013 and D-014.
+- **Serves:** J1, J4, R5.
+
+## D-034: Sandbox accounts
+- **Buyer (US Personal):** `sb-kaj47u53384870@personal.example.com`.
+- **Merchant (US Business):** `sb-0navv53304003@business.example.com`. The REST app `shopfront-agent` is linked to it.
+- **Verified 2026-10-15:**
+  - The OAuth token works (9 h).
+  - The token has the Transaction Search scope.
+  - The merchant balance is in USD.
+  - Orders v2 create returned `CREATED` with `payee.merchant_id=DY7U9FZDLKJRE`.
+- These sandbox emails are not secrets. Passwords live in `.env` and will be published in the README for judges at submission.
+- **Serves:** G3, G4.
+
+## D-035: Unhappy-path matrix (webinar slide "08 scenarios")
+- Every phase's acceptance tests must cover, where applicable:
+  1. A successful payment.
+  2. A cancelled checkout (the buyer walks away).
+  3. **Different users: a new buyer from a new country** (a second sandbox Personal account outside the US).
+  4. A refund from the merchant side.
+  5. Failures and edge cases.
+- **Serves:** G9.
+
+## D-036: PayPal AI Toolkit for development
+- The plugin is installed with `/plugin install paypal@claude-plugins-official`.
+- `scripts/refresh-paypal-ai-toolkit-token.mjs` mints a sandbox token from `.env` and merges it into `~/.claude/settings.json` as `env.PAYPAL_SANDBOX_ACCESS_TOKEN`. Re-run it every ~8 h, or on a 401. Restart Claude Code after.
+- **Serves:** G11.
+
+## D-037: Design system v1
+- **Owner answers (2026-10-15):** register **both**, with surfaces mapped as follows:
+  - Seller onboarding and storefront = **craft retail**, with editorial serif headings.
+  - Dashboard, timeline and buyer split screen = **live ops console**.
+  - AG Grid ledger = **precision density inside the console look**.
+  - **One shared token system** (palette, type scale, radius), so the shift reads as intentional and not like two apps.
+  - Background **neutral off-white** (chroma 0), not warm cream. **WCAG 2.2 AA + reduced motion.**
+- **Typography change:**
+  - Fraunces and Inter (my earlier pick, never owner-specified) are on the design skill's list of overused AI defaults.
+  - Replaced by **Alegreya** (serif headings: calligraphic, book-like warmth for craft retail), **Geist** (UI and data, tabular figures) and **Geist Mono** (request IDs).
+- **Brand seed colour:** the design skill suggested cobalt. Declined, because the owner committed to one clay accent and blue is reserved for PayPal (D-031).
+- **Artifacts:**
+  - `apps/web/PRODUCT.md` and `apps/web/DESIGN.md`.
+  - Tokens in `apps/web/src/app/globals.css`.
+  - Base components in `apps/web/src/components/{ui,console}`.
+  - Style guide at `/design`, verified by Playwright at 1440 px and 390 px: no console errors, no horizontal overflow.
+- **Note:** the `frontend-design` skill the owner mentioned is not installed. The installed `impeccable` design skill was used instead.
+- **Supersedes:** the font names in D-031 and STACK v3. **Serves:** J2, J5.
+
+## D-038: Route-based providers
+- **Context:** On 2026-10-15, live checks measured `gemini-3.5-flash-lite` at **11.7 s** for a one-word reply on the free tier, against **0.6 s** for Groq `openai/gpt-oss-120b`. A 12 s pause per buyer-agent turn would kill the split-screen video.
+- **Decision:**
+  - Routes `buyer`, `ops`, `insights`, `grid`, `refund_reason` and `message` use providers **groq → gemini** (`LLM_AGENT_PROVIDERS`).
+  - Routes `cataloger` and `label`, which are vision, use **gemini** only (`LLM_VISION_PROVIDERS`), because Groq has no vision. The photo → card morph animation covers their latency, and results are cached by image hash.
+  - The resilience chain (D-029) is unchanged.
+  - Budget implication: Groq free gives 1,000 requests/day and **8,000 tokens/min**. Agent prompts and tool schemas must stay compact, and the buyer agent keeps short histories.
+- **Amends:** D-028. **Serves:** P6, J5, R3.
+
+## D-039: Lock and ship
+- **Stack:** STACK.md v3 is approved by the owner and LOCKED.
+- **Repo:** created with `gh` as `RAK2315/shopfront-agent` (public, MIT). Secrets and `personal research/` are git-ignored.
+- **Render:** the free web service is created through the Render API (`RENDER_API_KEY` stays in local `.env` only, never in Render env).
+- **PayPal webhook:** created with `POST /v1/notifications/webhooks` using the app's own credentials (event types `*`, filtered in code). The returned id goes into `PAYPAL_WEBHOOK_ID`.
+- **Serves:** S3.b, S5, P13.
+
+## D-040: No second-country buyer
+- **Context:** The owner chose to skip creating a non-US sandbox buyer.
+- **Decision:** Unhappy path #03 ("different users") is tested with a second **US** sandbox Personal account instead. The "new country" part of the webinar slide is not covered, and the README will say so.
+- **Amends:** D-035. **Serves:** G9.
+
+---
+
+## Requirement updates
+*(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
+
+- **2026-10-15, AG Grid sponsor resources page (Devpost):** "Best Use of AG Grid… covers both what your dashboard looks like and how you build it. Show us polish: custom widgets, theming, and layout tools, not just AG Grid or AG Charts on their own. Take Studio Agent Framework for a spin: a custom agent talking to Studio's built-in agents, or a swapped-in harness." Free 45-day trial license; boilerplate with AG Studio + PayPal provided; support via PayPal Discord. Docs: ag-grid.com/studio/react/quick-start/, /custom-widgets/, /ai-agents/. → D-023.

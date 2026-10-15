@@ -1,0 +1,14 @@
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.vercel
+# private notes stay out of the public repo
+personal research/
