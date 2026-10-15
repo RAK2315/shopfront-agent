@@ -1,0 +1,45 @@
+# Render Blueprint (free tier, one service — D-022/D-027). Secrets are set in the dashboard/API, never here.
+services:
+  - type: web
+    name: shopfront-agent
+    runtime: node
+    plan: free
+    region: ohio
+    branch: main
+    autoDeploy: true
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter web build
+    startCommand: pnpm --filter web start
+    healthCheckPath: /api/health/live
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: LLM_MODE
+        value: live
+      - key: LLM_AGENT_PROVIDERS
+        value: groq,gemini
+      - key: LLM_VISION_PROVIDERS
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_AG_LICENSE_KEY
+        sync: false

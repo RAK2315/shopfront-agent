@@ -7,13 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "seed": "node --env-file-if-exists=../../.env --import tsx scripts/seed.ts",
+    "buyer-agent": "node --env-file-if-exists=../../.env --import tsx scripts/buyer-agent.ts",
+    "gate": "node --env-file-if-exists=../../.env --import tsx scripts/gate-e2e.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@shopfront/core": "workspace:*",
     "@shopfront/db": "workspace:*",
     "@shopfront/llm": "workspace:*",
     "@shopfront/mcp": "workspace:*",
+    "@shopfront/paypal": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.57.0",
@@ -21,16 +26,23 @@
     "next": "16.4.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "tailwind-merge": "^3.7.0"
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
+    "pg": "^8.23.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "packageManager": "pnpm@10.20.0"
