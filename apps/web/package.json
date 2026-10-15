@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "seed": "node --env-file-if-exists=../../.env --import tsx scripts/seed.ts",
     "buyer-agent": "node --env-file-if-exists=../../.env --import tsx scripts/buyer-agent.ts",
-    "gate": "node --env-file-if-exists=../../.env --import tsx scripts/gate-e2e.ts"
+    "gate": "node --env-file-if-exists=../../.env --import tsx scripts/gate-e2e.ts",
+    "phase1-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase1-checks.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
