@@ -99,7 +99,10 @@ async function buy(sku: string) {
       await popup?.close().catch(() => {});
       if (attempt >= 3) throw err;
       log(`popup attempt ${attempt} failed; retrying`);
-      await page.locator('[data-phase="ready"]').waitFor({ timeout: 30_000 });
+      // A fresh payment session: reload the pay page (same order) after a short pause.
+      await sleep(8000);
+      await page.reload({ waitUntil: "load" });
+      await page.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
     }
   }
   await page.getByText("Payment complete").waitFor({ timeout: 120_000 });
@@ -128,9 +131,9 @@ try {
   const row = sp.locator(`[data-checkout="${vase.checkout_id}"]`);
   await row.getByTestId("ship").click();
   await row.getByTestId("label-input").setInputFiles(label);
-  const numberField = row.getByLabel("Tracking number");
+  const numberField = row.getByLabel("Tracking number", { exact: true });
   await until("the label reading", async () => (await numberField.inputValue().catch(() => "")).length >= 6, 90_000, 1000);
-  const read = { carrier: await row.getByLabel("Carrier").inputValue(), number: await numberField.inputValue() };
+  const read = { carrier: await row.getByLabel("Carrier", { exact: true }).inputValue(), number: await numberField.inputValue() };
   await sp.screenshot({ path: join(out, "orders-label-read-desktop.png"), fullPage: true });
   await row.getByTestId("tracking-confirm").click();
   const ship = await until("the shipment", () => q1<{ carrier: string; tracking_number: string }>("select carrier, tracking_number from shipments where checkout_id=$1", [vase.checkout_id]), 60_000, 2000);

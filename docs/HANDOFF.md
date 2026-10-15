@@ -4,7 +4,8 @@
 - **Phase 1: DONE.** Proof: `docs/screenshots/phase-1/GATE-PROOF.md`.
 - **Phase 2: DONE.** AT-2 passed on Render. Proof: `docs/screenshots/phase-2/AT-2.md`. Run it again with `pnpm --filter web phase2-checks -- --base <app>`.
 - **Phase 3: BUILT, AT-3 pending.** The owner is shooting 6 real product photos plus 1 shipping label into `docs/demo-photos/` (format in D-049). Then run `pnpm --filter web phase3-checks -- --base <app> --photos ../../docs/demo-photos --injection <file> --keep`. Strip EXIF/GPS before committing the photos.
-- **Phase 4: in progress.** Refund service, messages, tracking and the Orders screen are written. AT-4 script next.
+- **Phase 4: DONE.** AT-4 passed on Render. Proof: `docs/screenshots/phase-4/AT-4.md`. Re-run the label check with the real label photo.
+- **Phase 5: in progress.** Dashboard data, ledger edits, layout persistence, insights tools and the refund-spike rule are in `server/dashboard.ts`. Migration `0004` is applied. AG Studio UI next.
 - New surfaces:
   - `/live`: public console.
   - `/studio`: seller studio, judge-mode sign-in.

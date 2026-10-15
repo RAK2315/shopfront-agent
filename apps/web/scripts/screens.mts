@@ -13,6 +13,7 @@ const opt = (k: string, d: string) => {
 const base = opt("--base", "http://localhost:3000").replace(/\/$/, "");
 const out = resolve(opt("--out", "../../docs/screenshots/tmp"));
 const settle = Number(opt("--settle", "1500"));
+const sellerHandle = opt("--seller", ""); // sign in as this demo seller first (studio pages)
 const paths = args.length ? args : ["/"];
 mkdirSync(out, { recursive: true });
 
@@ -23,6 +24,7 @@ for (const [label, viewport] of [
   ["mobile", { width: 390, height: 844 }],
 ] as const) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: label === "mobile" ? 2 : 1 });
+  if (sellerHandle) await ctx.request.post(`${base}/api/seller/session`, { data: { handle: sellerHandle } });
   for (const p of paths) {
     const page = await ctx.newPage();
     const errors: string[] = [];

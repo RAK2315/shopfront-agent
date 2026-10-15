@@ -15,6 +15,7 @@ import {
 import { and, eq, gt, inArray, schema, sql } from "@shopfront/db";
 import { PayPalApiError } from "@shopfront/paypal";
 import type { RefundRequestView } from "@shopfront/mcp";
+import { checkRefundSpike } from "./dashboard";
 import { recordEvent } from "./events";
 import { llm } from "./llm";
 import { publishMessage } from "./messages";
@@ -193,6 +194,7 @@ export async function executeRefund(refundRequestId: string, by: "policy" | "sel
       data: { refundId: result.refund.id, debugId: result.debugId, paypalRequestId: result.requestId, refundRequestId: r.id },
     });
     await publishMessage(r.checkoutId, "refund", { reason: r.reasonCode, amountCents: r.amountCents, outcome: "refunded" });
+    if (result.sellerId) await checkRefundSpike(result.sellerId);
   } else if (r.status === "failed") {
     await recordEvent(db, {
       actor: "server",

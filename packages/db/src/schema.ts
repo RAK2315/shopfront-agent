@@ -47,6 +47,7 @@ export const sellers = pgTable('sellers', {
   flatShippingCents: integer('flat_shipping_cents').notNull().default(500),
   shipsTo: jsonb('ships_to').$type<string[]>().notNull().default(['US']),
   refundPolicy: jsonb('refund_policy').$type<RefundPolicy>().notNull(),
+  dashboardState: jsonb('dashboard_state'), // the seller's saved AG Studio layout (Phase 5)
   createdAt: createdAt(),
 });
 
@@ -139,6 +140,8 @@ export const checkouts = pgTable(
     buyerEmail: text('buyer_email'),
     buyerCountry: text('buyer_country'),
     shippingAddress: jsonb('shipping_address').$type<Record<string, string>>(),
+    internalNote: text('internal_note'), // seller-only, edited inline in the ledger
+    shipBy: text('ship_by'), // YYYY-MM-DD, edited inline in the ledger
     expiresAt: ts('expires_at').notNull(),
     createdAt: createdAt(),
     updatedAt: ts('updated_at').notNull().defaultNow(),

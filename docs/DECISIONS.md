@@ -59,6 +59,7 @@
 | D-048 | 2026-10-15 | Phase 2 findings on Render: failing builds fixed, two pay-page bugs fixed, sandbox resend/popup behaviour handled in AT-2 | ACCEPTED | G9, J1, S3.b |
 | D-049 | 2026-10-15 | Phase 3: bound-free model schema + code-side limits, honest cataloger prompt, judge-mode seller cookie, publish rules, storefront + llms.txt | ACCEPTED | R2, R3, J1, J2 |
 | D-050 | 2026-10-15 | Phase 3 AT waits for real photos while Phase 4 starts; `@vitest/coverage-v8` added for AT-4 branch coverage | ACCEPTED | J1, P6 |
+| D-051 | 2026-10-15 | Phase 4: refund rules + locked executor, number-free AI notes with code-appended facts, label → confirm → /track | ACCEPTED | R2, R3, J1 |
 
 ---
 
@@ -452,6 +453,31 @@
 - **`@vitest/coverage-v8@5.0.4` (dev only, root):** AT-4 requires measured 100% branch coverage of the refund policy engine, and Vitest needs a coverage provider to measure it. This is a tooling addition made because an acceptance test requires it, which is within the owner's "no tooling changes unless something breaks" spirit. It is never shipped.
 - **Order tokens in screenshot filenames:** the screenshot script once named files after pay URLs, which contain the order token. The files were renamed before any commit, and the script now drops query strings.
 - **Serves:** J1, P6, R4.
+
+
+## D-051: Phase 4 design choices (seller ops)
+- **Refunds (`server/refunds.ts`):**
+  - `request_refund` returns `NOT_REFUNDABLE` before any PayPal call when the order is not paid or partly refunded, or has no capture.
+  - The amount always comes from the order snapshot (`refundAmountForItems`), capped at the remaining captured amount.
+  - Only one open request per order, so a retrying agent gets the same request back.
+  - The model's reason suggestion (Groq, `refund_reason` route) is stored for the seller as advice and is **never an input to `decideRefund`**.
+- **Executor:**
+  - A single function serves both automatic and seller-approved refunds.
+  - It runs in one transaction with `SELECT … FOR UPDATE` on the refund request and the capture, so a double tap waits and then sees `executed`.
+  - It GETs the capture first (status must be `COMPLETED`/`PARTIALLY_REFUNDED`, with enough balance left).
+  - It refunds with `PayPal-Request-Id = refund-{id}`.
+  - Holding the row lock across the PayPal call (about 1 s) is acceptable at demo scale.
+- **Seller notes (D-008):**
+  - The model (Groq, `message` route) writes only the wording and is told to use no numbers. Any draft containing a digit is replaced by a template.
+  - The facts line (amount, carrier, tracking number) is appended by code from the database.
+  - The thank-you note fires on the first transition to `paid`, whichever path gets there first.
+  - Notes appear on the buyer's order page (`/pay/{id}`) and in `get_checkout_status`.
+- **Tracking:**
+  - The label photo is read by Gemini (`label` route, bound-free schema) as a **suggestion**.
+  - The seller confirms; then `POST /v2/checkout/orders/{id}/track` sends `capture_id`, `carrier` (USPS/UPS/FEDEX/DHL or `OTHER` + name) and `notify_payer: false`.
+  - We store PayPal's tracker id from the response. Tracking numbers must contain a digit, so free text is never accepted as a number.
+- **Orders screen** (`/studio/orders`, craft-retail register until Phase 5 moves it into AG Studio): the refund queue comes first (human decisions lead), then orders with ship actions, notes, refunds and PayPal ids.
+- **Serves:** R2, R3, J1, D-002, D-008, D-013, D-014, G9 #04.
 
 ---
 

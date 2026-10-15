@@ -81,7 +81,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
 
       <aside aria-label="Approve payment" className="grid content-start gap-4 lg:sticky lg:top-16">
         <div className="grid gap-4 rounded-lg border border-line bg-surface p-5">
-          <h2 className="text-lg font-semibold">Approve in PayPal</h2>
+          <h2 className="text-lg font-semibold">{["created", "approved", "cancelled"].includes(ck.status) ? "Approve in PayPal" : "Your payment"}</h2>
           {expired || ck.status === "cancelled" ? (
             <p className="text-base text-ink-2">This checkout has expired. Ask your agent to create a new one.</p>
           ) : (

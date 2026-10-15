@@ -92,7 +92,10 @@ async function payInPopup(page: Page, buyer: { email: string; password: string }
       await popup.close().catch(() => {});
       if (attempt >= 3) throw err;
       log(`popup attempt ${attempt} failed (${err instanceof Error ? err.message.split(String.fromCharCode(10))[0] : err}); retrying`);
-      await page.locator('[data-phase="ready"]').waitFor({ timeout: 30_000 });
+      // A fresh payment session: reload the pay page (same order) after a short pause.
+      await sleep(8000);
+      await page.reload({ waitUntil: "load" });
+      await page.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
     }
   }
 }

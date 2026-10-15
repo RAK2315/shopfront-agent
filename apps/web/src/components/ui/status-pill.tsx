@@ -37,7 +37,7 @@ export function StatusPill({ status, className }: { status: CheckoutStatus; clas
   return (
     <span
       className={cn(
-        "inline-flex h-6 items-center overflow-hidden rounded-pill border px-2 text-xs font-medium transition-colors duration-200",
+        "inline-flex h-6 shrink-0 items-center overflow-hidden whitespace-nowrap rounded-pill border px-2 text-xs font-medium transition-colors duration-200",
         cls,
         className,
       )}
