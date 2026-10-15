@@ -49,6 +49,8 @@
 | D-038 | 2026-10-15 | Groq primary for agent tool-calling + chat; Gemini primary for vision cataloging only (amends D-028) | ACCEPTED (owner) | P6, J5, R3 |
 | D-039 | 2026-10-15 | Stack v3 LOCKED; repo `RAK2315/shopfront-agent` (public, MIT); Render deploy via API key; PayPal webhook created via REST API | ACCEPTED (owner) | S3.b, S5, P13 |
 | D-040 | 2026-10-15 | Owner skips the second-country sandbox buyer; unhappy path #03 is covered by a second **US** buyer only | ACCEPTED (owner) | G9 |
+| D-041 | 2026-10-15 | Webhook subscribes to all events (`*`) despite the PayPal skill preferring explicit types; filtered in code | ACCEPTED (owner) | G7 |
+| D-042 | 2026-10-15 | Gate implementation choices: Next.js `cacheComponents` off, HMAC order tokens, `after()` for webhook processing, separate `@shopfront/paypal` package | ACCEPTED | J1 |
 
 ---
 
@@ -350,6 +352,19 @@
 - **Context:** The owner chose to skip creating a non-US sandbox buyer.
 - **Decision:** Unhappy path #03 ("different users") is tested with a second **US** sandbox Personal account instead. The "new country" part of the webinar slide is not covered, and the README will say so.
 - **Amends:** D-035. **Serves:** G9.
+
+## D-041: All webhook events
+- **Context:** The PayPal AI Toolkit best-practices skill recommends registering explicit event types. The owner asked for "all events, filter in code", which also matches the webinar presenter's habit (G7).
+- **Decision:** Register `*`. `processWebhook` routes the events we act on and marks the rest `ignored`. Every event is still signature-verified and stored once by event id.
+- **Serves:** G7.
+
+## D-042: Gate implementation choices
+- **`cacheComponents` off:** payment, MCP and webhook routes are request-time by nature. Classic dynamic rendering avoids wrapping every DB read in Suspense, and the static pages (`/`, `/design`) are still prerendered.
+- **Order token = HMAC(SESSION_SECRET, checkoutId):** an idempotent `create_checkout` retry returns the same token without storing a secret (only its hash is kept).
+- **Webhooks:** the signature is verified and the event stored *before* responding. Processing runs in `after()`, so PayPal gets a fast 2xx and retries cover crashes, because unprocessed rows are re-claimable.
+- **`@shopfront/paypal` package:** a thin REST client with token caching, required `PayPal-Request-Id` on POST, debug-id capture and 429/5xx backoff. It refuses non-sandbox base URLs.
+- **Rehearsal (2026-10-15):** a local run of agent → MCP → Orders v2 → popup approval → capture reached `COMPLETED` (order `0K40035845525545N`, capture `39L78000BY223680X`). The webhook leg needs the public Render URL.
+- **Serves:** J1.
 
 ---
 
