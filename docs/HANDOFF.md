@@ -34,7 +34,7 @@
 | Thing | Value |
 |---|---|
 | Sandbox buyer (US Personal) | `sb-kaj47u53384870@personal.example.com` |
-| Sandbox merchant (US Business) | `sb-0navv53304003@business.example.com`, merchant id `DY7U9FZDLKJRE`, display name still "Test Store" |
+| Sandbox merchant (US Business) | `sb-0navv53304003@business.example.com`, merchant id `DY7U9FZDLKJRE`, display name "Juniper Clay Studio" (renamed by owner 2026-10-15) |
 | PayPal REST app | `shopfront-agent` (`APP-0ET80889P79461507`), Transaction Search on |
 | PayPal webhook | `5M73856081740924U` → `/webhooks/paypal`, events `*` (D-041) |
 | Gate order / capture | `08472107251603326` / `4S9806225X591341H` |
@@ -68,7 +68,7 @@
 5. **Neon free compute** is 100 CU-hours a month. Nothing may poll the DB; compute is pinned at 0.25 CU.
 6. **Groq free limits** are 8k tokens/min and 1,000 requests/day. Keep agent histories and tool schemas small.
 7. **The prompt-injection live test is weak.** The agent declined rather than checking out; add a stronger test in Phase 6.
-8. **Merchant display name is still "Test Store".** Rename it to "Juniper Clay Studio" in the sandbox account (owner action).
+8. **Merchant display name:** renamed to "Juniper Clay Studio" by the owner (2026-10-15). Payments made before the rename still show "Test Store".
 9. **MCP client name isn't stored.** In stateless mode the client name doesn't reach later requests, so `checkouts.mcp_client_name` is null. Pass it via a header or initialize info in Phase 6.
 10. **`request_refund` is honestly unimplemented.** It returns `NOT_REFUNDABLE` until Phase 4.
 
