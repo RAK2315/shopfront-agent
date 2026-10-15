@@ -67,9 +67,12 @@ function providers(list: string): LlmProvider[] {
     .filter((p): p is LlmProvider => !!p);
 }
 
-const g = globalThis as unknown as { __llm?: { agent: LlmRouter; vision: LlmRouter } };
+const g = globalThis as unknown as { __llm?: { agent: LlmRouter; vision: LlmRouter; long: LlmRouter } };
 
-/** `agent` = Groq → Gemini for tool calling and chat; `vision` = Gemini only (D-038). One shared budget. */
+/**
+ * `agent` = Groq → Gemini for tool calling and chat; `vision` = Gemini only (D-038); `long` = the agent chain
+ * reversed, for prompts too large for Groq's free 8k tokens/minute (AG Studio turns, D-043). One shared budget.
+ */
 export function llm() {
   if (g.__llm) return g.__llm;
   const e = env();
@@ -79,6 +82,7 @@ export function llm() {
   g.__llm = {
     agent: new LlmRouter({ ...base, providers: providers(e.LLM_AGENT_PROVIDERS) }),
     vision: new LlmRouter({ ...base, providers: providers(e.LLM_VISION_PROVIDERS) }),
+    long: new LlmRouter({ ...base, providers: providers(e.LLM_AGENT_PROVIDERS).reverse() }),
   };
   return g.__llm;
 }

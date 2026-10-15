@@ -15,6 +15,7 @@
     "phase2-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase2-checks.mts",
     "phase3-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase3-checks.mts",
     "phase4-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase4-checks.mts",
+    "phase5-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase5-checks.mts",
     "screens": "node --import tsx scripts/screens.mts"
   },
   "dependencies": {
@@ -24,6 +25,9 @@
     "@shopfront/llm": "workspace:*",
     "@shopfront/mcp": "workspace:*",
     "@shopfront/paypal": "workspace:*",
+    "ag-grid-community": "36.2.0",
+    "ag-grid-enterprise": "36.2.0",
+    "ag-grid-react": "36.2.0",
     "ag-studio": "3.0.0",
     "ag-studio-react": "3.0.0",
     "class-variance-authority": "^0.7.1",

@@ -122,7 +122,9 @@ export async function paypalTransactions(fromIso: string, toIso: string) {
   const { paypal } = services();
   const { data, debugId } = await paypal.listTransactions(fromIso, toIso);
   const tx = (data.transaction_details ?? []).map((t) => t.transaction_info);
-  const sales = tx.filter((t) => t.transaction_event_code === "T0006" || t.transaction_event_code === "T0003" || Number(t.transaction_amount?.value ?? 0) > 0);
+  // Event codes: T00xx = payments received (T0006 = checkout captures); T1107 = payment refunds.
+  // Everything else (e.g. T1900, the sandbox's starting-balance funding) is not a sale.
+  const sales = tx.filter((t) => /^T00\d\d$/.test(t.transaction_event_code ?? "") && Number(t.transaction_amount?.value ?? 0) > 0);
   const refunds = tx.filter((t) => t.transaction_event_code === "T1107");
   const sum = (xs: typeof tx) => xs.reduce((n, t) => n + Math.round(Number(t.transaction_amount?.value ?? 0) * 100), 0);
   return {
@@ -130,6 +132,7 @@ export async function paypalTransactions(fromIso: string, toIso: string) {
     from: fromIso,
     to: toIso,
     note: "PayPal Transaction Search can lag by up to about 3 hours.",
+    last_refreshed: data.last_refreshed_datetime ?? null,
     sales: { count: sales.length, gross_usd: centsToValue(sum(sales)) },
     refunds: { count: refunds.length, amount_usd: centsToValue(Math.abs(sum(refunds))) },
     debug_id: debugId,

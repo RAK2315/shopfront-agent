@@ -65,8 +65,11 @@ export async function POST(req: Request) {
   const json = b.responseFormat.type === "json" ? `\nReply with only a JSON object matching this schema:\n${JSON.stringify(b.responseFormat.schema)}` : "";
   const sys = [b.instructions ?? "", ...system].filter(Boolean).join("\n\n") + json;
 
+  // Rough size of the turn: Studio's own tool schemas are large (D-043). Big turns go Gemini-first.
+  const approxPromptTokens = Math.round((sys.length + JSON.stringify(messages).length + JSON.stringify(tools).length) / 4);
+  const router = approxPromptTokens > 6500 ? llm().long : llm().agent;
   try {
-    const r = await llm().agent.chatStep({ route: "grid", promptVersion: PROMPT_VERSION, system: sys, messages, tools }, clientKeyOf(req));
+    const r = await router.chatStep({ route: "grid", promptVersion: PROMPT_VERSION, system: sys, messages, tools }, clientKeyOf(req));
     return Response.json({
       text: r.value.text,
       toolCalls: r.value.toolCalls,
@@ -74,8 +77,7 @@ export async function POST(req: Request) {
       model: r.model,
       fallbackReason: r.fallbackReason,
       usage: r.usage ?? null,
-      // Spike metric: rough size of what Studio sends per turn (Groq free tier is 8k tokens/min, D-038).
-      approxPromptTokens: Math.round((sys.length + JSON.stringify(messages).length + JSON.stringify(tools).length) / 4),
+      approxPromptTokens,
     });
   } catch (e) {
     const unavailable = e instanceof LlmUnavailableError;
