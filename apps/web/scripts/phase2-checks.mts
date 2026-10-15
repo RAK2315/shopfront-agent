@@ -73,16 +73,34 @@ async function payInPopup(page: Page, buyer: { email: string; password: string }
   const btn = page.locator("paypal-button");
   // The pay page marks itself ready once the v6 payment session exists.
   await page.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
-  const popupP = page.waitForEvent("popup", { timeout: 45_000 });
-  await btn.click();
-  const popup = await popupP;
-  await loginAndApprove(popup, buyer, shots);
-  await popup.waitForEvent("close", { timeout: 60_000 }).catch(() => {});
+  // The sandbox sometimes answers a login with "Things don't appear to be working"; retry the same order once.
+  for (let attempt = 1; ; attempt++) {
+    const popupP = page.waitForEvent("popup", { timeout: 20_000 });
+    await btn.click();
+    const popup = await popupP.catch(() => null);
+    if (!popup) {
+      if (attempt >= 3) throw new Error("The PayPal popup did not open after 3 clicks");
+      log(`popup did not open (attempt ${attempt}); clicking again`);
+      continue;
+    }
+    try {
+      await loginAndApprove(popup, buyer, shots);
+      await popup.waitForEvent("close", { timeout: 60_000 }).catch(() => {});
+      return;
+    } catch (err) {
+      await popup.screenshot({ path: join(out, `_popup-attempt-${attempt}.png`) }).catch(() => {});
+      await popup.close().catch(() => {});
+      if (attempt >= 3) throw err;
+      log(`popup attempt ${attempt} failed (${err instanceof Error ? err.message.split(String.fromCharCode(10))[0] : err}); retrying`);
+      await page.locator('[data-phase="ready"]').waitFor({ timeout: 30_000 });
+    }
+  }
 }
 
 const buyer1 = { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD };
 const browser: Browser = await chromium.launch({ headless: false, channel: "chromium" });
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+// A fresh context per check group: after a PayPal popup error, the SDK opens no new popup in the same context.
+let ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 
 // D's checkout is created first so its creation timers (+60 s, +3 min) pass harmlessly before the restart.
 let dCheckout: Checkout | null = null;
@@ -93,9 +111,22 @@ if (only.has("D")) {
   log("D: open checkout for the restart test", dCheckout.checkout_id);
 }
 
+/** Runs one check group; a failure is recorded with screenshots and the remaining groups still run. */
+async function isolated(id: string, fn: () => Promise<void>) {
+  await ctx.close().catch(() => {});
+  ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  try {
+    await fn();
+  } catch (err) {
+    record(id, false, err instanceof Error ? (err.message.split(/\r?\n/)[0] ?? err.message) : String(err));
+    for (const [i, pg2] of ctx.pages().entries()) await pg2.screenshot({ path: join(out, `_error-${id.replace("/", "")}-${i}.png`), fullPage: true }).catch(() => {});
+    for (const pg2 of ctx.pages()) await pg2.close().catch(() => {});
+  }
+}
+
 try {
   // ───────────────────────── A ─────────────────────────
-  if (only.has("A")) {
+  if (only.has("A")) await isolated("A", async () => {
     await restockCobalt();
     const live = await ctx.newPage();
     await live.goto(`${base}/live`, { waitUntil: "load", timeout: 180_000 });
@@ -116,7 +147,7 @@ try {
     await pay.screenshot({ path: join(out, "pay-paid-webhook-verified-desktop.png"), fullPage: true });
 
     // Live timeline for this checkout, oldest → newest.
-    await live.getByRole("button", { name: new RegExp(a.checkout_id) }).click();
+    await live.locator('section[aria-labelledby="checkouts-h"]').getByRole("button", { name: new RegExp(a.checkout_id) }).click();
     await live.waitForTimeout(1500);
     const titles = (await live.locator('section[aria-label="Timeline for one checkout"] li').allInnerTexts()).reverse();
     const idx = (s: string) => titles.findIndex((x) => x.includes(s));
@@ -144,14 +175,25 @@ try {
     record("A2 capture webhook verified and processed once", wh!.verified && wh!.attempts === 1 && Boolean(wh!.processed_at), wh);
 
     log("A: asking PayPal to resend", wh!.event_id);
-    await paypal.resendWebhookEvent(wh!.event_id, [e.PAYPAL_WEBHOOK_ID], `resend-${wh!.event_id}-${Date.now()}`);
+    // PayPal only accepts a resend once the event has settled on its side (~1 min): "Resource id is invalid" before that.
+    await until(
+      "PayPal to accept the resend",
+      () =>
+        paypal
+          .resendWebhookEvent(wh!.event_id, [e.PAYPAL_WEBHOOK_ID], `resend-${wh!.event_id}-${Date.now()}`)
+          .then(() => true)
+          .catch((err: Error) => (/invalid/i.test(err.message) ? false : Promise.reject(err))),
+      240_000,
+      15_000,
+    );
     const after = await until(
-      "the resent delivery",
+      "the resent delivery (sandbox can take minutes for recent events)",
       async () => {
         const r = await q1<{ deliveries: number; attempts: number }>("select deliveries, attempts from webhook_events where event_id=$1", [wh!.event_id]);
         return r && r.deliveries > wh!.deliveries ? r : null;
       },
-      180_000,
+      600_000,
+      10_000,
     );
     await sleep(5000);
     const afterState = {
@@ -166,10 +208,10 @@ try {
     );
     await pay.close();
     await live.close();
-  }
+  });
 
   // ───────────────────────── B + C ─────────────────────────
-  if (only.has("B") || only.has("C")) {
+  if (only.has("B") || only.has("C")) await isolated("B/C", async () => {
     await restockCobalt();
     const c = await newCheckout();
     log("B/C: checkout", c.checkout_id);
@@ -224,10 +266,10 @@ try {
       record("C popup closed → checkout stays created, nothing charged", ck!.status === "created" && order.data.status !== "COMPLETED", { checkout: ck!.status, paypalOrder: order.data.status });
       await pay.close();
     }
-  }
+  });
 
   // ───────────────────────── E ─────────────────────────
-  if (only.has("E")) {
+  if (only.has("E")) await isolated("E", async () => {
     await restockCobalt();
     const hooks = await paypal.listWebhooks();
     const hook = hooks.data.webhooks.find((w) => w.id === e.PAYPAL_WEBHOOK_ID)!;
@@ -260,7 +302,7 @@ try {
       await pay.screenshot({ path: join(out, "pay-paid-via-poll-desktop.png"), fullPage: true });
       const live = await ctx.newPage();
       await live.goto(`${base}/live`, { waitUntil: "load" });
-      await live.getByRole("button", { name: new RegExp(x.checkout_id) }).click();
+      await live.locator('section[aria-labelledby="checkouts-h"]').getByRole("button", { name: new RegExp(x.checkout_id) }).click();
       await live.waitForTimeout(1500);
       await live.screenshot({ path: join(out, "live-via-poll-desktop.png") });
       record("E webhook lost + capture lost → fallback check marks it paid, badge 'via poll'", paid.confirmed_via === "poll" && !paid.webhook_confirmed_at && seconds <= 75, {
@@ -273,10 +315,10 @@ try {
       await paypal.updateWebhookUrl(hook.id, goodUrl);
       log("E: webhook URL restored");
     }
-  }
+  });
 
   // ───────────────────────── D ─────────────────────────
-  if (only.has("D") && dCheckout) {
+  if (only.has("D") && dCheckout) await isolated("D", async () => {
     // Make sure we're past D's +3 min creation timer, then simulate "3 hours later" and restart at once.
     const wait = Math.max(0, dCreatedAt + 200_000 - Date.now());
     if (wait) {
@@ -307,10 +349,10 @@ try {
       expiredBy: expired.data.trigger,
       status: ck!.status,
     });
-  }
+  });
 
   // ───────────────────────── F ─────────────────────────
-  if (only.has("F")) {
+  if (only.has("F")) await isolated("F", async () => {
     if (!e.SANDBOX_BUYER2_EMAIL || !e.SANDBOX_BUYER2_PASSWORD) {
       record("F second US sandbox buyer", "skipped", "SANDBOX_BUYER2_EMAIL / SANDBOX_BUYER2_PASSWORD not in .env");
     } else {
@@ -324,7 +366,7 @@ try {
       record("F second US sandbox buyer completes a purchase", ck.buyer_email === e.SANDBOX_BUYER2_EMAIL && ck.buyer_country === "US", ck);
       await pay.close();
     }
-  }
+  });
 } catch (err) {
   record("run", false, err instanceof Error ? err.message : String(err));
   for (const [i, pg2] of ctx.pages().entries()) await pg2.screenshot({ path: join(out, `_error-${i}.png`), fullPage: true }).catch(() => {});

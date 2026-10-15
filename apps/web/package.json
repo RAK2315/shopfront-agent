@@ -13,6 +13,7 @@
     "gate": "node --env-file-if-exists=../../.env --import tsx scripts/gate-e2e.ts",
     "phase1-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase1-checks.mts",
     "phase2-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase2-checks.mts",
+    "phase3-checks": "node --env-file-if-exists=../../.env --import tsx scripts/phase3-checks.mts",
     "screens": "node --import tsx scripts/screens.mts"
   },
   "dependencies": {

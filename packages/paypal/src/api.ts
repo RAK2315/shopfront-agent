@@ -132,6 +132,12 @@ export function createPayPalApi(c: PayPalClient) {
       body: { id?: string; name: string; description?: string; type: 'PHYSICAL' | 'DIGITAL' | 'SERVICE'; category?: string; image_url?: string; home_url?: string },
       requestId: string,
     ) => c.request<{ id: string; name: string }>('POST', '/v1/catalogs/products', { body, requestId }),
+
+    getCatalogProduct: (productId: string) => c.request<{ id: string; name: string; description?: string; image_url?: string; home_url?: string }>('GET', `/v1/catalogs/products/${encodeURIComponent(productId)}`),
+
+    /** JSON Patch; PayPal allows replacing description, category, image_url and home_url. */
+    updateCatalogProduct: (productId: string, ops: Array<{ op: 'replace' | 'add' | 'remove'; path: string; value?: unknown }>) =>
+      c.request<void>('PATCH', `/v1/catalogs/products/${encodeURIComponent(productId)}`, { body: ops }),
   };
 }
 

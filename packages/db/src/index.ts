@@ -24,4 +24,4 @@ export async function closeDb(): Promise<void> {
 }
 
 // Query helpers re-exported so apps don't need their own drizzle-orm dependency.
-export { and, asc, desc, eq, gt, gte, inArray, isNull, lt, or, sql } from 'drizzle-orm';
+export { and, asc, desc, eq, gt, gte, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';

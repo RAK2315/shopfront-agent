@@ -56,6 +56,8 @@
 | D-045 | 2026-10-15 | Webhook hardening (delivery counter, forged-then-genuine upgrade) and refund/reversal reconciliation pulled forward from Phase 4 | ACCEPTED | G7, G9, J1 |
 | D-046 | 2026-10-15 | Public `/live` console is the Phase 2 timeline screen; server-side LLM router singleton backed by `agent_runs` | ACCEPTED | J2, J5, R3 |
 | D-047 | 2026-10-15 | AT-2 test methods: REST resend, webhook URL swap, simulated expiry, Render restart; second buyer waits on owner | ACCEPTED | G9, D-040 |
+| D-048 | 2026-10-15 | Phase 2 findings on Render: failing builds fixed, two pay-page bugs fixed, sandbox resend/popup behaviour handled in AT-2 | ACCEPTED | G9, J1, S3.b |
+| D-049 | 2026-10-15 | Phase 3: bound-free model schema + code-side limits, honest cataloger prompt, judge-mode seller cookie, publish rules, storefront + llms.txt | ACCEPTED | R2, R3, J1, J2 |
 
 ---
 
@@ -418,8 +420,30 @@
 - **"Webhook URL temporarily wrong"** is done with `PATCH /v1/notifications/webhooks/{id}` (URL → `/webhooks/paypal-wrong`, then restored in a `finally`). The browser's capture call is blocked to simulate a closed tab. So only a fallback check can complete the order.
 - **Expiry** is simulated by setting `expires_at` in the past, instead of waiting 3 hours.
 - **Restart** is done with the Render API (`POST /v1/services/{id}/restart`). The expired checkout's `checkout_expired` event must carry `trigger=boot`, which proves the restarted process did the work.
-- **Second US buyer (D-040):** sandbox accounts can only be created in the Developer Dashboard by the owner. Check F runs once `SANDBOX_BUYER2_EMAIL` / `SANDBOX_BUYER2_PASSWORD` are in `.env`; until then it reports SKIP.
+- **Second US buyer (D-040):** the owner created `sb-tuny953392663@personal.example.com` on 2026-10-15 (credentials only in `.env`). Check F passed the same day.
 - **Serves:** G9, D-040.
+
+
+## D-048: Phase 2 findings from running AT-2 on Render
+- **Render builds had been failing since the Phase 1 handoff.** `next build` type-checks `apps/web/scripts/`, and `phase1-checks.mts` imported `./buyer-agent.ts`, which tsc rejects. So Render kept serving `6c7170f`. Fixed by importing `./buyer-agent.js` (tsx maps it to the `.ts` file).
+- **Pay-page bug:** `hidden` on the `<paypal-button>` web component is ignored, so the button looked clickable before the v6 payment session existed, and an early click did nothing. The fix hides a wrapper instead and exposes `data-phase` as a readiness signal.
+- **Pay-page bug:** after a fallback check confirmed the capture ("via poll"), the page stopped following, so a webhook arriving 11 s later never showed. It now keeps following at 10 s intervals until the webhook arrives, for at most 5 minutes.
+- **Sandbox behaviour observed (not ours):**
+  - **Resends:** PayPal rejects a resend with "Resource id is invalid" for about a minute after the event, then delivers resends of fresh events after anywhere from seconds to tens of minutes, sometimes in bursts. AT-2 retries the resend and waits up to 10 minutes.
+  - **Popups:** after many automated logins, popups sometimes show "Things don't appear to be working" or don't open, and once that happens a browser context opens no further popups. AT-2 uses a fresh context per check group and retries a popup up to 3 times on the same order.
+- **Serves:** G9, J1, S3.b.
+
+## D-049: Phase 3 design choices
+- **Extraction schema:** Gemini returned 400 "invalid argument" when `ProductExtraction` had both the `attributes` and `variants` arrays with length, count and range bounds (too many constraint states; bisected on 2026-10-15). The model-facing schema now has **no bounds** (limits are written as descriptions). Variant options are name/value pairs instead of a record. Every limit (lengths, counts, 0–1 confidences, price confidence ≤ 0.5, breadcrumb categories → last segment) is enforced in `draftFromExtraction`, the deterministic step, and unit-tested.
+- **Cataloger honesty:** with the seller's bio in the prompt, the model called a flat illustration "wheel-thrown stoneware" at 90% confidence. The prompt now carries only the shop name and says "describe only what is visible". Prompt version `cataloger-v2`.
+- **Instruction text in photos:** flagged both by the model (`flags`) and by a code-side phrase check (`injectionFlags`). The card shows the flag. Prices are only ever set by the seller.
+- **Seller sign-in (judge mode, D-011):** a signed cookie for the one demo seller (`juniper_clay`), with no password. Nightly reset stays in Phase 6.
+- **Drafts:** one photo → one draft. The same photo returns its existing listing. A discarded photo re-uploaded is drafted from the cached extraction (`agent_runs` by input hash), and the UI shows "From cache". When both providers fail, the card offers "Enter details yourself" (a blank draft, no AI).
+- **Approve = publish:** a single strict request carries the final fields and a `price_confirmed: true` literal, with a price of at least $1.00 for **every** active variant. The API rejects anything else (AT-3). PayPal Catalog Products gets our product id as its id (`POST` with `PayPal-Request-Id = catalog-{id}-v{version}`, then `PATCH` on later edits). A failed sync leaves the listing live and is shown on the timeline.
+- **Storefront:** `/s/{handle}` (ItemList JSON-LD) and `/s/{handle}/{productId}` (Product + Offer JSON-LD), plus `/llms.txt`, all server-rendered. An "agent-buyable" note shows the MCP endpoint.
+- **Local dev:** `SHOPFRONT_DISABLE_TIMERS=1` stops a local server from re-arming fallback timers against the shared database.
+- **Demo photos:** the owner will shoot 6 real phone photos plus a label photo (2026-10-15). Until then, rendered placeholders exercise the pipeline. AT-3 runs on the real set.
+- **Serves:** R2, R3, J1, J2, D-012, D-013, D-016.
 
 ---
 

@@ -1,11 +1,13 @@
 import type { ShopEvent } from "@/server/events";
-import type { TimelineItem } from "./timeline";
+import type { AiSource, TimelineItem } from "./timeline";
 
 // Data keys that hold real identifiers, in display order. PayPal-issued ids use the PayPal tone.
 const ID_KEYS: Array<{ key: string; label: string; paypal?: boolean }> = [
   { key: "orderId", label: "Order", paypal: true },
   { key: "captureId", label: "Capture", paypal: true },
   { key: "refundId", label: "Refund", paypal: true },
+  { key: "catalogId", label: "Catalog", paypal: true },
+  { key: "productId", label: "Product" },
   { key: "eventId", label: "Event", paypal: true },
   { key: "debugId", label: "Debug", paypal: true },
   { key: "paypalRequestId", label: "Request-Id" },
@@ -25,6 +27,7 @@ export function toTimelineItem(e: ShopEvent): TimelineItem {
   });
   if (e.checkoutId) ids.unshift({ label: "Checkout", value: e.checkoutId, paypal: undefined });
   const errorCode = typeof d.errorCode === "string" ? d.errorCode : undefined;
+  const aiSource = (["gemini", "groq", "cache", "replay"] as const).find((s) => s === d.source) as AiSource | undefined;
   return {
     id: String(e.id),
     actor: e.actor,
@@ -33,6 +36,7 @@ export function toTimelineItem(e: ShopEvent): TimelineItem {
     at: e.createdAt,
     ids,
     durationMs: typeof d.ms === "number" ? d.ms : undefined,
+    aiSource,
     outcome:
       BLOCKED_KINDS.has(e.kind) || (e.kind === "tool_error" && errorCode === "VALIDATION_ERROR")
         ? "blocked"

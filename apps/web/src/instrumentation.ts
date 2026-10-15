@@ -2,6 +2,8 @@
 // or a Render cold start never loses an order. Deferred, so it doesn't delay the first request.
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs" || process.env.NEXT_PHASE === "phase-production-build") return;
+  // Local dev against the shared database must not race the deployed server's timers.
+  if (process.env.SHOPFRONT_DISABLE_TIMERS === "1") return;
   const { rearmOpenCheckouts } = await import("./server/fallback");
   setTimeout(() => {
     rearmOpenCheckouts()

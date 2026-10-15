@@ -11,6 +11,7 @@ export const ID_PREFIXES = {
   message: 'msg',
   event: 'evt',
   agentRun: 'run',
+  extraction: 'ext',
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;

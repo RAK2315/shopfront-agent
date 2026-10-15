@@ -124,17 +124,21 @@ export function PayPalApprove({
   }, [init]);
 
   // After payment, follow the order until PayPal's verified webhook confirms it (the live-wire moment).
-  // Stop following once PayPal has confirmed the capture, by webhook or by a fallback check.
-  const webhookDone = status?.confirmation === "webhook" || status?.confirmation === "poll";
+  // A fallback check may confirm first ("via poll"); keep following more slowly so a late webhook still shows,
+  // and give up after 5 minutes so an open tab doesn't keep the database awake.
+  const webhookDone = status?.confirmation === "webhook";
+  const pollConfirmed = status?.confirmation === "poll";
   useEffect(() => {
     if (phase !== "paid" || webhookDone) return;
     const first = setTimeout(() => void refreshStatus(), 0);
-    const t = setInterval(() => void refreshStatus(), 2000);
+    const t = setInterval(() => void refreshStatus(), pollConfirmed ? 10_000 : 2_000);
+    const stop = setTimeout(() => clearInterval(t), 5 * 60_000);
     return () => {
       clearTimeout(first);
+      clearTimeout(stop);
       clearInterval(t);
     };
-  }, [phase, refreshStatus, webhookDone]);
+  }, [phase, refreshStatus, webhookDone, pollConfirmed]);
 
   const onClick = async () => {
     if (!sessionRef.current) return;
