@@ -246,7 +246,11 @@ try {
       // shell: true (npx is a .cmd on Windows), so every path is quoted: the repo path contains spaces.
       spawnSync("npx", ["--yes", "lighthouse@12.8.2", `"${url}"`, "--only-categories=accessibility", "--output=json", `"--output-path=${file}"`, `"--extra-headers=${hdrFile}"`, '"--chrome-flags=--headless=new"', "--quiet"], { shell: true, encoding: "utf8", timeout: 300_000 });
       try {
-        scores[name] = Math.round(JSON.parse(readFileSync(file, "utf8")).categories.accessibility.score * 100);
+        const report = JSON.parse(readFileSync(file, "utf8"));
+        scores[name] = Math.round(report.categories.accessibility.score * 100);
+        // Lighthouse records the extra headers it was given: never keep the session cookie in the report.
+        if (report.configSettings?.extraHeaders) report.configSettings.extraHeaders = { Cookie: "[redacted]" };
+        writeFileSync(file, JSON.stringify(report));
       } catch {
         scores[name] = null;
       }
