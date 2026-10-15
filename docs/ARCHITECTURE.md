@@ -7,6 +7,12 @@
 > - "pg-boss" and the "Poller (cron 30s)" are now **async processing after the 200 response** plus **per-checkout fallback timers** (+60 s, +3 min, +10 min).
 > - The seller dashboard is **AG Studio** (see §2.7).
 > - The database is **Neon free Postgres**.
+> **Phase 2 deltas (D-043 to D-046):**
+> - Fallback checks live in `apps/web/src/server/fallback.ts`. The cadence is in D-044: create, pay page, paid-by-capture-response, expiry, and boot re-arm from `instrumentation.ts`. A check may **capture** an approved-but-uncaptured order, with the same idempotent request id. `checkouts.poll_confirmed_at` backs the "via poll" badge.
+> - The SSE feed is `GET /api/events` (backlog replay, `Last-Event-ID`). The public console is `/live`, with recent checkouts at `GET /api/console/checkouts`.
+> - `webhook_events.deliveries` / `last_delivery_at` count every delivery. `PAYMENT.CAPTURE.REFUNDED` / `.REVERSED` are reconciled now (GET capture → `partially_refunded` / `refunded` / `reversed`).
+> - The LLM router singleton is `apps/web/src/server/llm.ts`, with `agent_runs` as log, cache and replay. AG Studio turns go through `POST /api/studio/turn`.
+>
 > Principle: **the model proposes, deterministic code disposes.** No money-moving call is ever built from free-form model text (D-002).
 
 ## 1. System overview

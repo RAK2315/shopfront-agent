@@ -161,20 +161,18 @@ export function PayPalApprove({
 
       {phase !== "paid" && (
         <>
-          <div className={cn("min-h-12", (phase === "loading" || phase === "unavailable") && "grid place-items-center")}>
+          <div className={cn("min-h-12", (phase === "loading" || phase === "unavailable") && "grid place-items-center")} data-phase={phase}>
             {phase === "loading" && (
               <span className="inline-flex items-center gap-2 text-sm text-ink-2">
                 <LoaderCircle aria-hidden className="size-4 animate-spin" /> Loading PayPal…
               </span>
             )}
             {phase === "unavailable" && <span className="text-sm text-danger">PayPal is not available for this order.</span>}
-            <paypal-button
-              ref={buttonRef as never}
-              type="pay"
-              class="paypal-gold"
-              hidden={!(phase === "ready" || phase === "approving" || phase === "error")}
-              aria-disabled={phase === "approving" || undefined}
-            />
+            {/* Hidden on a wrapper: the web component sets its own display, so `hidden` on it is ignored and
+                a click before the payment session exists would do nothing. */}
+            <div hidden={!(phase === "ready" || phase === "approving" || phase === "error")}>
+              <paypal-button ref={buttonRef as never} type="pay" class="paypal-gold" aria-disabled={phase === "approving" || undefined} />
+            </div>
           </div>
           {phase === "capturing" && (
             <p className="inline-flex items-center gap-2 text-sm text-ink-2" role="status">

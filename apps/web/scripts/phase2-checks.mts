@@ -71,8 +71,9 @@ async function restockCobalt() {
 
 async function payInPopup(page: Page, buyer: { email: string; password: string }, shots: { login?: string; review?: string } = {}) {
   const btn = page.locator("paypal-button");
-  await btn.waitFor({ state: "visible", timeout: 60_000 });
-  const popupP = page.waitForEvent("popup", { timeout: 30_000 });
+  // The pay page marks itself ready once the v6 payment session exists.
+  await page.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
+  const popupP = page.waitForEvent("popup", { timeout: 45_000 });
   await btn.click();
   const popup = await popupP;
   await loginAndApprove(popup, buyer, shots);
@@ -209,8 +210,8 @@ try {
       const pay = await ctx.newPage();
       await pay.goto(c.pay_url, { waitUntil: "load" });
       const btn = pay.locator("paypal-button");
-      await btn.waitFor({ state: "visible", timeout: 60_000 });
-      const popupP = pay.waitForEvent("popup", { timeout: 30_000 });
+      await pay.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
+      const popupP = pay.waitForEvent("popup", { timeout: 45_000 });
       await btn.click();
       const popup = await popupP;
       await popup.waitForLoadState("domcontentloaded");
@@ -326,6 +327,7 @@ try {
   }
 } catch (err) {
   record("run", false, err instanceof Error ? err.message : String(err));
+  for (const [i, pg2] of ctx.pages().entries()) await pg2.screenshot({ path: join(out, `_error-${i}.png`), fullPage: true }).catch(() => {});
 } finally {
   await browser.close();
   await mcp.close();

@@ -51,6 +51,11 @@
 | D-040 | 2026-10-15 | Owner skips the second-country sandbox buyer; unhappy path #03 is covered by a second **US** buyer only | ACCEPTED (owner) | G9 |
 | D-041 | 2026-10-15 | Webhook subscribes to all events (`*`) despite the PayPal skill preferring explicit types; filtered in code | ACCEPTED (owner) | G7 |
 | D-042 | 2026-10-15 | Gate implementation choices: Next.js `cacheComponents` off, HMAC order tokens, `after()` for webhook processing, separate `@shopfront/paypal` package | ACCEPTED | J1 |
+| D-043 | 2026-10-15 | AG Studio spike: built-in harness runs on our AgLlmAdapter → `/api/studio/turn` → LLM router; token-size risk for Phase 5 | ACCEPTED | P9, J1 |
+| D-044 | 2026-10-15 | Fallback-check cadence, pay-page checks, fallback capture of approved orders, `poll_confirmed_at` + confirmation badge | ACCEPTED | G7, G9, J1 |
+| D-045 | 2026-10-15 | Webhook hardening (delivery counter, forged-then-genuine upgrade) and refund/reversal reconciliation pulled forward from Phase 4 | ACCEPTED | G7, G9, J1 |
+| D-046 | 2026-10-15 | Public `/live` console is the Phase 2 timeline screen; server-side LLM router singleton backed by `agent_runs` | ACCEPTED | J2, J5, R3 |
+| D-047 | 2026-10-15 | AT-2 test methods: REST resend, webhook URL swap, simulated expiry, Render restart; second buyer waits on owner | ACCEPTED | G9, D-040 |
 
 ---
 
@@ -365,6 +370,56 @@
 - **`@shopfront/paypal` package:** a thin REST client with token caching, required `PayPal-Request-Id` on POST, debug-id capture and 429/5xx backoff. It refuses non-sandbox base URLs.
 - **Rehearsal (2026-10-15):** a local run of agent → MCP → Orders v2 → popup approval → capture reached `COMPLETED` (order `0K40035845525545N`, capture `39L78000BY223680X`). The webhook leg needs the public Render URL.
 - **Serves:** J1.
+
+
+## D-043: AG Studio spike (Phase 2)
+- **Context:** PLAN Phase 2 asked for a 2-hour spike running "the sponsor's AG Studio + PayPal boilerplate" and confirming `directLlmRunner` works with our AI SDK adapter. No public boilerplate repo was found (the `ag-grid` GitHub org has only `ag-grid/skills`; the docs page for the Direct LLM runner returned 404). **Deviation:** the spike used the official npm packages `ag-studio@3.0.0` + `ag-studio-react@3.0.0` and the shipped type definitions instead.
+- **What was built:** `AgLlmAdapter` (`components/studio/llm-adapter.ts`) → `POST /api/studio/turn` → `llm().agent.chatStep` (route `grid`, Groq → Gemini, budget guard, `agent_runs` log). Studio's built-in harness (`createAiHarness(api, { adapter, primary: 'lead' })`) runs on it. `directLlmRunner` takes the same `AgLlmAdapter`, so our custom insights agent in Phase 5 plugs into the same adapter.
+- **Result (local, 2026-10-15):** with real checkout rows as the data source, "Add a column chart showing total_usd by status" ran 4 turns, all answered by Groq `openai/gpt-oss-120b`: `view_report` → `delegate_to` (page agent) → `add_widget` → done. A widget appeared. The trial licence key removed the watermark. There were no console errors.
+- **Risks for Phase 5:**
+  1. Turns are **~3.8k–10.3k tokens** because Studio sends its full tool set. That is at or above Groq's free **8k tokens/minute**, so multi-turn runs will hit 429s and fall back to Gemini (~12 s per turn). Mitigation: pass a trimmed toolset through `directLlmRunner` for our agent, keep histories short, and pre-build the default layout in code.
+  2. The first widget was added unconfigured (a chart shell), and the lead agent was still working after 90 s. Phase 5 needs tighter instructions and the AT-5 prompt verified end to end.
+- **Spike page:** `/spike/studio` (noindex, not linked). It is replaced by the Phase 5 dashboard.
+- **Serves:** P9, J1.
+
+## D-044: Fallback checks (implements D-025)
+- **Cadence:**
+  - Checkout created: +60 s, +3 min, +10 min, plus an expiry check at `expires_at` + 5 s.
+  - **Pay page opened: +45 s, +90 s, +150 s, +210 s, +300 s, +600 s** (no gap over 60 s).
+  - Paid by our capture response: +60 s, +3 min, +10 min, to confirm with PayPal if no webhook comes.
+  - On boot (`instrumentation.ts`, 3 s after start): re-arm every checkout from the last 3 days that is open, or paid but unconfirmed. Expired ones are checked at once. One query, no loop.
+- **Deviation from D-025 ("when a checkout is created or approved"):** we cannot observe approval when the capture call is lost (tab closed, network gone) and the webhook is lost too. So the pay page arms denser checks, which catch such an approval within about a minute (AT-2 "within 60–70 s").
+- **A check reads our row first** (`needsFallbackCheck`, pure and unit-tested in `packages/core/src/reconcile.ts`). It calls `GET /v2/checkout/orders/{id}` only if a webhook has not already confirmed the payment. It then acts:
+  - `settle` if a capture exists.
+  - **`capture` if the order is `APPROVED` with no capture.** This is deterministic code with the same `PayPal-Request-Id = capture-{checkout}`, so it cannot double-capture.
+  - `expire` (→ `cancelled`) if the order was never approved and our expiry has passed.
+  - `wait` otherwise.
+- **Confirmation badge:** a new nullable column `checkouts.poll_confirmed_at` (migration `0002`). `confirmationOf()` ranks the sources: `webhook` (verified `PAYMENT.CAPTURE.COMPLETED`) > `poll` (a fallback check confirmed or performed the capture) > `awaiting_webhook`. It is shown on `/pay` and `/live`.
+- **Serves:** G7, G9, J1.
+
+## D-045: Webhook hardening and refund reconciliation
+- **Delivery counter:** `webhook_events.deliveries` and `last_delivery_at` (migration `0003`). Every delivery of an event id, including PayPal retries and Dashboard or API resends, increments the counter. Processing still happens once. The counter is the evidence for "received N×, processed once".
+- **Forged-then-genuine:** a forged POST could claim a real event id first. A later delivery of that id that **does** verify replaces the unverified row and is processed. Another unverifiable copy changes nothing. The verify call's `PayPal-Request-Id` is now per transmission, because a resend is a new delivery to verify.
+- **Pulled forward from Phase 4:**
+  - `PAYMENT.CAPTURE.REFUNDED` reconciles refunds made anywhere, **including by the merchant directly in PayPal** (unhappy path #04). It finds the capture from the refund's `up` link, then **GETs the capture**, so PayPal's own status decides full vs partial. It stores the cumulative `seller_payable_breakdown.total_refunded_amount`, then moves the checkout to `partially_refunded` or `refunded`.
+  - `PAYMENT.CAPTURE.REVERSED` moves the checkout to `reversed`.
+  - The refund **executor**, the policy engine and `request_refund` remain Phase 4.
+  - Shapes were verified against PayPal's published OpenAPI specs (Payments v2, Webhooks v1) on 2026-10-15, because the AI Toolkit's reference files don't cover them.
+- **Serves:** G7, G9, J1.
+
+## D-046: `/live` console and the LLM router singleton
+- **`/live`:** the Phase 2 timeline screen. It is a public, read-only ops console showing the SSE timeline (`/api/events`: backlog replay, `Last-Event-ID` resume, 20 s comment heartbeats that never touch the DB) and recent checkouts with status, confirmation badge, buyer country and PayPal ids. It shows **no buyer email or address**. The Phase 5 AG Studio dashboard reuses these components.
+- MCP tool-call events now carry readable summaries (query and result count, product title, status). They never carry `order_token`.
+- **`server/llm.ts`:** one router per process (`agent` = Groq → Gemini, `vision` = Gemini). It applies `MemoryBudget` caps from env, and uses `agent_runs` as the call log, the cache and the replay store (D-029). It was built now because the AG Studio spike needed it; Phases 3–6 use it.
+- **Serves:** J2, J5, R3.
+
+## D-047: How AT-2 is tested (no mocks)
+- **"Resend from the Dashboard"** is done with the equivalent REST call, `POST /v1/notifications/webhooks-events/{id}/resend`. It is scriptable and gives the same delivery.
+- **"Webhook URL temporarily wrong"** is done with `PATCH /v1/notifications/webhooks/{id}` (URL → `/webhooks/paypal-wrong`, then restored in a `finally`). The browser's capture call is blocked to simulate a closed tab. So only a fallback check can complete the order.
+- **Expiry** is simulated by setting `expires_at` in the past, instead of waiting 3 hours.
+- **Restart** is done with the Render API (`POST /v1/services/{id}/restart`). The expired checkout's `checkout_expired` event must carry `trigger=boot`, which proves the restarted process did the work.
+- **Second US buyer (D-040):** sandbox accounts can only be created in the Developer Dashboard by the owner. Check F runs once `SANDBOX_BUYER2_EMAIL` / `SANDBOX_BUYER2_PASSWORD` are in `.env`; until then it reports SKIP.
+- **Serves:** G9, D-040.
 
 ---
 
