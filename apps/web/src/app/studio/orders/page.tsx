@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SellerNav } from "@/components/studio/seller-nav";
 import { redirect } from "next/navigation";
 import { OrderList, RefundQueue } from "@/components/studio/orders";
 import { sellerOrders } from "@/server/orders";
@@ -22,9 +23,7 @@ export default async function OrdersPage() {
           </Link>
           <h1 className="font-display text-display font-medium tracking-[-0.02em]">Orders</h1>
         </div>
-        <Link href="/live" className="text-base font-medium text-ink-2 underline-offset-4 hover:text-ink hover:underline">
-          Live wire
-        </Link>
+        <SellerNav handle={seller.handle} current="orders" />
       </header>
       <RefundQueue refunds={refunds} />
       <OrderList orders={orders} />

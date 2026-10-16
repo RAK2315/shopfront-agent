@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SellerNav } from "@/components/studio/seller-nav";
 import { redirect } from "next/navigation";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { PRESET_VERSION } from "@/components/dashboard/preset";
@@ -24,17 +25,7 @@ export default async function DashboardPage() {
           </Link>
           <h1 className="text-sm font-medium text-ink-2">Dashboard</h1>
         </div>
-        <nav className="flex items-center gap-4 text-sm font-medium text-ink-2">
-          <Link href="/studio/orders" className="hover:text-ink">
-            Orders
-          </Link>
-          <Link href={`/s/${seller.handle}`} className="hover:text-ink">
-            Storefront
-          </Link>
-          <Link href="/live" className="hover:text-ink">
-            Live wire
-          </Link>
-        </nav>
+        <SellerNav handle={seller.handle} current="dashboard" />
       </header>
       <div className="min-h-0 p-2">
         <DashboardClient initialData={data} savedState={saved?.preset === PRESET_VERSION ? saved.state : null} />

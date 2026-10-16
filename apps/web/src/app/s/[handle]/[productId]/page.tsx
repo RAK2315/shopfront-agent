@@ -39,7 +39,7 @@ export default async function ProductPage({ params }: PageProps<"/s/[handle]/[pr
         <ArrowLeft aria-hidden className="size-4" /> {seller.displayName}
       </Link>
 
-      <article className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <article className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="overflow-hidden rounded-lg bg-surface-2">
           {p.images[0] ? (
             // eslint-disable-next-line @next/next/no-img-element -- content-hashed, already resized server-side

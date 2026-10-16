@@ -200,11 +200,19 @@ function ShipForm({ orderId, onDone }: { orderId: string; onDone: () => void }) 
 export function OrderList({ orders }: { orders: SellerOrder[] }) {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
+  const toShip = orders.filter((o) => o.status === "paid" && !o.shipment).length;
   return (
     <section aria-labelledby="orders-h" className="grid gap-4">
-      <h2 id="orders-h" className="font-display text-2xl font-medium">
-        Orders
-      </h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id="orders-h" className="font-display text-2xl font-medium">
+          Orders
+        </h2>
+        {orders.length > 0 && (
+          <p className="text-sm text-ink-2 tabular">
+            {orders.length} {orders.length === 1 ? "order" : "orders"} · <span className={toShip ? "font-medium text-ink" : undefined}>{toShip} to ship</span>
+          </p>
+        )}
+      </div>
       {orders.length === 0 ? (
         <p className="rounded-lg border border-line bg-surface px-5 py-5 text-base text-ink-2">No paid orders yet.</p>
       ) : (

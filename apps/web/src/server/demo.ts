@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { and, eq, inArray, notInArray, schema } from "@shopfront/db";
+import { mirrorMissingToCatalog } from "./catalog";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { services } from "./services";
@@ -33,10 +34,12 @@ async function demoSeller() {
   return s;
 }
 
-/** Freeze the demo seller's current approved catalog as the baseline a reset restores. */
+/** Freeze the demo seller's current approved catalog as the baseline a reset restores. Listings not yet in
+ * PayPal's catalog (the seeded ones) are mirrored first, so the frozen demo never shows "Not mirrored". */
 export async function freezeDemoCatalog() {
   const { db } = services();
   const s = await demoSeller();
+  const catalog = await mirrorMissingToCatalog(s);
   const products = await db.select().from(schema.products).where(and(eq(schema.products.sellerId, s.id), eq(schema.products.status, "approved")));
   const variants = products.length ? await db.select().from(schema.variants).where(inArray(schema.variants.productId, products.map((p) => p.id))) : [];
   const data: Snapshot = {
@@ -46,7 +49,7 @@ export async function freezeDemoCatalog() {
     bio: s.bio,
   };
   await db.insert(schema.demoSnapshots).values({ id: s.id, data }).onConflictDoUpdate({ target: schema.demoSnapshots.id, set: { data, createdAt: new Date() } });
-  return { products: data.products.length, variants: data.variants.length };
+  return { products: data.products.length, variants: data.variants.length, catalog };
 }
 
 /** Restore the frozen catalog. Idempotent and fast (a handful of statements in one transaction). */

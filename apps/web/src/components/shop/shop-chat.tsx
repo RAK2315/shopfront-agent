@@ -153,7 +153,7 @@ export function ShopChat() {
             <p className="text-sm text-ink-2">Ask for something, or try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {STARTERS.map((s) => (
-                <button key={s} type="button" onClick={() => send(s)} className="rounded-pill border border-line-strong bg-surface px-3 py-1.5 text-sm text-ink transition-colors hover:border-clay hover:bg-clay-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
+                <button key={s} type="button" onClick={() => send(s)} className="rounded-pill border border-line-strong bg-surface px-3 py-1.5 text-left text-sm text-ink transition-colors hover:border-clay hover:bg-clay-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay">
                   {s}
                 </button>
               ))}

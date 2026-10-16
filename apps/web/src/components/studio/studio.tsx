@@ -253,7 +253,9 @@ export function Studio({
                     {p.image ? (
                       <motion.img layoutId={reduce ? undefined : `photo-${p.image.sha256}`} src={p.image.url} alt={p.title} className="aspect-[4/3] w-full object-cover" />
                     ) : (
-                      <div className="aspect-[4/3] bg-surface-2" aria-hidden />
+                      <div aria-hidden className="grid aspect-[4/3] place-items-center bg-surface-2 font-display text-hero text-line-strong">
+                        {p.title[0]}
+                      </div>
                     )}
                     <div className="grid gap-2 p-4">
                       <div className="flex items-baseline justify-between gap-3">

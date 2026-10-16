@@ -590,6 +590,20 @@
 - The README now says the `.env` stays at the root, and that local payments are confirmed by the fallback check, because PayPal can't reach `localhost`.
 - **Serves:** S3.a, D-056.
 
+## D-060: Phase 7 design pass (critique → polish)
+- **Method:** an impeccable critique of `/studio`, `/studio/orders`, `/shop`, `/s/juniper_clay` and `/live` on Render. It ran in a single context, because the harness spawns sub-agents only on the owner's request. The detector found 0 issues. The fixes below come from the screenshot review.
+- **Fixed:**
+  1. **There was no way from the studio to the AG Studio dashboard** (the P9 surface), and each seller page had different navigation. The new `SellerNav` (Listings · Orders · Dashboard · Storefront · Live wire, with `aria-current`) is used on all three seller pages. Before, "Storefront" in clay looked like the current page.
+  2. **Listing tiles without a photo were blank boxes in the studio,** while the storefront showed the title's initial. The studio now uses the same placeholder.
+  3. **The storefront overflowed 13 px on phones** (the MCP chip inside an auto grid column). Its header, and the product page's article, now use `minmax(0,1fr)` columns.
+  4. **The orders list had no summary:** it now shows "N orders · M to ship".
+  5. Starter chips that wrap are left-aligned.
+- **Seeded listings showed "Not mirrored to PayPal yet":** they were inserted by SQL and never went through approval. `POST /api/admin/demo {freeze}` now first mirrors every approved listing that has no PayPal catalog id, through the same `syncToPayPalCatalog` (a real Catalog Products call with `PayPal-Request-Id`). Reset is unchanged and stays fast (AT-6).
+- **Not changed (noted):**
+  - The model writes the thank-you subject in Title Case ("Thank You for Your Order"). Changing the prompt would invalidate the recorded replay keys (D-055), so it waits until the next re-record.
+  - The order list stays as cards: it is the seller's own list, and the dense view is the AG Grid ledger on the dashboard.
+- **Serves:** J2, P9, S6.
+
 ---
 
 ## Requirement updates

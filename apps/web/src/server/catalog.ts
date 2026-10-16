@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { draftFromExtraction, newId, paypalCatalogCategory, ProductExtraction, ShopError } from "@shopfront/core";
-import { and, asc, desc, eq, inArray, ne, schema } from "@shopfront/db";
+import { and, asc, desc, eq, inArray, isNull, ne, schema } from "@shopfront/db";
 import { PayPalApiError } from "@shopfront/paypal";
 import { appUrl } from "./env";
 import { recordEvent } from "./events";
@@ -242,6 +242,18 @@ export async function approveProduct(seller: Seller, productId: string, input: z
   });
   const sync = await syncToPayPalCatalog(seller, approved);
   return { product: await productView(productId), sync };
+}
+
+/** Mirror every approved listing that PayPal's catalog doesn't have yet, e.g. seeded ones (demo freeze, D-060). */
+export async function mirrorMissingToCatalog(seller: Seller) {
+  const { db } = services();
+  const missing = await db
+    .select()
+    .from(schema.products)
+    .where(and(eq(schema.products.sellerId, seller.id), eq(schema.products.status, "approved"), isNull(schema.products.paypalCatalogId)));
+  let mirrored = 0;
+  for (const p of missing) if ((await syncToPayPalCatalog(seller, p)).ok) mirrored++;
+  return { mirrored, missing: missing.length };
 }
 
 /** Mirror into PayPal Catalog Products (D-016). The catalog carries no price; ours stays the source of truth. */

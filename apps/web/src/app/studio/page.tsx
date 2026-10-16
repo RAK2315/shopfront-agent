@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SellerNav } from "@/components/studio/seller-nav";
 import { eq, schema } from "@shopfront/db";
 import { SellerSignIn } from "@/components/studio/sign-in";
 import { Studio } from "@/components/studio/studio";
@@ -44,17 +45,7 @@ export default async function StudioPage() {
           <h1 className="font-display text-display font-medium tracking-[-0.02em]">{seller.displayName}</h1>
           <p className="max-w-[60ch] text-base text-ink-2">{seller.bio}</p>
         </div>
-        <nav className="flex items-center gap-4 text-base font-medium">
-          <Link href="/studio/orders" className="text-ink underline-offset-4 hover:underline">
-            Orders
-          </Link>
-          <Link href={`/s/${seller.handle}`} className="text-clay-strong underline-offset-4 hover:underline">
-            Storefront
-          </Link>
-          <Link href="/live" className="text-ink-2 underline-offset-4 hover:text-ink hover:underline">
-            Live wire
-          </Link>
-        </nav>
+        <SellerNav handle={seller.handle} current="studio" />
       </header>
       <Studio seller={{ handle: seller.handle, displayName: seller.displayName }} initialDrafts={drafts} initialLive={live} mcpUrl={appUrl("/mcp")} />
     </main>

@@ -35,7 +35,7 @@ export default async function Storefront({ params }: PageProps<"/s/[handle]">) {
   return (
     <main className="mx-auto grid min-h-dvh max-w-[76rem] content-start gap-12 px-5 py-8 sm:px-8 lg:py-14">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
-      <header className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
+      <header className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
         <div className="grid gap-4">
           <h1 className="font-display text-hero font-medium tracking-[-0.025em]">{seller.displayName}</h1>
           <p className="prose-width text-md text-ink-2">{seller.bio}</p>

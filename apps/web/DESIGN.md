@@ -61,6 +61,7 @@
 - **Money:** integer cents → `$28.00`, tabular, optional currency code.
 - **ConfidenceField:** AI-extracted value with a confidence meter. Below 0.75 it gets a warning tint, an icon and a "Check this" label. Prices always show "AI guess" until confirmed.
 - **RequestId:** mono chip with a kind label, middle truncation and a copy button. PayPal IDs use the PayPal tone.
+- **SellerNav:** the one navigation on seller pages (Listings, Orders, Dashboard, Storefront, Live wire). The current page is ink with a clay underline and `aria-current="page"`; the others are ink-2.
 - **TimelineEvent:** actor glyph and name, summary, IDs, AI source badge, relative time. Slides in. Rendered on the ink panel.
 
 ## Z-index scale
