@@ -20,7 +20,12 @@
 - [ ] Elevator pitch, 2–3 sentences (S7).
 - [ ] Project story: inspiration, how built, tools, why, challenges, what's next (S7).
 - [ ] Text description of features and functionality (S2).
-- [ ] **Tools section**: each model or AI service and how it's used (S4). Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
+  - **Planned for Phases 9–13 (2026-10-16). Add each line only once its AT passes on Render; never describe a cut phase:**
+    - **Agent reorder with consent:** the buyer saves PayPal once (Vault v3) with a spend cap; their agent reorders with no popup inside the cap; above the cap, or once revoked or expired, the popup returns; there is a per-agent audit log and instant revoke. *(Phase 10; Spike V decides.)*
+    - **Dispute defense agent:** code assembles an evidence pack (tracking, delivery, chat, photos), the agent drafts the words, and the seller approves before it's submitted through the Disputes API. *(Phase 11)*
+    - **Real multi-seller payouts:** Partner Referrals onboarding, per-seller payee routing, and a platform fee ledger. This retires the single-account caveat (D-006). *(Phase 12; Spike M decides.)*
+    - **Adversarial agent arena:** 50 live attacks against our own MCP server, each shown BLOCKED with the guardrail that caught it. *(Phase 13)*
+- [ ] **Tools section**: each model or AI service and how it's used (S4). Add when shipped: **PayPal Vault v3 payment tokens and merchant-initiated Orders** (Phase 10), the **Disputes API** (Phase 11), and **Partner Referrals / multiparty** (Phase 12). The arena (Phase 13) uses no new tool: it is our own MCP client. Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
 - [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password, judge-seller login.
 - [ ] GitHub repo URL (S5).
 - [ ] YouTube video URL (S6.3).

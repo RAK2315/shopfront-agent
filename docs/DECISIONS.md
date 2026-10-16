@@ -639,6 +639,74 @@
   4. The `/live` wire shows "fallback after mode:replay" for replayed steps, which two reviewers read as "staged". See REVIEW-1.
 - **Serves:** S6, J5, D-057, D-058.
 
+## D-063: Phase 9 is review fixes; Phases 9–13 schedule (owner directive, 2026-10-16)
+- **Gate:** REVIEW-1 scored J3 = 6, J4 = 5 and J5 = 6, all below 7. Per the owner's rule, **Phase 9 = review fixes** (REVIEW-1 #1–#9 and #11, by score per hour), and the owner's feature phases are renumbered **10 (Vault reorder), 11 (disputes), 12 (multi-seller), 13 (arena)**. No feature starts before AT-9 passes on Render.
+- **Schedule, inside the Nov 3 freeze, spikes first:**
+  - Phase 9: Oct 17–19.
+  - Spike V: Oct 20.
+  - Spike M: Oct 21.
+  - Phase 10: Oct 22–25.
+  - Phase 11: Oct 26–29 (disputes opened Oct 26 morning).
+  - Phase 12: Oct 30–Nov 1.
+  - Phase 13: Nov 2–3.
+- **Cut rule:** a slip of more than 1 day cuts 13 → 12 → 11 → 10. A failed spike cuts its phase. Nothing is ever faked.
+- **The video** stays after the freeze, re-timed in `DEMO-SCRIPT.md` v2 (a hero beat and a montage; still 2:45).
+- **Open owner decision:** publish the sandbox buyer credentials now (REVIEW-1 #1) instead of on submission day (D-034).
+- **Serves:** J1–J5, P6, P9, S3.b, S6.
+
+## D-064: Phase 10, agent reorder with Vault (planned; Spike V on Oct 20)
+- **Design:**
+  - The buyer saves PayPal with the **save-without-purchase** flow:
+    - `POST /v3/vault/setup-tokens` with `usage_type: MERCHANT` and `customer_type: CONSUMER`;
+    - then the v6 save session with a server-minted `clientToken`;
+    - then `POST /v3/vault/payment-tokens`.
+  - Later reorders create Orders v2 with `payment_source.paypal.vault_id` and capture with no buyer present.
+  - **The spend cap, period and expiry are enforced by our deterministic code**, under a row lock. PayPal has no per-token cap, and the README says so.
+  - Revoke deletes the PayPal payment token (`DELETE /v3/vault/payment-tokens/{id}`).
+  - New MCP tools `reorder` and `get_consent` take a consent token, ids and quantities only. The consent token is stored hashed and aliased for the hosted agent (D-061).
+- **Risks:**
+  - PayPal's docs say vaulting PayPal needs **reference transactions approval** and warn against saving during purchase.
+  - Risk data (FraudNet) is required for customer-initiated vaulted payments.
+  - **If Spike V fails in sandbox, the phase is dropped and logged; it is never faked.**
+- **Serves:** P8, P7, J1, J4, R2, R3, G1.
+
+## D-065: Phase 11, dispute defense agent (planned)
+- **APIs:**
+  - Webhooks `CUSTOMER.DISPUTE.*`.
+  - `GET /v1/customer/disputes[/{id}]`.
+  - `POST …/provide-evidence` (multipart; schema checked against the OpenAPI spec before building), `…/accept-claim` and `…/send-message`.
+  - Sandbox-only `…/require-evidence` and `…/adjudicate`, used in AT-11 only.
+- **Who decides what:**
+  - The evidence pack is assembled by code with labelled sources.
+  - The model drafts words only; code appends the facts (D-008).
+  - The seller must approve before submission, enforced by the API.
+- **Sandbox disputes are slow to appear,** so they are opened the morning of Oct 26, and replay covers re-takes.
+- **Serves:** P7, R3, J1, J3, G9.
+
+## D-066: Phase 12, real multi-seller payouts (planned; Spike M on Oct 21)
+- **APIs:**
+  - `POST /v2/customer/partner-referrals`: `API_INTEGRATION`/`THIRD_PARTY`, features `PAYMENT`, `REFUND`, `PARTNER_FEE`; product `EXPRESS_CHECKOUT`; `SHARE_DATA_CONSENT`.
+  - The seller status check: `GET /v1/customer/partners/{partner}/merchant-integrations/{merchant}`.
+  - Orders v2 with `purchase_units[].payee.merchant_id` and `purchase_units[].payment_instruction.platform_fees`.
+  - Refunds with `PayPal-Auth-Assertion`.
+  - A deterministic fee rule in `packages/core`.
+- **Risk:** PayPal states multiparty requires an approved partner, and platform fees need enablement.
+- **Spike outcomes:**
+  - **Pass:** ship the phase and retire D-006 in the README.
+  - **Partial** (payee routing works without onboarding or fees): ship exactly that, described exactly.
+  - **Gated:** keep D-006, say so plainly, and cut the phase.
+- **Serves:** J1, J3, G1, R2, R5.
+
+## D-067: Phase 13, adversarial agent arena (planned)
+- **The attacks:** 50 deterministic attacks run live against the deployed MCP server and app, in 7 categories: money fields, quantity overflow, refund abuse, duplicate captures, replayed or forged webhooks, tool-call spoofing, and consent abuse.
+- **The board:** a public live board at `/arena` shows BLOCKED or ALLOWED, the guardrail, and the PayPal request or debug id, with the pass rate.
+- **Failures:** any ALLOWED is a bug to fix, never hidden.
+- **Running:**
+  - On demand only, with a cooldown and no schedule (D-022, to keep Neon asleep).
+  - The arena is an MCP client with no special powers (D-054).
+  - Results persist in `arena_runs` and `arena_results`.
+- **Serves:** J1, J4, J5, P6, P7, P8, G9.
+
 ---
 
 ## Requirement updates

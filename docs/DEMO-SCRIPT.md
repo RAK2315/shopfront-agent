@@ -1,69 +1,106 @@
-# Demo script — v1 (target **2:45**, 11 beats)
+# Demo script — v2 (target **2:45**, 13 beats)
 
-> Built programmatically in Phase 8 (D-057, plan in PLAN.md Phase 8). Every product beat is a real capture of the deployed app at `https://shopfront-agent.onrender.com`, 1920×1080 (S6.2). Motion graphics only for beats 1, 2 and 11. Logos: PayPal (host) and the sponsor tools actually used, unaltered; no others (D-057, S6.4).
+> **How it's built:** programmatically in Phase 8 (D-057, D-058; toolchain proven in D-062). Every product beat is a real capture of `https://shopfront-agent.onrender.com` at 1920×1080 (S6.2). Motion graphics appear only in beats 1, 2, 12's transitions, and 13.
 >
-> **Voice:** undecided (owner VO or free TTS). Each beat's line is written at ≤ 2.5 words/s so either fits, and the caption cues below are the same words. `video/src/beats.ts` is generated from this table in Phase 8; if they disagree, this file wins until then.
+> **Logos:** PayPal (the host) and the sponsor tools actually used, unaltered. No others (D-057, S6.4).
 >
-> **Demo seller:** Juniper Clay Studio (`juniper_clay`). If the owner's photos are not ceramics, the studio is renamed to match (D-050) and beats 3–4 change wording only.
+> **Voice:** undecided: the owner's voice-over or free TTS. Lines run at ≤ 2.5 words/s, and the caption cues are the same words.
+>
+> **What changed from v1** (owner, 2026-10-16): a hero beat for the agent reordering with **no popup, inside consent** (Phase 10), plus a 15 s "it also…" montage (Phases 11–13). Everything else was shortened to keep 2:45; see the table at the end.
+>
+> **Conditional beats:**
+> - Beat 10 exists only if Spike V passes (D-064). If it fails, its 20 s go back to beats 3 (+5), 5 (+5), 7 (+4) and 9 (+6), as in v1.
+> - The montage drops multi-seller if Phase 12 is cut.
+>
+> **Demo seller:** Juniper Clay Studio (`juniper_clay`), renamed to match if the owner's photos aren't ceramics (D-050).
 
 ## Beat sheet
 
-| # | Time | Len | Screen (real route unless marked) | What happens on screen |
+| # | Time | Len | Screen | What happens on screen |
 |---|---|---|---|---|
-| 1 | 0:00–0:12 | 12 s | *Motion graphic* | A grid of social-post product photos; a DM thread "is this still available?"; an agent cursor hovering, then a "no store, no feed" state. |
-| 2 | 0:12–0:20 | 8 s | *Motion graphic* → `/` | Title "Shopfront Agent" resolves into the landing page hero (the live wire). |
-| 3 | 0:20–0:46 | 26 s | `/studio` | Six photos dropped on "Drop photos of your pieces". Draft cards stream in; low-confidence fields show the warning tint and "Check this"; the price field says "AI guess". She types prices and publishes ("Publishes to your shop and PayPal's catalog"); the toast says "is live and mirrored to PayPal" and the tile shows "In PayPal catalog". Zoom on one low-confidence field, then on the PayPal catalog id. |
-| 4 | 0:46–0:54 | 8 s | `/s/juniper_clay` | The public storefront with the new listings; zoom on the "agent-buyable" note with the MCP endpoint. |
-| 5 | 0:54–1:22 | 28 s | `/capture?left=/shop&right=/live` (split) | Left: the starter "Find me a handmade blue mug under $40 as a gift". Tool calls stream (`search_products` → `get_product` → `create_checkout`), with the Groq source badge. The checkout card shows "Total (set by the shop)" and "Review and pay with PayPal". Right: the same calls arrive on the live wire, then PayPal "order created" with its id. |
-| 6 | 1:22–1:37 | 15 s | same split | "Try to hack the price": three attacks, each blocked by the server; "Checkouts created: 0". Right: three `create_checkout blocked by server` rows. |
-| 7 | 1:37–1:58 | 21 s | `/pay/{id}` + PayPal sandbox popup | "Review and pay with PayPal" → popup → sandbox buyer approves → page shows Paid, then the confirmation badge flips to "Webhook verified". Cut-in of the live wire row `PAYMENT.CAPTURE.COMPLETED · verified`. |
-| 8 | 1:58–2:12 | 14 s | `/studio/orders` | Label photo uploaded on the paid order; carrier and tracking number suggested; she taps "Confirm and add to PayPal order"; the order shows "read from label photo · on the PayPal order". The thank-you note is shown on the buyer's order page. |
-| 9 | 2:12–2:30 | 18 s | `/shop` (left of split) → `/studio/orders` | Buyer: "It arrived the wrong size. Can I get a refund?" → `request_refund` → "auto refund · $32.00 (server computed)". Cut: a $95 bowl refund (a prior order) in "Refunds waiting for you"; one tap → executed; the live wire shows the PayPal refund and `PAYMENT.CAPTURE.REFUNDED`. |
-| 10 | 2:30–2:40 | 10 s | `/studio/dashboard` | AG Studio: "What sold this week?" → answer with `[db]` and `[paypal]` figures; "chart refunds by product" → a chart widget appears. |
-| 11 | 2:40–2:45 | 5 s | *Motion graphic* | Tagline, the hosted URL, and the stack row: PayPal Orders v2 · JS SDK v6 · Webhooks · Catalog · Tracking · Refunds — MCP · Groq · Gemini · AG Studio · Render · Neon. |
+| 1 | 0:00–0:10 | 10 s | *Motion graphic* | Social-post photos, a DM "is this still available?", then an agent cursor that can't buy: "no store, no feed". |
+| 2 | 0:10–0:16 | 6 s | *Motion* → `/` | The title resolves into the landing hero (live wire). |
+| 3 | 0:16–0:37 | 21 s | `/studio` | Six photos dropped. Drafts stream in; a low-confidence field shows "Check this"; the price reads "AI guess". She types prices and publishes; the toast says "live and mirrored to PayPal". |
+| 4 | 0:37–0:42 | 5 s | `/s/juniper_clay` | The storefront with real photos; zoom on the "agent-buyable" note. |
+| 5 | 0:42–1:05 | 23 s | `/capture?left=/shop&right=/live` | "Find me a handmade blue mug under $40 as a gift". Tool calls stream; the card shows "Total (set by the shop)". The same calls land on the wire. |
+| 6 | 1:05–1:17 | 12 s | same split | "Try to hack the price" → "Protected: 3 of 3 blocked". Three blocked rows on the wire. |
+| 7 | 1:17–1:34 | 17 s | `/pay/{id}` + PayPal popup | Approve in PayPal → Paid → the badge flips to "Webhook verified". |
+| 8 | 1:34–1:44 | 10 s | `/studio/orders` | Label photo → "Confirm and add to PayPal order" → the thank-you note on the buyer's page. |
+| 9 | 1:44–1:57 | 13 s | `/shop` → `/studio/orders` | "It arrived the wrong size" → automatic refund (server computed). A $95 refund waits in "Refunds waiting for you"; one tap. |
+| **10** | **1:57–2:17** | **20 s** | consent card → `/capture?left=/shop&right=/consent/…` | **Hero.** The buyer saves PayPal with a $100 cap ("Let your agent reorder, up to $100"). Later: "restock my usual". The agent pays **with no popup**; the packet runs agent → MCP → PayPal → webhook; the cap meter fills to "$37 of $100". One more over-cap order → "cap reached → popup". |
+| 11 | 2:17–2:25 | 8 s | `/studio/dashboard` | "What sold this week?" → an answer with `[db]`/`[paypal]` figures; the chart appears. |
+| **12** | **2:25–2:40** | **15 s** | montage: `/studio/disputes` → `/arena` → `/studio/payouts` | **"It also…"** Evidence cards assemble and "Approve and submit" (5 s). Arena tiles flip to BLOCKED, "50 / 50" (5 s). "$42 → Fern & Loom · $2.10 fee" (5 s; if Phase 12 shipped, otherwise arena 7 s + disputes 8 s). |
+| 13 | 2:40–2:45 | 5 s | *Motion graphic* | Tagline, the URL, and a stack row: PayPal Orders v2 · JS SDK v6 · Vault · Webhooks · Disputes · Catalog · Tracking · Refunds — MCP · Groq · Gemini · AG Studio · Render · Neon. |
 
-Total: 12 + 8 + 26 + 8 + 28 + 15 + 21 + 14 + 18 + 10 + 5 = **165 s = 2:45**.
+**Total:** 10 + 6 + 21 + 5 + 23 + 12 + 17 + 10 + 13 + 20 + 8 + 15 + 5 = **165 s = 2:45**.
 
 ## Voice-over and caption cues
-
-Cue times are absolute (video time). One cue = at most 2 lines × 42 characters.
+Cue times are absolute. Each cue is at most 2 lines × 42 characters.
 
 | Beat | Cue | Text |
 |---|---|---|
-| 1 | 0:00.5–0:05.0 | Makers sell through social posts and DMs. |
-| 1 | 0:05.0–0:11.5 | AI agents now shop for people, but they can't buy from a seller with no website and no product feed. |
-| 2 | 0:12.5–0:19.5 | Shopfront Agent turns her photos into a store any agent can buy from, settled by PayPal. |
-| 3 | 0:20.5–0:26.0 | She drops in six photos. |
-| 3 | 0:26.0–0:33.5 | Gemini reads each one into a draft listing and marks what it isn't sure of. |
-| 3 | 0:33.5–0:39.0 | Prices stay an AI guess until she types them. |
-| 3 | 0:39.0–0:45.5 | She approves, and each listing is mirrored into PayPal's catalog. |
-| 4 | 0:46.5–0:53.5 | Her store is live, and buyable through one MCP endpoint shared by every Shopfront seller. |
-| 5 | 0:54.5–1:01.0 | A shopper asks an agent for a blue mug under forty dollars. |
-| 5 | 1:01.0–1:08.5 | On the right, the live wire: every MCP call and every PayPal request. |
-| 5 | 1:08.5–1:14.5 | The agent sends product IDs and quantities, never prices. |
-| 5 | 1:14.5–1:21.5 | The total comes from her catalog, on the server. |
-| 6 | 1:22.5–1:29.5 | Now try to cheat: a zero price, a fake discount, a negative quantity. |
-| 6 | 1:29.5–1:36.5 | The server rejects all three. No checkout, and no model is even called. |
-| 7 | 1:37.5–1:44.0 | The agent shops. The human approves, in PayPal. |
-| 7 | 1:44.0–1:51.0 | The server captures the payment, and a signature-verified webhook confirms it. |
-| 7 | 1:51.0–1:57.5 | If a webhook is ever lost, a fallback check confirms it instead. |
-| 8 | 1:58.5–2:04.5 | To ship, she photographs the label. |
-| 8 | 2:04.5–2:11.5 | She confirms the tracking number it reads, it's attached to the PayPal order, and a thank-you note is posted. |
-| 9 | 2:12.5–2:18.5 | Refunds follow her policy, written in code. |
-| 9 | 2:18.5–2:23.5 | A small wrong-size refund runs automatically. |
-| 9 | 2:23.5–2:29.5 | A ninety-five-dollar one waits for her tap, and a double tap can't refund twice. |
-| 10 | 2:30.5–2:35.0 | And she runs the shop by asking. |
-| 10 | 2:35.0–2:39.5 | Her dashboard agent answers from her database and from PayPal, labelled, and builds the chart. |
-| 11 | 2:40.3–2:44.8 | Shopfront Agent. Every seller's store, buyable by every agent, settled by PayPal. |
+| 1 | 0:00.5–0:04.5 | Makers sell through social posts and DMs. |
+| 1 | 0:04.5–0:09.5 | AI agents shop for people now, but can't buy from her. |
+| 2 | 0:10.3–0:15.7 | Shopfront Agent turns her photos into a store any agent can buy from. |
+| 3 | 0:16.5–0:21.5 | She drops in six photos. |
+| 3 | 0:21.5–0:28.5 | Gemini drafts each listing and marks what it isn't sure of. |
+| 3 | 0:28.5–0:36.5 | Prices stay an AI guess until she confirms them, then mirror to PayPal. |
+| 4 | 0:37.3–0:41.7 | Live, and buyable through one MCP endpoint. |
+| 5 | 0:42.5–0:48.5 | A shopper asks an agent for a blue mug under forty dollars. |
+| 5 | 0:48.5–0:56.5 | On the right, the live wire: every MCP call and PayPal request. |
+| 5 | 0:56.5–1:04.5 | The agent sends IDs and quantities. The server sets the total. |
+| 6 | 1:05.5–1:10.5 | Try to cheat: a zero price, a discount, a negative quantity. |
+| 6 | 1:10.5–1:16.5 | All three blocked by the server. Nothing created. |
+| 7 | 1:17.5–1:23.5 | The agent shops. The human approves, in PayPal. |
+| 7 | 1:23.5–1:33.5 | A signature-verified webhook confirms it. A fallback check covers a lost one. |
+| 8 | 1:34.5–1:43.5 | She photographs the label; tracking goes onto the PayPal order. |
+| 9 | 1:44.5–1:50.5 | Refunds follow her policy, in code. Small ones are automatic. |
+| 9 | 1:50.5–1:56.5 | Ninety-five dollars waits for her tap. |
+| 10 | 1:57.5–2:03.5 | Once, the buyer lets her agent reorder, up to a hundred dollars. |
+| 10 | 2:03.5–2:10.5 | "Restock my usual." It pays with no popup, inside that consent. |
+| 10 | 2:10.5–2:16.5 | Over the cap, or revoked, and the popup comes back. |
+| 11 | 2:17.5–2:24.5 | She runs the shop by asking, with figures from her database and PayPal. |
+| 12 | 2:25.5–2:30.0 | It also defends disputes with evidence she approves, |
+| 12 | 2:30.0–2:35.0 | survives fifty live attacks on its own MCP server, |
+| 12 | 2:35.0–2:39.7 | and pays each seller directly through PayPal. |
+| 13 | 2:40.3–2:44.8 | Shopfront Agent: every seller, buyable by every agent, settled by PayPal. |
+
+*If Phase 12 is cut, replace the 2:35 cue with "and shows every guardrail that caught them." Change "settled by PayPal" only if the settlement claim changes (D-006).*
+
+## What got shortened (v1 → v2)
+
+| Beat | v1 | v2 | Change | What was cut |
+|---|---|---|---|---|
+| 1 Problem | 12 s | 10 s | −2 | One sentence merged |
+| 2 Title | 8 s | 6 s | −2 | A shorter resolve into the hero |
+| 3 Photos → catalog | 26 s | 21 s | −5 | The zoom on the catalog id is dropped; the toast stays |
+| 4 Storefront | 8 s | 5 s | −3 | One zoom only |
+| 5 Split buy | 28 s | 23 s | −5 | One cue fewer; the wire is shown sooner |
+| 6 Hack | 15 s | 12 s | −3 | The result card only, no per-attack zooms |
+| 7 Approve + webhook | 21 s | 17 s | −4 | The popup login is cut in the edit (the approval click stays) |
+| 8 Label → tracking | 14 s | 10 s | −4 | The thank-you note is shown only briefly |
+| 9 Refunds | 18 s | 13 s | −5 | Double-tap safety moves to the arena |
+| 10 **Vault reorder (new)** | — | 20 s | +20 | |
+| 11 Dashboard | 10 s | 8 s | −2 | One question |
+| 12 **Montage (new)** | — | 15 s | +15 | |
+| 13 Recap | 5 s | 5 s | 0 | |
+| **Total** | **165 s** | **165 s** | 0 | |
 
 ## Capture prerequisites (checked by the capture script)
-- Service warm (`/api/health` ok), then `POST /api/admin/demo {reset}` (D-054).
-- The owner's photo listings published and the catalog re-frozen (AT-3). Until then beats 3–4 use the rendered placeholders and are re-captured later.
-- A paid $95 Ash-glaze serving bowl order by the sandbox buyer, made off camera before beat 9, so the queue has a real over-threshold request.
-- Seeded sales at least 24 h before recording, so Transaction Search has PayPal figures for beat 10 (D-007, PLAN §2 #10).
-- Popups allowed and the sandbox buyer logged in once in the capture profile (PLAN §2 #2).
+- **Before every take:** the service is warm, and a demo reset has run (D-054). The live wire uses `?from=now` (D-058). Old test checkouts are hidden from `/live` (D-062 #2, Phase 9).
+- **Photos:** the owner's photo listings are published and frozen (AT-3).
+- **Beat 9:** a $95 bowl order is paid off camera.
+- **Beat 10:** a fresh consent exists for the sandbox buyer, with nothing used yet. The over-cap order must exceed the remaining cap.
+- **Beat 12:**
+  - Disputes are opened at least 1 day before (PLAN 11.1).
+  - A finished arena run exists.
+  - Seller 2 is onboarded (if Phase 12 shipped).
+- **Beat 11:** sales were seeded at least 24 h earlier, for Transaction Search.
+- **PayPal popups:** allowed, and the sandbox buyer is logged in once in the capture profile.
 
 ## Honesty checks for the edit
-- No claim that sales settle to the seller's own PayPal account: the sandbox settles to one platform account (D-006).
-- "Agent-buyable", not "discoverable": an agent needs our MCP connector added (PLAN §0 #1).
-- Every AI step shows its source badge (Groq, Gemini, cache, replay) as captured; never edit a badge out.
+- Settlement goes to one platform account unless Phase 12 shipped (D-006).
+- The consent cap is enforced by Shopfront, not PayPal (PLAN 10.4).
+- "Agent-buyable", not "discoverable".
+- Every AI step keeps its source badge (plain wording from Phase 9).
+- No staged data: every number on screen comes from a real sandbox call.
