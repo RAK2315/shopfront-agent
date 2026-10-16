@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 // Status for the buyer's order page (/pay): payment confirmation, then the seller's notes, tracking and refunds.
 export async function GET(req: Request, ctx: RouteContext<"/api/checkouts/[id]/status">) {
   const { id } = await ctx.params;
-  if (!verifyOrderToken(id, new URL(req.url).searchParams.get("t"))) return Response.json({ message: "Forbidden" }, { status: 403 });
+  if (!(await verifyOrderToken(id, new URL(req.url).searchParams.get("t")))) return Response.json({ message: "Forbidden" }, { status: 403 });
   const { db } = services();
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, id));
   if (!c) return Response.json({ message: "Not found" }, { status: 404 });

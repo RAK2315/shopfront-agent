@@ -10,7 +10,10 @@
 //   7  compromised agent: a real model, told to cheat, really calls create_checkout with an injected price, discount
 //      or quantity. Money fields are rejected by the server (no checkout, no PayPal order); a schema-valid injected
 //      quantity goes through and the server's catalog total wins, in our DB and on the PayPal order.
-// Usage: pnpm --filter web phase6-checks -- --base https://shopfront-agent.onrender.com [--replay-base http://localhost:3000] [--only 1,2,3,4,5,6,7]
+//   8  token theft (REVIEW-1 #2): with ids read from the public console, every id-taking route refuses an attacker's
+//      token or no token (/pay/return, /pay/[id], status, capture, MCP status and refund, idempotency-key reuse, the
+//      events filter); a real PayPal redirect approval still returns through /pay/return and captures exactly once.
+// Usage: pnpm --filter web phase6-checks -- --base https://shopfront-agent.onrender.com [--replay-base http://localhost:3000] [--only 1,2,3,4,5,6,7,8]
 import { createHmac } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -28,7 +31,7 @@ const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) 
 const base = (arg("--base") ?? "").replace(/\/$/, "");
 const replayBase = arg("--replay-base")?.replace(/\/$/, "");
 const out = resolve(arg("--out", "../../docs/screenshots/phase-6")!);
-const only = new Set((arg("--only", "1,2,3,4,5,6,7") ?? "").split(","));
+const only = new Set((arg("--only", "1,2,3,4,5,6,7,8") ?? "").split(","));
 if (!base.startsWith("http")) throw new Error("Pass --base https://<deployed app>");
 mkdirSync(out, { recursive: true });
 const e = process.env as Record<string, string>;
@@ -257,6 +260,121 @@ try {
     }
     await mcp.close();
     record("7 compromised agent really sends injected price/discount/quantity: money fields rejected (0 checkouts), injected quantity priced by the server (DB and PayPal order agree)", outcomes.every((o) => o.pass), outcomes);
+  }
+  // ── 8 ──
+  // Token theft (REVIEW-1 #2). An attacker sees checkout ids and PayPal order ids on the public console and tries
+  // every route that takes a checkout id. Only the caller that created a checkout may ever hold its order token.
+  if (only.has("8")) {
+    const toolCall = async (c: Client, name: string, a: Record<string, unknown>) => {
+      const r = await c.callTool({ name, arguments: a });
+      const text = (r.content as Array<{ text?: string }>)[0]?.text ?? "";
+      let body: Record<string, unknown> = {};
+      try {
+        body = JSON.parse(text);
+      } catch {
+        body = { text };
+      }
+      return { isError: Boolean(r.isError), body };
+    };
+    const victimMcp = new Client({ name: "victim-agent", version: "1.0.0" });
+    await victimMcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`)));
+    const victimKey = crypto.randomUUID();
+    const victim = (await toolCall(victimMcp, "create_checkout", { items: [{ variant_id: "var_cobalt120000", quantity: 1 }], client_request_id: victimKey })).body as { checkout_id: string; order_token: string; pay_url: string; paypal_order_id: string };
+    // The attacker is a normal MCP client with a checkout of its own (a valid token, for the wrong order).
+    const attackerMcp = new Client({ name: "attacker-agent", version: "1.0.0" });
+    await attackerMcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`)));
+    const mine = (await toolCall(attackerMcp, "create_checkout", { items: [{ variant_id: "var_cobalt120000", quantity: 1 }] })).body as { checkout_id: string; order_token: string };
+    // Public reconnaissance: the console lists ids. A paid order is the juicier target for a refund.
+    const consoleRows = ((await (await fetch(`${base}/api/console/checkouts`)).json()) as { checkouts: Array<{ id: string; status: string; paypalOrderId: string | null }> }).checkouts;
+    const seen = consoleRows.find((r) => r.id === victim.checkout_id);
+    const paid = consoleRows.find((r) => r.status === "paid" || r.status === "shipped");
+    const V = victim.checkout_id;
+    const ppid = seen?.paypalOrderId ?? victim.paypal_order_id;
+    const get = (path: string) => fetch(`${base}${path}`, { redirect: "manual" });
+    const leaks = (r: Response, body: string) => /[?&]t=/.test(r.headers.get("location") ?? "") || body.includes("order_token");
+    const attempts: Array<{ id: string; status: number | string; blocked: boolean; detail?: unknown }> = [];
+    const http = async (id: string, path: string, ok: (r: Response) => boolean, init?: RequestInit) => {
+      const r = init ? await fetch(`${base}${path}`, { ...init, redirect: "manual" }) : await get(path);
+      const body = await r.text();
+      attempts.push({ id, status: r.status, blocked: ok(r) && !leaks(r, body) });
+    };
+    const refundsBefore = paid ? (await q<{ n: number }>("select count(*)::int n from refund_requests where checkout_id=$1", [paid.id]))[0]!.n : 0;
+
+    await http("8a /pay/return with only a checkout id", `/pay/return?checkout=${V}`, (r) => r.status === 400);
+    await http("8b /pay/return with the public PayPal order id as token", `/pay/return?checkout=${V}&token=${ppid}`, (r) => r.status === 400);
+    await http("8c /pay/return with the attacker's own valid order token", `/pay/return?checkout=${V}&token=${ppid}&t=${mine.order_token}`, (r) => r.status === 400);
+    await http("8d /pay/[id] with the attacker's token", `/pay/${V}?t=${mine.order_token}`, (r) => r.status === 404);
+    await http("8e /api/checkouts/[id]/status with the attacker's token", `/api/checkouts/${V}/status?t=${mine.order_token}`, (r) => r.status === 403);
+    await http("8f capture with the attacker's token", `/api/checkouts/${V}/capture`, (r) => r.status === 403, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ t: mine.order_token }) });
+    const st = await toolCall(attackerMcp, "get_checkout_status", { checkout_id: V, order_token: mine.order_token });
+    attempts.push({ id: "8g MCP get_checkout_status with the attacker's token", status: String((st.body.error as { code?: string })?.code), blocked: st.isError && (st.body.error as { code?: string })?.code === "FORBIDDEN" });
+    if (paid) {
+      const rf = await toolCall(attackerMcp, "request_refund", { checkout_id: paid.id, order_token: mine.order_token, reason_code: "damaged" });
+      const refundsAfter = (await q<{ n: number }>("select count(*)::int n from refund_requests where checkout_id=$1", [paid.id]))[0]!.n;
+      attempts.push({ id: "8h MCP request_refund on a paid order with the attacker's token", status: String((rf.body.error as { code?: string })?.code), blocked: rf.isError && (rf.body.error as { code?: string })?.code === "FORBIDDEN" && refundsAfter === refundsBefore });
+    }
+    const steal = await toolCall(attackerMcp, "create_checkout", { items: [{ variant_id: "var_cobalt120000", quantity: 2 }], client_request_id: victimKey });
+    attempts.push({ id: "8i create_checkout reusing the victim's idempotency key for other items", status: String((steal.body.error as { code?: string })?.code), blocked: steal.isError && !JSON.stringify(steal.body).includes(victim.order_token) });
+    attempts.push({ id: "8j /api/events?checkout= exposes no order token", status: "stream", blocked: false });
+    {
+      const ctl = new AbortController();
+      const r = await fetch(`${base}/api/events?checkout=${V}`, { signal: ctl.signal });
+      const reader = r.body!.getReader();
+      let txt = "";
+      const until = Date.now() + 4000;
+      while (Date.now() < until) {
+        const { value, done } = await Promise.race([reader.read(), sleep(800).then(() => ({ value: undefined, done: false }))]);
+        if (done) break;
+        if (value) txt += new TextDecoder().decode(value);
+      }
+      ctl.abort();
+      attempts.at(-1)!.blocked = !txt.includes(victim.order_token) && !txt.includes(mine.order_token);
+    }
+
+    // The legitimate path still works: the victim's own pay page, then a real PayPal redirect approval returns
+    // through /pay/return (PayPal appends token = its order id) and captures exactly once.
+    const own = await get(new URL(victim.pay_url).pathname + new URL(victim.pay_url).search);
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await ctx.newPage();
+    const [row] = await q<{ approve_url: string }>("select approve_url from checkouts where id=$1", [V]);
+    let landed = "";
+    for (let attempt = 1; attempt <= 3 && !landed; attempt++) {
+      try {
+        await page.goto(row!.approve_url, { waitUntil: "domcontentloaded", timeout: 90_000 });
+        await loginAndApprove(page, { email: e.SANDBOX_BUYER2_EMAIL || e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER2_PASSWORD || e.SANDBOX_BUYER_PASSWORD });
+        await page.waitForURL((u) => u.pathname === `/pay/${V}`, { timeout: 120_000 });
+        landed = page.url();
+      } catch (err) {
+        log("redirect approval attempt", attempt, err instanceof Error ? err.message.split("\n")[0] : err);
+        await sleep(8000);
+      }
+    }
+    await page.getByText("Payment complete").waitFor({ timeout: 90_000 }).catch(() => {});
+    await page.screenshot({ path: join(out, "at6-8-redirect-return-paid.png"), fullPage: true });
+    await ctx.close();
+    const [after] = await q<{ status: string }>("select status from checkouts where id=$1", [V]);
+    // Replaying the return URL after capture is idempotent: same redirect, no second capture.
+    const returnUrl = `/pay/return?checkout=${V}&t=${encodeURIComponent(victim.order_token)}&token=${ppid}&PayerID=REPLAY`;
+    const replay = await get(returnUrl);
+    await sleep(1500);
+    const [{ n: captureCalls }] = await q<{ n: number }>("select count(*)::int n from paypal_calls where checkout_id=$1 and method='POST' and path like '%/capture' and status between 200 and 299", [V]);
+    const wrongPp = await get(`/pay/return?checkout=${V}&t=${encodeURIComponent(victim.order_token)}&token=5O190127TN364715T`);
+    await victimMcp.close();
+    await attackerMcp.close();
+    const legit = {
+      ownPayPage: own.status,
+      redirectApprovalLandedOnOrderPage: Boolean(landed),
+      paypalAppended: landed ? "token + PayerID consumed by /pay/return" : "n/a",
+      statusAfter: after?.status,
+      replayStatus: replay.status,
+      successfulCaptureCalls: captureCalls,
+      wrongPayPalTokenStatus: wrongPp.status,
+    };
+    record(
+      "8 token theft: no route issues or accepts an order token for someone else's checkout; the real redirect return still captures once",
+      Boolean(seen) && attempts.every((a) => a.blocked) && own.status === 200 && Boolean(landed) && after?.status === "paid" && replay.status === 303 && captureCalls === 1 && wrongPp.status === 400,
+      { victimVisibleOnPublicConsole: Boolean(seen), attempts, legit },
+    );
   }
 } catch (err) {
   record("run", false, err instanceof Error ? err.message.split("\n")[0] : String(err));

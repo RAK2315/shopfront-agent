@@ -707,6 +707,27 @@
   - Results persist in `arena_runs` and `arena_results`.
 - **Serves:** J1, J4, J5, P6, P7, P8, G9.
 
+## D-068: Order tokens can't be minted from a checkout id (REVIEW-1 #2; owner override Step 1.1, 2026-10-16)
+- **Root cause, wider than REVIEW-1 said:** the order token was `HMAC(SESSION_SECRET, checkoutId)`, a pure function of a public id. `/pay/return` called it for any id, and any future route could have done the same.
+- **Fix:** the token is bound to the caller that created the checkout.
+  - It is 32 random bytes; or, when the caller sends a `client_request_id`, `HMAC(secret, checkoutId + key)`, so only the holder of the key can get it back on an idempotent retry.
+  - Only its SHA-256 is stored (`checkouts.order_token_hash`, already there). Every check (`/pay/[id]`, `/api/checkouts/[id]/status` and `/capture`, MCP `get_checkout_status` and `request_refund`) compares against that hash. `orderTokenFor(id)` is deleted, so no code can issue a token for an arbitrary id.
+  - **`/pay/return` never issues a token.** The return URL we send to PayPal now carries the creator's token, and the route requires it **and** PayPal's `token` = that checkout's PayPal order id. Anything else is 400 with no capture. A replayed return after capture redirects again and never captures twice.
+- **A second flaw found in the audit:** idempotency keys were global. A reused key returned someone else's checkout **and its token**. Models often copy the well-known example UUID, so two shoppers could have collided.
+  - Now a reused key with different items gets `CONFLICT`.
+  - The hosted agent's model-chosen key is namespaced by its buyer session (`sessionScopedRequestId`). This also stops a replayed recording from reaching a recorded session's checkout.
+  - The MCP tool description is unchanged on purpose: it is part of the replay key (D-055).
+- **Not changed, by design:**
+  - **Checkout ids stay visible** on `/live` and `/api/events`. Once ids grant nothing, hashing them for display (the PLAN 9.1 idea) adds nothing, and the AT scripts and the `/live` follow filter keep working.
+  - **The `checkout` filter on `/api/events`** only narrows a feed that is already public.
+  - **Seller routes** were audited and are scoped to the signed-in seller (`requireSeller` plus a `seller_id` match). Demo sign-in is open on purpose (judge mode, D-011).
+  - **Buyer sessions:** the `bys_…` id is a 12-character random bearer kept in the shopper's browser and never written to events. Phase 10's timeline scoping must show only a hash of it.
+- **Old tokens:** checkouts created before this deploy had tokens that the leak could have exposed. Their stored hashes are replaced with random ones (no token can match), which retires every earlier token. We can recompute them from `SESSION_SECRET` if ever needed.
+- **Tests:**
+  - 7 unit tests (`apps/web/src/server/tokens.test.ts`).
+  - **AT-6 #8 "token theft"** on Render: ids read from the public console; 10 attack routes; a real PayPal redirect approval returning through `/pay/return`; one capture only.
+- **Serves:** J1, P7, P8, G9, D-002.
+
 ---
 
 ## Requirement updates

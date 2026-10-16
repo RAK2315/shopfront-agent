@@ -19,7 +19,7 @@ import { recordEvent } from "./events";
 import { scheduleExpiryCheck, scheduleFallbackChecks } from "./fallback";
 import { requestRefund } from "./refunds";
 import { services } from "./services";
-import { hashToken, orderTokenFor, verifyOrderToken } from "./tokens";
+import { hashToken, newOrderToken, tokenMatchesHash, verifyOrderToken } from "./tokens";
 
 const CHECKOUT_TTL_MS = 3 * 60 * 60 * 1000; // PayPal orders that are never approved lapse after ~3h
 
@@ -141,10 +141,17 @@ export const shop: ShopPort = {
   async createCheckout(input, ctx) {
     const { db, paypal } = services();
 
-    // Idempotency: the same client_request_id returns the same checkout (and the same deterministic token).
+    // Idempotency: the same client_request_id with the same items returns the same checkout and token. The token is
+    // re-derived from the key, so only the caller holding the key gets it back; a key reused for other items is refused.
     if (input.client_request_id) {
       const [existing] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.clientRequestId, input.client_request_id));
-      if (existing?.paypalOrderId) return checkoutView(existing.id);
+      if (existing) {
+        const token = newOrderToken(existing.id, input.client_request_id);
+        const lines = await db.select().from(schema.checkoutItems).where(eq(schema.checkoutItems.checkoutId, existing.id));
+        if (!tokenMatchesHash(token, existing.orderTokenHash) || itemsKey(lines.map((l) => ({ variant_id: l.variantId, quantity: l.quantity }))) !== itemsKey(input.items))
+          throw new ShopError("CONFLICT", "This client_request_id was already used for a different checkout. Generate a new random UUID for each new checkout.");
+        if (existing.paypalOrderId) return checkoutView(existing.id, token);
+      }
     }
 
     const variantIds = [...new Set(input.items.map((i) => i.variant_id))];
@@ -180,7 +187,7 @@ export const shop: ShopPort = {
     // PRICING ENGINE: totals come from the DB rows above, never from the caller (D-002).
     const quote = quoteCheckout(input.items, variants, sellers);
     const checkoutId = newId("checkout");
-    const token = orderTokenFor(checkoutId);
+    const token = newOrderToken(checkoutId, input.client_request_id ?? null);
     const seller = sellers.get(quote.sellerId)!;
 
     await db.transaction(async (tx) => {
@@ -225,7 +232,8 @@ export const shop: ShopPort = {
     const body = buildPayPalOrderRequest(quote, {
       checkoutId,
       brandName: seller.brandName,
-      returnUrl: appUrl(`/pay/return?checkout=${checkoutId}`),
+      // The return URL carries the creator's token: /pay/return never issues one (REVIEW-1 #2).
+      returnUrl: appUrl(`/pay/return?checkout=${checkoutId}&t=${token}`),
       cancelUrl: appUrl(`/pay/${checkoutId}?t=${token}&cancelled=1`),
     });
     const requestId = `checkout-${checkoutId}`;
@@ -258,11 +266,11 @@ export const shop: ShopPort = {
       });
       throw new ShopError("UPSTREAM_ERROR", "PayPal could not create the order. Please try again.", { debug_id: debugId });
     }
-    return checkoutView(checkoutId);
+    return checkoutView(checkoutId, token);
   },
 
   async getCheckoutStatus(input) {
-    if (!verifyOrderToken(input.checkout_id, input.order_token)) throw new ShopError("FORBIDDEN", "Invalid order token.");
+    if (!(await verifyOrderToken(input.checkout_id, input.order_token))) throw new ShopError("FORBIDDEN", "Invalid order token.");
     const { db } = services();
     const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, input.checkout_id));
     if (!c) throw new ShopError("NOT_FOUND", "Checkout not found.");
@@ -302,12 +310,18 @@ function totals(c: typeof schema.checkouts.$inferSelect) {
   };
 }
 
-async function checkoutView(checkoutId: string) {
+/** Order-independent key of a checkout's lines, to tell a true idempotent retry from a reused key. */
+function itemsKey(items: Array<{ variant_id: string; quantity: number }>): string {
+  const sum = new Map<string, number>();
+  for (const i of items) sum.set(i.variant_id, (sum.get(i.variant_id) ?? 0) + i.quantity);
+  return [...sum].sort(([a], [b]) => a.localeCompare(b)).map(([v, q]) => `${v}:${q}`).join(",");
+}
+
+async function checkoutView(checkoutId: string, token: string) {
   const { db } = services();
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
   if (!c?.paypalOrderId) throw new ShopError("UPSTREAM_ERROR", "Checkout is not ready.");
   const items = await db.select().from(schema.checkoutItems).where(eq(schema.checkoutItems.checkoutId, checkoutId));
-  const token = orderTokenFor(checkoutId);
   return {
     checkout_id: c.id,
     order_token: token,

@@ -8,6 +8,7 @@ import { appUrl } from "./env";
 import { recordEvent } from "./events";
 import { llm } from "./llm";
 import { services } from "./services";
+import { sessionScopedRequestId } from "./tokens";
 
 // Hosted buyer agent (/shop). It is an MCP client of our own public /mcp endpoint, exactly like an external agent,
 // so it gets no special powers: ids and quantities in, server-computed totals out, the human approves in PayPal.
@@ -98,6 +99,8 @@ export async function runShopAgent(sessionId: string | null, message: string, cl
 
       for (const call of step.toolCalls) {
         const args = fromModel(call.args, checkouts);
+        // The model's idempotency key is scoped to this buyer session, so two shoppers never share a checkout.
+        if (call.name === "create_checkout" && typeof args.client_request_id === "string") args.client_request_id = sessionScopedRequestId(session!.id, args.client_request_id);
         emit({ type: "tool_call", id: call.id, name: call.name, args: forBrowser(args) });
         const out = await client.callTool({ name: call.name, arguments: args });
         const text = (out.content as Array<{ type: string; text?: string }>).find((c) => c.type === "text")?.text ?? "{}";

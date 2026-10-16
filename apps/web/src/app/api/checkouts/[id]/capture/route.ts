@@ -12,7 +12,7 @@ const Body = z.strictObject({ t: z.string().min(20).max(100) });
 export async function POST(req: Request, ctx: RouteContext<"/api/checkouts/[id]/capture">) {
   const { id } = await ctx.params;
   const parsed = Body.safeParse(await req.json().catch(() => null));
-  if (!parsed.success || !verifyOrderToken(id, parsed.data.t)) return Response.json({ ok: false, message: "Forbidden" }, { status: 403 });
+  if (!parsed.success || !(await verifyOrderToken(id, parsed.data.t))) return Response.json({ ok: false, message: "Forbidden" }, { status: 403 });
   await recordEvent(services().db, {
     actor: "server",
     kind: "buyer_approved",

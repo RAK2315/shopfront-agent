@@ -53,7 +53,7 @@ async function suggestReason(details: string | undefined) {
 
 /** MCP `request_refund`. */
 export async function requestRefund(input: RequestRefundInput): Promise<RefundRequestView> {
-  if (!verifyOrderToken(input.checkout_id, input.order_token)) throw new ShopError("FORBIDDEN", "Invalid order token.");
+  if (!(await verifyOrderToken(input.checkout_id, input.order_token))) throw new ShopError("FORBIDDEN", "Invalid order token.");
   const { db } = services();
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, input.checkout_id));
   if (!c) throw new ShopError("NOT_FOUND", "Checkout not found.");

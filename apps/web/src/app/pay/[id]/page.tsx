@@ -18,7 +18,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
   const { id } = await params;
   const sp = await searchParams;
   const t = typeof sp.t === "string" ? sp.t : "";
-  if (!/^chk_[a-z0-9]{12}$/.test(id) || !verifyOrderToken(id, t)) notFound();
+  if (!/^chk_[a-z0-9]{12}$/.test(id) || !(await verifyOrderToken(id, t))) notFound();
 
   const { db } = services();
   const [c] = await db
