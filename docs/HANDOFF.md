@@ -7,10 +7,13 @@
 - **Phase 4: DONE.** AT-4 passed on Render. Proof: `docs/screenshots/phase-4/AT-4.md`. Re-run the label check with the real label photo.
 - **Phase 5: DONE.** AT-5 passed on Render. Proof: `docs/screenshots/phase-5/AT-5.md`. Dashboard at `/studio/dashboard` (D-052, D-053).
 - **Phase 6: DONE.** AT-6 passed. Proof: `docs/screenshots/phase-6/AT-6.md`. The owner still verifies the Claude Desktop / claude.ai connector from the README.
-- **Phase 7: in progress.**
-  - Done: landing page at `/`, README rewritten for judges, Devpost draft (`docs/DEVPOST.md`), and a secret scan of git history (clean).
-  - Waiting on owner answers: the `docker compose` decision (S3.a), the video recording plan (Phase 8), and confirmation of the Official Rules / eligibility from India (R6, still unchecked in SUBMISSION).
-  - Later: the AT-7 idle-load check runs once the keep-warm ping is on (Nov 8).
+- **Phase 7: in progress.** Done: landing page `/`, README rewritten for judges, `docs/DEVPOST.md` draft, git-history secret scan (clean), Official Rules confirmed (India eligible). **Next, in order:**
+  1. **Write the Phase 8 plan into PLAN.md** (D-057 says it's there; it is NOT yet): capture script (Playwright, 1920×1080), Remotion project folder and structure, caption file format, render command, beat timings for 2:45.
+  2. **Rewrite `docs/DEMO-SCRIPT.md`**: it is still v0 (says "Claude reads", 2:50). Make it 2:45, Groq/Gemini, the real routes (`/shop`, `/studio`, `/studio/orders`, `/studio/dashboard`, `/live`), with caption timings that work for voice-over or TTS.
+  3. **Capture-friendly screens**: a 16:9 split-screen route for the video (`/shop` left plus dashboard or `/live` right at 1920×1080), stable data (demo freeze/reset) and replay mode.
+  4. **Fresh-clone verification (D-056)**: clone the public repo into a clean temp folder, follow only the README, fix anything that breaks.
+  5. **Design polish pass** (`impeccable` critique/polish) on `/studio`, `/studio/orders`, `/shop`, `/s/juniper_clay`, `/live`.
+  6. AT-7's idle-load check waits for the keep-warm ping (Nov 8).
 - **Open owner items:**
   - The 6 demo photos and the label photo, then AT-3 and re-freezing the demo catalog (`POST /api/admin/demo {freeze}`).
   - The Claude connector check.
