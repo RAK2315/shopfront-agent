@@ -1,5 +1,5 @@
 // Phase-end screenshots: each path at desktop (1440×900) and mobile (390×844), with console-error and
-// horizontal-overflow checks. Usage:
+// horizontal-overflow checks. `--video` adds a 1920×1080 viewport (the Phase 8 capture size). Usage:
 //   pnpm --filter web screens -- --base https://shopfront-agent.onrender.com --out ../../docs/screenshots/phase-2 /live /design
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -14,15 +14,19 @@ const base = opt("--base", "http://localhost:3000").replace(/\/$/, "");
 const out = resolve(opt("--out", "../../docs/screenshots/tmp"));
 const settle = Number(opt("--settle", "1500"));
 const sellerHandle = opt("--seller", ""); // sign in as this demo seller first (studio pages)
+const video = args.includes("--video");
+if (video) args.splice(args.indexOf("--video"), 1);
 const paths = args.length ? args : ["/"];
 mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
 let failures = 0;
-for (const [label, viewport] of [
+const viewports = [
   ["desktop", { width: 1440, height: 900 }],
   ["mobile", { width: 390, height: 844 }],
-] as const) {
+  ...(video ? ([["video", { width: 1920, height: 1080 }]] as const) : []),
+] as const;
+for (const [label, viewport] of viewports) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: label === "mobile" ? 2 : 1 });
   if (sellerHandle) await ctx.request.post(`${base}/api/seller/session`, { data: { handle: sellerHandle } });
   for (const p of paths) {

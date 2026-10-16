@@ -28,7 +28,7 @@ function ago(iso: string, now: number) {
  * The live console: the SSE timeline (every agent → MCP → PayPal → webhook step) beside recent checkouts.
  * Server-rendered with the latest events, then follows /api/events; EventSource resumes with Last-Event-ID.
  */
-export function LiveWire({ initialEvents, initialCheckouts }: { initialEvents: ShopEvent[]; initialCheckouts: ConsoleCheckout[] }) {
+export function LiveWire({ initialEvents, initialCheckouts, after: start }: { initialEvents: ShopEvent[]; initialCheckouts: ConsoleCheckout[]; after?: number }) {
   const [events, setEvents] = useState<ShopEvent[]>(() => [...initialEvents].sort((a, b) => b.id - a.id));
   const [checkouts, setCheckouts] = useState(initialCheckouts);
   const [wire, setWire] = useState<WireState>("connecting");
@@ -49,7 +49,7 @@ export function LiveWire({ initialEvents, initialCheckouts }: { initialEvents: S
   }, []);
 
   useEffect(() => {
-    const after = initialEvents.reduce((m, e) => Math.max(m, e.id), 0);
+    const after = initialEvents.reduce((m, e) => Math.max(m, e.id), start ?? 0);
     const es = new EventSource(`/api/events?after=${after}`);
     es.onopen = () => setWire("live");
     es.onerror = () => setWire(es.readyState === EventSource.CLOSED ? "paused" : "reconnecting");
@@ -59,7 +59,7 @@ export function LiveWire({ initialEvents, initialCheckouts }: { initialEvents: S
       if (ev.checkoutId) refetchCheckouts();
     });
     return () => es.close();
-  }, [initialEvents, refetchCheckouts]);
+  }, [initialEvents, start, refetchCheckouts]);
 
   useEffect(() => {
     const first = setTimeout(() => setNow(Date.now()), 0);

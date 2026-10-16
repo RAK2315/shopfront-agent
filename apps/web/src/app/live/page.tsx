@@ -9,8 +9,10 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Live wire" };
 
 // Live ops console v0 (Phase 2): every agent call, PayPal request and webhook as it happens.
-export default async function LivePage() {
-  const [events, checkouts] = await Promise.all([recentEvents(), recentCheckouts()]);
+// `?from=now` starts the timeline empty and streams only new events (the Phase 8 capture, D-058).
+export default async function LivePage({ searchParams }: PageProps<"/live">) {
+  const fresh = (await searchParams).from === "now";
+  const [events, checkouts] = await Promise.all([recentEvents(fresh ? 1 : undefined), recentCheckouts()]);
   return (
     <main className="mx-auto grid min-h-dvh max-w-[90rem] grid-cols-[minmax(0,1fr)] content-start gap-5 px-4 py-5 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
@@ -25,7 +27,7 @@ export default async function LivePage() {
         </div>
         <RequestId label="MCP endpoint" value={appUrl("/mcp")} max={48} />
       </header>
-      <LiveWire initialEvents={events} initialCheckouts={checkouts} />
+      <LiveWire initialEvents={fresh ? [] : events} initialCheckouts={checkouts} after={fresh ? (events[0]?.id ?? 0) : undefined} />
     </main>
   );
 }

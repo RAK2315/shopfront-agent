@@ -578,6 +578,9 @@
 - **Capture uses CDP `Page.startScreencast` frames, not Playwright `recordVideo`:** the latter's fixed low bitrate blurs 1080p text. Frames are timestamped and assembled to constant 30 fps with Remotion's bundled ffmpeg, so no new install.
 - **Re-timing is automatic:** the capture script writes a sidecar of key-moment offsets per clip; `beats.ts` sets in-points and zooms from it.
 - **A $95 order is made off camera before the refund beat,** so the queue shows a real over-threshold request (no staged data).
+- **`/capture?left=…&right=…` (Phase 7):** two real routes in same-origin iframes, 960 px each at 1920×1080, with a small "Buyer"/"Seller" label per pane. It reuses the real pages instead of a video-only layout, so what the video shows is what judges can open. Only an allowlist can be framed (`/shop`, `/live`, `/studio`, `/studio/orders`, `/studio/dashboard`, `/s/juniper_clay`). `/pay` is excluded because its URL carries the order token. The page is `noindex`. On phones the panes stack.
+- **`/live?from=now`:** the live wire starts empty and streams only events after page load (SSE `after` = the latest id), so each take shows only its own calls. `/capture` frames `/live` this way. The default `/live` is unchanged.
+- **`screens --video`** adds a 1920×1080 viewport to the phase screenshot script.
 - **Serves:** S6, J5, D-056, D-057.
 
 ---
