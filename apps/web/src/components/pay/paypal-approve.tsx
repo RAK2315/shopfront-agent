@@ -57,6 +57,7 @@ export function PayPalApprove({
   clientId,
   amount,
   initialStatus,
+  testBuyer,
 }: {
   checkoutId: string;
   token: string;
@@ -64,6 +65,7 @@ export function PayPalApprove({
   clientId: string;
   amount: string;
   initialStatus: CheckoutStatus;
+  testBuyer?: { email: string; password: string };
 }) {
   const alreadyPaid = ["paid", "shipped", "partially_refunded", "refunded"].includes(initialStatus);
   const [phase, setPhase] = useState<Phase>(alreadyPaid ? "paid" : "loading");
@@ -196,6 +198,17 @@ export function PayPalApprove({
             <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
             Your agent prepared this order. Nothing is charged until you approve it in PayPal.
           </p>
+          {testBuyer && (
+            <div className="grid gap-2 rounded-md border border-line bg-surface-2 px-3 py-2.5" data-testid="test-buyer">
+              <p className="text-sm text-ink-2">
+                <span className="font-medium text-ink">Judging?</span> Log in to PayPal with the sandbox test buyer. No real money moves.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <RequestId label="Email" value={testBuyer.email} max={44} />
+                <RequestId label="Password" value={testBuyer.password} max={24} />
+              </div>
+            </div>
+          )}
         </>
       )}
 

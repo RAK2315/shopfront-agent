@@ -20,6 +20,9 @@ const Env = z.object({
   APP_URL: z.url(),
   SESSION_SECRET: z.string().min(32),
   DEV_ALLOW_UNVERIFIED_WEBHOOKS: z.stringbool().default(false),
+  // The published sandbox buyer for judges (owner-approved, supersedes D-034). Sandbox only; shown on /pay when set.
+  SANDBOX_BUYER_EMAIL: z.string().optional().default(""),
+  SANDBOX_BUYER_PASSWORD: z.string().optional().default(""),
 });
 
 export type ServerEnv = z.infer<typeof Env>;

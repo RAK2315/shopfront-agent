@@ -92,6 +92,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
               clientId={env().PAYPAL_CLIENT_ID}
               amount={centsToValue(ck.totalCents)}
               initialStatus={ck.status as CheckoutStatus}
+              testBuyer={env().SANDBOX_BUYER_EMAIL && env().SANDBOX_BUYER_PASSWORD ? { email: env().SANDBOX_BUYER_EMAIL, password: env().SANDBOX_BUYER_PASSWORD } : undefined}
             />
           )}
         </div>

@@ -728,6 +728,16 @@
   - **AT-6 #8 "token theft"** on Render: ids read from the public console; 10 attack routes; a real PayPal redirect approval returning through `/pay/return`; one capture only.
 - **Serves:** J1, P7, P8, G9, D-002.
 
+## D-069: Sandbox buyer credentials published now (owner, 2026-10-16; supersedes D-034's "submission day")
+- **Owner decision:** publish the sandbox buyer email and password now (REVIEW-1 #1). They are sandbox-only, and their password never changes after submission (PLAN risk 16).
+- **README:** a "Judges: pay in 60 seconds" section at the top, with the login and a timed 4-step click path (/shop starter → Review and pay → PayPal → Payment complete and webhook verified). The old 5-step tour follows as "Then, in 3 more minutes". Internal decision ids were removed from the README (a REVIEW-1 low finding).
+- **`/pay/[id]`:** a neutral "Judging?" box under the PayPal button, with copy chips for the email and password, shown only before payment.
+  - The values come from the optional `SANDBOX_BUYER_EMAIL` / `SANDBOX_BUYER_PASSWORD` env vars, now also set on Render. They aren't hardcoded, so a secret scan of the repo stays clean apart from the README itself.
+  - The box is not PayPal blue: it isn't a PayPal element.
+- **Not done:** a public link to an already-paid order page. With D-068, that link would carry a live order token, and anyone could use it to request a refund. Judges make their own order in 60 seconds instead.
+- **The spare buyer** (`SANDBOX_BUYER2_*`) stays unpublished, as the fallback if the public one gets locked.
+- **Serves:** J5, J3, S3.b, D-034.
+
 ---
 
 ## Requirement updates

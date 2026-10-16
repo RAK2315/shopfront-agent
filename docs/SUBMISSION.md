@@ -26,7 +26,7 @@
     - **Real multi-seller payouts:** Partner Referrals onboarding, per-seller payee routing, and a platform fee ledger. This retires the single-account caveat (D-006). *(Phase 12; Spike M decides.)*
     - **Adversarial agent arena:** 50 live attacks against our own MCP server, each shown BLOCKED with the guardrail that caught it. *(Phase 13)*
 - [ ] **Tools section**: each model or AI service and how it's used (S4). Add when shipped: **PayPal Vault v3 payment tokens and merchant-initiated Orders** (Phase 10), the **Disputes API** (Phase 11), and **Partner Referrals / multiparty** (Phase 12). The arena (Phase 13) uses no new tool: it is our own MCP client. Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
-- [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password, judge-seller login.
+- [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password (already in the README and on `/pay`, D-069), judge-seller login.
 - [ ] GitHub repo URL (S5).
 - [ ] YouTube video URL (S6.3).
 - [ ] Prize categories selected: main, Agentic Commerce, PayPal + AI, Best Demo, Most Creative, Most Impactful, AG Grid, Render.
@@ -35,7 +35,7 @@
 - [x] Public (S5.2).
 - [ ] MIT `LICENSE` at the root **and visible in the About section** (S5.2).
 - [ ] All source, assets, seed photos and instructions are included (S5.1).
-- [ ] README: problem, demo URL, judge credentials, architecture, PayPal APIs, AI tools, local run, env vars, limitations (D-006), roadmap. *(Written 2026-10-15; still missing the judge credentials (submission day), Phase 3 proof, and a decision on `docker compose`.)*
+- [ ] README: problem, demo URL, judge credentials, architecture, PayPal APIs, AI tools, local run, env vars, limitations (D-006), roadmap. *(Judge credentials and the 60-second path published 2026-10-16, D-069; Docker dropped, D-056. Still missing: the Phase 3 photo proof.)*
 - [x] Claude Desktop / claude.ai MCP connector snippet. *(README; owner to verify in Claude)*
 - [x] No secrets in history. *(2026-10-15: the full `git log -p` was scanned for every secret value in `.env` (9 values) plus key patterns, with 0 hits; gitleaks itself not run.)*
 

@@ -11,21 +11,34 @@ Built for *Build What's Next with PayPal and AI* (2026). Everything runs in the 
 
 ---
 
-## Try it in 3 minutes (judges)
+## Judges: pay in 60 seconds
 
-1. **Shop as a buyer.** Open **[/shop](https://shopfront-agent.onrender.com/shop)** and click *"Find me a handmade blue mug under $40 as a gift"*.
-   - The agent searches, picks a mug and creates a checkout. The live timeline on the right shows every MCP call and PayPal request.
-2. **Approve in PayPal.** Click *Review and pay with PayPal*, then log in as the sandbox buyer.
-   - *Sandbox buyer login:* added to this README and the Devpost testing notes on submission day (D-034).
-   - Once you approve, the payment is captured and PayPal's signature-verified webhook arrives. The order page shows "PayPal webhook received and signature verified".
-3. **Try to cheat.** Back on /shop, click **Try to hack the price**.
+**Sandbox test buyer** (PayPal sandbox only, published for judging; no real money moves):
+
+| | |
+|---|---|
+| Email | `sb-kaj47u53384870@personal.example.com` |
+| Password | `6cXh>ZcZ` |
+
+The same login is shown, with copy buttons, on every order page.
+
+1. **0:00** Open **[/shop](https://shopfront-agent.onrender.com/shop)** and click *"Find me a handmade blue mug under $40 as a gift"*. In about 10 s the agent finds a mug and creates a checkout; the timeline on the right shows each MCP call and PayPal request.
+2. **0:15** Click **Review and pay with PayPal**. The order page opens in a new tab with the server's total.
+3. **0:20** Click the **PayPal** button. In the PayPal window, log in with the test buyer above and click **Complete Purchase**.
+4. **0:50** Back on the order page: **Payment complete**, the PayPal order and capture ids, then "PayPal webhook received and signature verified" a few seconds later.
+
+If the first page load takes about a minute, the free server is waking up; after that it is fast.
+
+## Then, in 3 more minutes
+
+1. **Try to cheat.** Back on /shop, click **Try to hack the price**.
    - Three real attacks hit the MCP server: price 0, a $0.01 total with a 100% discount, and a negative quantity. All are blocked, and no checkout is created.
    - Then the agent gets the same trick as a prompt.
-4. **Be the seller.** Open **[/studio](https://shopfront-agent.onrender.com/studio)** → *Continue as Juniper Clay Studio* (a shared demo seller; it resets nightly).
+2. **Be the seller.** Open **[/studio](https://shopfront-agent.onrender.com/studio)** → *Continue as Juniper Clay Studio* (a shared demo seller; it resets nightly).
    - **Studio:** drop product photos. Gemini drafts each listing with per-field confidence, and nothing publishes until you confirm every price. Publishing mirrors the product into PayPal's catalog.
    - **Orders:** the refund queue (one tap) and shipping: read a label photo, confirm, and tracking goes onto the PayPal order.
    - **Dashboard (AG Studio):** ask *"What sold this week?"* (figures labelled `[db]` / `[paypal]`) or *"Show refunds by product this week"* (the agent builds the chart). The ledger is editable and the live timeline updates as orders arrive.
-5. **Watch the wire.** **[/live](https://shopfront-agent.onrender.com/live)** shows every agent call, PayPal request, webhook and fallback check as it happens.
+3. **Watch the wire.** **[/live](https://shopfront-agent.onrender.com/live)** shows every agent call, PayPal request, webhook and fallback check as it happens.
 
 ## Use it from your own agent (MCP)
 
@@ -90,11 +103,11 @@ All model calls go through one router: cache → per-IP and daily caps → prima
 
 ## Honest limitations
 
-- **One merchant account.** In this build every sale settles to one sandbox business account (the platform's). The production path is PayPal multiparty / partner onboarding, so each seller is paid directly (D-006).
-- **Sandbox only, US buyers only.** The "buyer from another country" test uses a second **US** sandbox buyer (D-040).
+- **One merchant account.** In this build every sale settles to one sandbox business account (the platform's). The production path is PayPal multiparty / partner onboarding, so each seller is paid directly.
+- **Sandbox only, US buyers only.** The "buyer from another country" test uses a second **US** sandbox buyer.
 - **PayPal Transaction Search lags** by up to about 3 hours, so the insights agent labels every figure with its source.
 - **Free tiers:** Render cold starts (about 1 minute), Groq's 8k tokens per minute, Gemini latency. Answers are cached and the demo can replay.
-- **AG Studio** runs on a trial licence. The ledger uses AG Grid Community, because the Studio trial does not license standalone AG Grid Enterprise (D-053).
+- **AG Studio** runs on a trial licence. The ledger uses AG Grid Community, because the Studio trial does not license standalone AG Grid Enterprise.
 
 ## Run it locally
 
