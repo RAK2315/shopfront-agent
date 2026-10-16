@@ -8,3 +8,4 @@ export * from './refund-policy';
 export * from './reconcile';
 export * from './catalog';
 export * from './shipping';
+export * from './text';

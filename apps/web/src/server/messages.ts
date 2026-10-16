@@ -1,5 +1,5 @@
 import "server-only";
-import { centsToValue, CustomerMessageDraft, newId } from "@shopfront/core";
+import { centsToValue, CustomerMessageDraft, newId, sentenceCaseSubject } from "@shopfront/core";
 import { and, eq, schema } from "@shopfront/db";
 import { recordEvent } from "./events";
 import { llm } from "./llm";
@@ -64,15 +64,15 @@ export async function publishMessage(checkoutId: string, kind: Kind, f: MessageF
     try {
       const r = await llm().agent.object({
         route: "message",
-        promptVersion: "message-v1",
-        system: `You write short, warm notes from a one-person shop (${c.shop}) to a buyer. 2–3 sentences, first person, no emojis. Do not mention any prices, amounts, numbers, dates or tracking details: those are added separately. Never promise anything not stated.`,
+        promptVersion: "message-v2",
+        system: `You write short, warm notes from a one-person shop (${c.shop}) to a buyer. 2–3 sentences, first person, no emojis. The subject is sentence case (capitalise only the first word and names), at most 8 words. Do not mention any prices, amounts, numbers, dates or tracking details: those are added separately. Never promise anything not stated.`,
         prompt: `${BRIEF[kind]}\nItems: ${items.map((i) => i.t).join(", ")}${f.reason ? `\nRefund reason: ${f.reason.replace(/_/g, " ")}` : ""}${f.outcome ? `\nOutcome: ${f.outcome}` : ""}`,
         schema: CustomerMessageDraft,
         schemaName: "CustomerMessageDraft",
       });
       // Guard: a draft that slips in a number is replaced by the template rather than published.
       if (!/\d/.test(r.value.body)) {
-        draft = r.value;
+        draft = { subject: sentenceCaseSubject(r.value.subject, [c.shop, ...items.map((i) => i.t)]), body: r.value.body };
         source = r.source;
       }
     } catch {
