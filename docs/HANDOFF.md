@@ -1,4 +1,4 @@
-# HANDOFF: Shopfront Agent (written 2026-10-15, end of session "part 1")
+# HANDOFF: Shopfront Agent (updated 2026-10-16, session "part 2")
 
 ## Where we are (updated 2026-10-15, session "part 2")
 - **Phase 1: DONE.** Proof: `docs/screenshots/phase-1/GATE-PROOF.md`.
@@ -7,6 +7,10 @@
 - **Phase 4: DONE.** AT-4 passed on Render. Proof: `docs/screenshots/phase-4/AT-4.md`. Re-run the label check with the real label photo.
 - **Phase 5: DONE.** AT-5 passed on Render. Proof: `docs/screenshots/phase-5/AT-5.md`. Dashboard at `/studio/dashboard` (D-052, D-053).
 - **Phase 6: DONE.** AT-6 passed. Proof: `docs/screenshots/phase-6/AT-6.md`. The owner still verifies the Claude Desktop / claude.ai connector from the README.
+- **Phase 7: in progress.**
+  - Done: landing page at `/`, README rewritten for judges, Devpost draft (`docs/DEVPOST.md`), and a secret scan of git history (clean).
+  - Waiting on owner answers: the `docker compose` decision (S3.a), the video recording plan (Phase 8), and confirmation of the Official Rules / eligibility from India (R6, still unchecked in SUBMISSION).
+  - Later: the AT-7 idle-load check runs once the keep-warm ping is on (Nov 8).
 - **Open owner items:**
   - The 6 demo photos and the label photo, then AT-3 and re-freezing the demo catalog (`POST /api/admin/demo {freeze}`).
   - The Claude connector check.
