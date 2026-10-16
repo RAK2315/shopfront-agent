@@ -52,7 +52,40 @@ Five fresh-context judge agents scored the build:
 9. **#5 Real photos.**
 10. **#9 "Who and why" story.**
 
-## Plan: Phases 9–13 (PLAN.md, D-063)
+## ⚠️ OWNER OVERRIDE (2026-10-16, after the plan below was written): this replaces the order and scope below
+**Step 1: fix now, in this order, each with tests and its own commit.** Acceptance on Render.
+1. **Security.**
+   - Bind the order token to the buyer session that created the checkout; never issue it for an arbitrary checkout id. Today `/pay/return` mints one for any id (REVIEW-1 #2).
+   - **Audit every route that accepts a checkout or order id** for the same flaw:
+     - `/pay/[id]` and `/pay/return`;
+     - `/api/checkouts/[id]/capture` and `/api/checkouts/[id]/status`;
+     - the `get_checkout_status` and `request_refund` MCP tools;
+     - the seller order and refund routes;
+     - the `/api/events` `checkout` filter.
+   - Add an attack test to the injection suite (AT-6).
+2. **README judge quick path.** Publish the sandbox buyer email and password (sandbox-only, owner-approved; this supersedes D-034) and a 60-second click path to finish a payment. **Re-run the cold 5-minute judge agent afterwards** (same prompt as REVIEW-1).
+3. **Data isolation.**
+   - Replay and test runs write to a separate tenant or flag, and never appear on public `/live` or the landing hero.
+   - Purge old test checkouts from public views.
+   - Public `/live` shows only real sessions.
+   - The "via Replay" label appears only when a replay actually served a step. Add one README line explaining replay as resilience, not staging.
+4. **Phase 8 video issues (D-062)**, logged as Phase 8 tasks in PLAN.md: the card crop on zoom, stale `/live` data, and caption overlap.
+
+**Step 2: update `docs/REVIEW-1.md`** with what was fixed, then **re-plan Phases 9–13 in this new order.** Update PLAN, DESIGN, DEMO-SCRIPT, SUBMISSION, DECISIONS and this HANDOFF.
+
+| New phase | What | Notes |
+|---|---|---|
+| **9** | **Multi-seller payouts** (Platform + Partner Referrals). **Spike first.** | Was Phase 12. The PM review flagged single-account settlement. |
+| **10** | **Seller copilot on Telegram** (free Bot API, real phone footage). Photo-to-store, order ops, tracking from a label photo, and refund approvals, all in chat. | **New.** It is the innovation answer to "close to Agent Ready / Shopify MCP": sellers with no website who never need one. **Rewrite the pitch, DEMO-SCRIPT and SUBMISSION to lead with it.** |
+| 11 | Vault reorder. **Spike first.** | Was Phase 10. |
+| 12 | Dispute defense agent | Was Phase 11. |
+| 13 | Adversarial arena | Unchanged. |
+
+**Cut order if slipping:** 13 → 12 → 11. **Phases 9 and 10 are protected** unless their spike fails. Everything stays inside the Nov 3 freeze.
+
+The section below is the **superseded** plan from earlier in this session. Reuse its API details, ATs and risks; ignore its order and the old "Phase 9 = review fixes" framing.
+
+## Plan as first written (superseded order): Phases 9–13 (PLAN.md, D-063)
 
 **Order (spikes first), all inside the Nov 3 freeze:**
 
@@ -71,7 +104,7 @@ Five fresh-context judge agents scored the build:
 - A failed spike cuts its phase, gets logged, and is never faked.
 - No feature work before AT-9 passes on Render.
 
-**Exact next step:** start Phase 9 with **REVIEW-1 #2, the `/pay/return` token leak.**
+**Exact next step (per the owner override above):** Step 1, item 1, the security fix: bind the order token to its buyer session, then audit every id-taking route.
 1. Require PayPal's `token` query to equal the checkout's `paypal_order_id`.
 2. Stop minting the order token there.
 3. Hash checkout ids for display in `/api/events` and `/live`. Keep a server-side hash → id map for the follow filter (PLAN 9.1).
