@@ -583,6 +583,13 @@
 - **`screens --video`** adds a 1920×1080 viewport to the phase screenshot script.
 - **Serves:** S6, J5, D-056, D-057.
 
+## D-059: Fresh-clone check found `pnpm start` ignored the root `.env` (AT-7 #1)
+- **Finding (2026-10-16):** following only the README in a fresh clone of the public repo (`0af0e20`), with a throwaway database on the same Neon server, `pnpm install`, `db:migrate` and `seed` worked, but `pnpm start` crashed: "Invalid input … SESSION_SECRET". `next start` reads only `apps/web/.env*`, while the README (and every script) uses the root `.env`. The same cause explained the "AG Studio license key not found" quirk in local builds.
+- **Fix:** `next.config.ts` loads the root `.env` when the file exists. Render has no file, so production is unchanged, and a file never overrides variables that are already set. Passing `--env-file-if-exists` to node was tried first and rejected, because Next copies it into `NODE_OPTIONS` for build workers and Node refuses it there.
+- **Result after the fix:** the fresh clone built and served the app. `/api/health` returned `{ok, db, paypal_token, webhook_configured}` all true. An MCP `search_products` call returned the seeded products, and `/`, `/shop`, `/live`, `/s/juniper_clay`, `/capture` and `/studio` returned 200. The throwaway database was dropped afterwards.
+- The README now says the `.env` stays at the root, and that local payments are confirmed by the fallback check, because PayPal can't reach `localhost`.
+- **Serves:** S3.a, D-056.
+
 ---
 
 ## Requirement updates

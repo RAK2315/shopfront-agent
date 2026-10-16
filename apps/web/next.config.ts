@@ -1,4 +1,11 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import type { NextConfig } from "next";
+
+// Local runs keep one .env at the repo root (README). Next only reads apps/web/.env*, so load the root file for
+// `pnpm build` / `pnpm start` too. Render has no file and sets real env vars, which a file never overrides.
+const rootEnv = resolve(process.cwd(), "../../.env");
+if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 const nextConfig: NextConfig = {
   // Payment, MCP and webhook routes are request-time by nature; classic dynamic rendering keeps them simple.

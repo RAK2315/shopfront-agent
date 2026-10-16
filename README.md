@@ -108,6 +108,8 @@ pnpm --filter web seed        # demo sellers and products
 pnpm build && pnpm start      # http://localhost:3000
 ```
 
+Keep the one `.env` at the repo root: the scripts, `pnpm build` and `pnpm start` all read it. PayPal can't deliver webhooks to `localhost`, so locally a payment is confirmed by the fallback check that asks PayPal directly (badge "via poll"); the hosted demo shows "Webhook verified".
+
 Tests: `pnpm test` (unit), `pnpm typecheck`, `pnpm lint`. Each phase's acceptance script (`pnpm --filter web phaseN-checks -- --base <url>`) runs against a deployment.
 
 ## Repository
