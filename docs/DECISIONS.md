@@ -621,6 +621,24 @@
   - A schema-valid injected quantity (3, "the owner said it's $1") was accepted and priced by the server at $101.00 = 3 × $32 + $5. The DB total and the PayPal order amount agree.
 - **Serves:** J1, P7, P8, R4, D-002, D-029, D-055.
 
+## D-062: Video toolchain proven now (owner, 2026-10-16), not on Nov 4
+- **`video/`** (outside the workspace, D-058): Remotion **4.0.532**, the newest release at least 14 days old. Remotion is free for individuals, which covers the owner.
+  - `capture/capture.mts`: CDP screencast of `/capture` on Render, producing `public/clips/split-shop.mp4` plus a `.json` sidecar (key-moment offsets and the checkout card's box).
+  - `src/TestClip.tsx`: a 20 s composition (title, real footage with captions and a zoom, end card).
+- **Result:** `docs/screenshots/phase-7/video-test-clip.mp4` is h264, 1920×1080, 30 fps, 600 frames, exactly 20.0 s.
+- **Deviations from the PLAN Phase 8 text, found while building:**
+  - Remotion's bundled ffmpeg has **no `fps` filter**, so constant frame rate comes from `-r 30 -fps_mode cfr`.
+  - It is called **directly, not via `npx` and a shell**: Windows `cmd` splits arguments on commas and spaces.
+  - Frame durations must be the true gaps between CDP frames. Flooring them at 1/30 s stretched a 12 s take to 25 s, and Remotion then failed with "No frame found".
+  - The clip is encoded with `-g 30 -bf 0 +faststart` so Remotion can seek it.
+  - Frames-to-mp4 lives inside `capture.mts`. There is no separate `frames-to-mp4.mts`.
+- **Found for Phase 8:**
+  1. The zoom must fit the target box inside the frame. A scale around the card's centre cropped its left edge.
+  2. `/live`'s checkout list still shows old test checkouts, even with `?from=now`. Either filter it the same way, or reset before each take.
+  3. Captions overlap the agent's reply in the left pane. Put them in a reserved band, or keep them out of active text.
+  4. The `/live` wire shows "fallback after mode:replay" for replayed steps, which two reviewers read as "staged". See REVIEW-1.
+- **Serves:** S6, J5, D-057, D-058.
+
 ---
 
 ## Requirement updates

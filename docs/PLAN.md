@@ -163,7 +163,7 @@ video/
   package.json            remotion, @remotion/cli, react, react-dom (exact versions, checked at the time); install with `pnpm install --ignore-workspace`
   remotion.config.ts      1920×1080, 30 fps, h264, CRF 18
   capture/capture.mts     Playwright capture of the deployed app, one clip per beat (below)
-  capture/frames-to-mp4.mts   timestamped frames → constant-30-fps mp4 (Remotion's bundled ffmpeg, `npx remotion ffmpeg`)
+  (frames → constant-30-fps mp4 happens inside capture.mts with Remotion's bundled ffmpeg binary, called directly: D-062)
   src/index.ts, src/Root.tsx  registers the one composition `ShopfrontDemo` (4950 frames = 2:45)
   src/beats.ts            THE source of truth: beat id, start, duration, clip file + in-point, zoom keyframes, caption lines
   src/scenes/             Intro, Problem, Clip (footage + zoom + highlight box), Split (two clips side by side), Recap
@@ -176,7 +176,7 @@ video/
 **Capture (`capture.mts`):**
 - Runs against `https://shopfront-agent.onrender.com` only (S6.2). Before a session: warm the service (`/api/health`), then `POST /api/admin/demo {reset}` so the catalog, prices and dashboard layout are the frozen demo set (D-054).
 - **Headed** Chromium (`channel: "chromium"`): the sandbox popup fails headless (HANDOFF risk 1). Viewport 1920×1080 at `deviceScaleFactor: 1`, a fresh browser context per beat (D-048).
-- **Frames via CDP `Page.startScreencast`** (JPEG quality 92, every frame, with timestamps), not Playwright's `recordVideo`, whose bitrate is too low for 1080p text. `frames-to-mp4.mts` turns the timestamps into per-frame durations so the clip plays in real time.
+- **Frames via CDP `Page.startScreencast`** (JPEG quality 92, every frame, with timestamps), not Playwright's `recordVideo`, whose bitrate is too low for 1080p text. The true gaps between frames become concat durations, then `-r 30 -fps_mode cfr` (the bundled ffmpeg has no `fps` filter), so the clip plays in real time. **Proven 2026-10-16** with a 20 s test render (D-062).
 - The PayPal popup is a separate page: it gets its own screencast (beat 6) and Remotion cuts between the two.
 - Each beat is a function: navigate, act through the real UI (typing at a human pace, `page.type` with a 35 ms delay), wait on the app's own readiness signals (`data-phase`, `data-testid`, timeline rows), then stop. The output is `public/clips/<beat>.mp4` plus `<beat>.json` with the wall-clock offsets of key moments (e.g. "webhook row appeared at 7.4 s"). beats.ts reads those offsets to set in-points and zooms, so a re-capture never needs manual re-timing.
 - The split-screen beats use **`/capture?left=/shop&right=/live`** (16:9, two labelled 960 px panes; Phase 7).
