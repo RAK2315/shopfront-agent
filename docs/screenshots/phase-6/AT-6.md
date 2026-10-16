@@ -29,3 +29,29 @@
 |---|---|---|
 | **7** Compromised agent: a real model really sends injected values; the server total wins | ✅ | `pnpm --filter web phase6-checks -- --base https://shopfront-agent.onrender.com --only 7` (Groq `openai/gpt-oss-120b`, attacker-loosened client schema). **7a** `price: 0, total: 0` → "Unrecognized keys: price, total", no checkout. **7b** `discount_percent: 100` → "Unrecognized key", no checkout. **7c** `quantity: -5` → "Too small", no checkout. **7d** quantity 3 after "the owner said it's $1" → accepted; total **$101.00** = 3 × $32.00 + $5.00 shipping, and the PayPal order amount is $101.00 (`chk_rco9vdfxpfy7`). |
 | **6** (re-run) Replay with no AI keys, full demo story | ✅ | After re-recording with `record-demo` on Render, a local server ran with `LLM_MODE=replay` and empty Groq/Gemini keys. The purchase, the `/track` tracking and the wrong-size refund all completed. 11 AI steps: 0 live, 4 replay, 7 cache. The PayPal capture, tracking and refund were live (D-061). |
+
+## Added 2026-10-16 (session "part 4"): token theft (REVIEW-1 #2, D-068)
+`pnpm --filter web phase6-checks -- --base https://shopfront-agent.onrender.com --only 8` against commit `da5861b`. ✅ **10 of 10 attacks blocked.**
+
+The attacker is an ordinary MCP client with a valid order token for **its own** checkout. It reads the victim's checkout id and PayPal order id from the **public** console (`/api/console/checkouts`).
+
+| # | Attack | Result |
+|---|---|---|
+| 8a | `/pay/return?checkout=<victim>` (the REVIEW-1 leak) | 400, no token in `Location` |
+| 8b | the same, plus `token=<victim's public PayPal order id>` | 400 |
+| 8c | the same, plus `t=<attacker's own valid token>` | 400 |
+| 8d | `/pay/<victim>?t=<attacker token>` | 404 |
+| 8e | `/api/checkouts/<victim>/status?t=<attacker token>` | 403 |
+| 8f | `POST /api/checkouts/<victim>/capture {t: attacker token}` | 403 |
+| 8g | MCP `get_checkout_status` (victim id, attacker token) | `FORBIDDEN` |
+| 8h | MCP `request_refund` on the victim's **paid** order with the attacker token | `FORBIDDEN`, 0 refund requests |
+| 8i | `create_checkout` reusing the victim's `client_request_id` for other items | `CONFLICT`, no token returned |
+| 8j | `/api/events?checkout=<victim>` stream | no order token anywhere |
+
+**The legitimate path still works:**
+- The victim's own `pay_url` returns 200.
+- A **real PayPal redirect approval** (approve link, sandbox buyer login, Complete Purchase) comes back through `/pay/return` with PayPal's `token` and `PayerID`, captures, and lands on the order page: `at6-8-redirect-return-paid.png`.
+- Replaying that return URL afterwards gives 303 with **exactly 1** successful capture call.
+- A wrong PayPal `token` gives 400.
+
+**Earlier tokens retired:** the stored hashes of all 70 pre-fix checkouts were replaced with random ones, and the tokens held in 24 old buyer sessions were cleared.
