@@ -42,7 +42,7 @@
 - [ ] Sandbox buyer passwords are not changed after submission.
 
 ## Video (S6)
-- [ ] Under 3:00. Target is 2:50 or less (S6.1).
+- [ ] Under 3:00. Target is **2:45** (S6.1, D-057; beat sheet in `DEMO-SCRIPT.md`).
 - [ ] Shows the real build functioning (S6.2).
 - [ ] Public on YouTube (S6.3).
 - [ ] No third-party logos or UIs; music is licensed or absent (S6.4, D-015).

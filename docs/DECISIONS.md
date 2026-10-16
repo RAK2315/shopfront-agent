@@ -572,6 +572,14 @@
 - **Tooling note:** Remotion is free for individuals and small teams (check its licence at the time). It is added in Phase 8 only, as a dev-time tool in its own folder, not shipped with the app.
 - **Serves:** S6, P6, J5, G15.
 
+## D-058: Phase 8 production details (implements D-057)
+- **Beat sheet:** 11 beats, 2:45 total (`DEMO-SCRIPT.md` v1, mirrored in PLAN §4). It replaces the v0 2:50 draft, which named Claude as the vision model; the build uses Gemini for vision and Groq for agents (D-038).
+- **`video/` sits outside the pnpm workspace** (installed with `pnpm install --ignore-workspace`), so judges' `pnpm install` at the root never pulls Remotion or its ffmpeg binary. This keeps D-056's fresh-clone path lean.
+- **Capture uses CDP `Page.startScreencast` frames, not Playwright `recordVideo`:** the latter's fixed low bitrate blurs 1080p text. Frames are timestamped and assembled to constant 30 fps with Remotion's bundled ffmpeg, so no new install.
+- **Re-timing is automatic:** the capture script writes a sidecar of key-moment offsets per clip; `beats.ts` sets in-points and zooms from it.
+- **A $95 order is made off camera before the refund beat,** so the queue shows a real over-threshold request (no staged data).
+- **Serves:** S6, J5, D-056, D-057.
+
 ---
 
 ## Requirement updates
