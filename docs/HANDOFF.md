@@ -1,4 +1,4 @@
-# HANDOFF: Shopfront Agent (updated 2026-10-16, session "part 2")
+# HANDOFF: Shopfront Agent (updated 2026-10-16, session "part 3")
 
 ## Where we are (updated 2026-10-15, session "part 2")
 - **Phase 1: DONE.** Proof: `docs/screenshots/phase-1/GATE-PROOF.md`.
@@ -7,13 +7,19 @@
 - **Phase 4: DONE.** AT-4 passed on Render. Proof: `docs/screenshots/phase-4/AT-4.md`. Re-run the label check with the real label photo.
 - **Phase 5: DONE.** AT-5 passed on Render. Proof: `docs/screenshots/phase-5/AT-5.md`. Dashboard at `/studio/dashboard` (D-052, D-053).
 - **Phase 6: DONE.** AT-6 passed. Proof: `docs/screenshots/phase-6/AT-6.md`. The owner still verifies the Claude Desktop / claude.ai connector from the README.
-- **Phase 7: in progress.** Done: landing page `/`, README rewritten for judges, `docs/DEVPOST.md` draft, git-history secret scan (clean), Official Rules confirmed (India eligible). **Next, in order:**
-  1. **Write the Phase 8 plan into PLAN.md** (D-057 says it's there; it is NOT yet): capture script (Playwright, 1920×1080), Remotion project folder and structure, caption file format, render command, beat timings for 2:45.
-  2. **Rewrite `docs/DEMO-SCRIPT.md`**: it is still v0 (says "Claude reads", 2:50). Make it 2:45, Groq/Gemini, the real routes (`/shop`, `/studio`, `/studio/orders`, `/studio/dashboard`, `/live`), with caption timings that work for voice-over or TTS.
-  3. **Capture-friendly screens**: a 16:9 split-screen route for the video (`/shop` left plus dashboard or `/live` right at 1920×1080), stable data (demo freeze/reset) and replay mode.
-  4. **Fresh-clone verification (D-056)**: clone the public repo into a clean temp folder, follow only the README, fix anything that breaks.
-  5. **Design polish pass** (`impeccable` critique/polish) on `/studio`, `/studio/orders`, `/shop`, `/s/juniper_clay`, `/live`.
-  6. AT-7's idle-load check waits for the keep-warm ping (Nov 8).
+- **Phase 7: in progress** (session "part 3", 2026-10-16). Done:
+  - Landing page `/`, README for judges, `docs/DEVPOST.md` draft, secret scan, Official Rules check.
+  - **Phase 8 plan in PLAN.md** (D-057, D-058): `video/` outside the workspace, CDP screencast capture, `beats.ts`, SRT.
+  - **`DEMO-SCRIPT.md` v1**: 2:45, 11 beats, caption cues, real UI labels.
+  - **`/capture?left=&right=`**: 16:9 split screen of real routes. `/live?from=now` starts the wire empty. `screens --video` takes 1920×1080 shots.
+  - **Fresh-clone check passed** (D-059): `pnpm start` didn't read the root `.env`, and `next.config.ts` now loads it. A side effect: local builds are now AG Studio–licensed.
+  - **Design pass** (D-060): `SellerNav` on all seller pages, placeholders, the storefront mobile overflow, the orders summary. Freeze mirrors seeded listings to the PayPal catalog. The critique snapshot is in `.impeccable/critique/`.
+  - **Next:**
+    1. AT-3 when the photos land: strip EXIF, run `phase3-checks --keep`, then **freeze** (this also mirrors seeds to PayPal), and add the README row.
+    2. Re-record replay transcripts after any prompt change. A pending candidate is sentence-case note subjects (D-060).
+    3. Before recording: seeded sales at least 24 h old, and a paid $95 bowl order for beat 9 (DEMO-SCRIPT prerequisites).
+    4. AT-7's idle-load check waits for the keep-warm ping (Nov 8).
+    5. Feature freeze end of Nov 3. Phase 8 starts after it.
 - **Open owner items:**
   - The 6 demo photos and the label photo, then AT-3 and re-freezing the demo catalog (`POST /api/admin/demo {freeze}`).
   - The Claude connector check.
@@ -27,6 +33,7 @@
   - `/studio/orders`: refund queue + shipping.
   - `/s/[handle]` and `/s/[handle]/[productId]`: storefront.
   - `/llms.txt`.
+  - `/capture?left=/shop&right=/live`: the 16:9 split screen for the video (allowlisted routes only).
   - `/spike/studio`: internal AG Studio spike.
 
 ## Deployed
@@ -69,7 +76,7 @@
 - **Local only:** `SANDBOX_BUYER_EMAIL`, `SANDBOX_BUYER_PASSWORD`, `SANDBOX_BUYER2_EMAIL`, `SANDBOX_BUYER2_PASSWORD`, `DEV_ALLOW_UNVERIFIED_WEBHOOKS`, `RENDER_API_KEY`, `SHOPFRONT_DISABLE_TIMERS` (set to 1 when running a local server against the shared DB). These are never sent to Render.
 
 ## Commands
-- **Day to day:** `pnpm dev`, `pnpm test` (48 tests), `pnpm typecheck`, `pnpm lint`.
+- **Day to day:** `pnpm dev`, `pnpm test` (77 tests), `pnpm typecheck`, `pnpm lint`.
 - **Database:** `pnpm --filter @shopfront/db db:generate`, then `db:migrate`.
 - **Web app scripts:**
   - `pnpm --filter web seed`.
