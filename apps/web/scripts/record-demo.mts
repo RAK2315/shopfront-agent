@@ -38,10 +38,24 @@ try {
   const payP = ctx.waitForEvent("page");
   await page.getByTestId("pay-link").click();
   const pay = await payP;
-  await pay.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
-  const popupP = pay.waitForEvent("popup", { timeout: 20_000 });
-  await pay.locator("paypal-button").click();
-  await loginAndApprove(await popupP, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
+  // The sandbox popup sometimes fails to open after many logins (D-048): retry up to 3 times on the same order.
+  for (let attempt = 1; ; attempt++) {
+    await pay.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
+    const popupP = pay.waitForEvent("popup", { timeout: 20_000 });
+    await pay.locator("paypal-button").click();
+    const popup = await popupP.catch(() => null);
+    try {
+      if (!popup) throw new Error("popup did not open");
+      await loginAndApprove(popup, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
+      break;
+    } catch (err) {
+      await popup?.close().catch(() => {});
+      if (attempt >= 3) throw err;
+      log(`popup attempt ${attempt} failed; retrying`);
+      await new Promise((r) => setTimeout(r, 8000));
+      await pay.reload({ waitUntil: "load" });
+    }
+  }
   await pay.getByText("Payment complete").waitFor({ timeout: 120_000 });
   const checkoutId = new URL(pay.url()).pathname.split("/").pop()!;
   await pay.close();

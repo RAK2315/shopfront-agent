@@ -41,6 +41,31 @@ function forBrowser(v: unknown): unknown {
 
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s);
 
+type SessionCheckout = { checkout_id: string; order_token: string };
+
+/**
+ * The model sees session-local aliases ("order-1", "token-1"), never real checkout ids or order tokens (D-061):
+ * the bearer token stays out of the LLM provider, and a replayed tool call (D-055) targets this session's order
+ * instead of the one in the recording. Pay links are shown to the human as a button, so the model doesn't get them.
+ */
+function toModel(v: unknown, checkouts: SessionCheckout[]): unknown {
+  if (Array.isArray(v)) return v.map((x) => toModel(x, checkouts));
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "pay_url" ? "(shown to the shopper as the Pay button)" : toModel(x, checkouts)]));
+  if (typeof v !== "string") return v;
+  return checkouts.reduce((s, c, i) => s.replaceAll(c.checkout_id, `order-${i + 1}`).replaceAll(c.order_token, `token-${i + 1}`), v);
+}
+
+function fromModel(args: unknown, checkouts: SessionCheckout[]): Record<string, unknown> {
+  const swap = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(swap);
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, swap(x)]));
+    const m = typeof v === "string" ? /^(order|token)-(\d+)$/.exec(v) : null;
+    const c = m ? checkouts[Number(m[2]) - 1] : undefined;
+    return c ? (m![1] === "order" ? c.checkout_id : c.order_token) : v;
+  };
+  return (swap(args ?? {}) ?? {}) as Record<string, unknown>;
+}
+
 export async function runShopAgent(sessionId: string | null, message: string, clientKey: string, emit: (e: ShopAgentEvent) => void) {
   const { db } = services();
   let [session] = sessionId ? await db.select().from(schema.buyerSessions).where(eq(schema.buyerSessions.id, sessionId)) : [];
@@ -72,8 +97,9 @@ export async function runShopAgent(sessionId: string | null, message: string, cl
       if (step.toolCalls.length === 0) break;
 
       for (const call of step.toolCalls) {
-        emit({ type: "tool_call", id: call.id, name: call.name, args: forBrowser(call.args) });
-        const out = await client.callTool({ name: call.name, arguments: (call.args ?? {}) as Record<string, unknown> });
+        const args = fromModel(call.args, checkouts);
+        emit({ type: "tool_call", id: call.id, name: call.name, args: forBrowser(args) });
+        const out = await client.callTool({ name: call.name, arguments: args });
         const text = (out.content as Array<{ type: string; text?: string }>).find((c) => c.type === "text")?.text ?? "{}";
         let parsed: unknown = text;
         try {
@@ -86,7 +112,7 @@ export async function runShopAgent(sessionId: string | null, message: string, cl
           checkouts.push({ checkout_id: c.checkout_id, order_token: c.order_token });
         }
         emit({ type: "tool_result", id: call.id, name: call.name, ok: !out.isError, result: forBrowser(parsed) });
-        messages.push({ role: "tool", content: clip(text, 2500), toolCallId: call.id, toolName: call.name });
+        messages.push({ role: "tool", content: clip(typeof parsed === "string" ? (toModel(parsed, checkouts) as string) : JSON.stringify(toModel(parsed, checkouts)), 2500), toolCallId: call.id, toolName: call.name });
       }
     }
   } catch (e) {
