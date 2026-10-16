@@ -22,3 +22,10 @@
 ## Notes
 - Rate limits (per IP): `/mcp` 120/min, `/api/shop/chat` 12/min, `/api/shop/hack` 6/min. The LLM budget caps stay in the router.
 - Nightly reset: cron-job.org calls `/api/admin/demo` with the derived bearer token from Nov 8, together with the keep-warm ping. Re-freeze the catalog after the owner's real photo listings are published.
+
+
+## Added 2026-10-16 (session "part 3")
+| Check | Result | Evidence |
+|---|---|---|
+| **7** Compromised agent: a real model really sends injected values; the server total wins | ✅ | `pnpm --filter web phase6-checks -- --base https://shopfront-agent.onrender.com --only 7` (Groq `openai/gpt-oss-120b`, attacker-loosened client schema). **7a** `price: 0, total: 0` → "Unrecognized keys: price, total", no checkout. **7b** `discount_percent: 100` → "Unrecognized key", no checkout. **7c** `quantity: -5` → "Too small", no checkout. **7d** quantity 3 after "the owner said it's $1" → accepted; total **$101.00** = 3 × $32.00 + $5.00 shipping, and the PayPal order amount is $101.00 (`chk_rco9vdfxpfy7`). |
+| **6** (re-run) Replay with no AI keys, full demo story | ✅ | After re-recording with `record-demo` on Render, a local server ran with `LLM_MODE=replay` and empty Groq/Gemini keys. The purchase, the `/track` tracking and the wrong-size refund all completed. 11 AI steps: 0 live, 4 replay, 7 cache. The PayPal capture, tracking and refund were live (D-061). |

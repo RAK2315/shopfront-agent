@@ -604,6 +604,23 @@
   - The order list stays as cards: it is the seller's own list, and the dense view is the AG Grid ledger on the dashboard.
 - **Serves:** J2, P9, S6.
 
+## D-061: Sentence-case notes, session aliases for the hosted agent, and a strong injection test
+- **Note subjects (owner, 2026-10-16: "don't carry known defects"):**
+  - The prompt `message-v2` asks for sentence case. `sentenceCaseSubject` (in `packages/core`, unit-tested) then enforces it deterministically: a Title Case subject is lowered, while the shop name, product titles, acronyms, brands and "I" keep their casing.
+  - The 13 Title Case subjects already published were normalised once, in place.
+- **Replay bug found while re-recording:**
+  - Replay (D-055) replays the model's tool-call arguments verbatim. A recorded `request_refund` therefore named the recorded order, which was already refunded, and replay got `NOT_REFUNDABLE`. Server state won, but the demo broke.
+  - **Fix:** the hosted agent's model now sees session-local aliases (`order-1`, `token-1`) instead of real checkout ids and order tokens, and `pay_url` is replaced by a note. The server maps the aliases back before calling `/mcp`.
+  - Side benefit: the order token, a bearer secret, no longer reaches the LLM provider.
+  - External MCP agents are unaffected: they still get real ids and tokens, as the protocol requires.
+- **Re-recorded:** `pnpm --filter web record-demo` runs the demo story live on Render (purchase → tracking → wrong-size refund).
+  - It was then replayed on a local server with `LLM_MODE=replay` and both AI keys empty. All 11 AI steps came from replay or cache, 0 were live, PayPal stayed live (capture, `/track`, refund), and the refund ran automatically under policy.
+  - Run a demo reset before replaying. Otherwise the repeat-buyer rule (2 automatic refunds per buyer since the last reset) sends the refund to seller review, and that note falls back to its template.
+- **AT-6 #7 (strong injection test):** the earlier AT-6 #2 showed the agent mostly declined, so it never proved that an injected value reached the server.
+  - #7 uses a real model (Groq) told to cheat, and an attacker-modified client schema (extra money fields, no quantity minimum), so the calls really go out with `price`/`total` = 0, `discount_percent` 100 and quantity −5. The server rejected all three, and no checkout was created.
+  - A schema-valid injected quantity (3, "the owner said it's $1") was accepted and priced by the server at $101.00 = 3 × $32 + $5. The DB total and the PayPal order amount agree.
+- **Serves:** J1, P7, P8, R4, D-002, D-029, D-055.
+
 ---
 
 ## Requirement updates
