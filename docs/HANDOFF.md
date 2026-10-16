@@ -1,126 +1,164 @@
-# HANDOFF: Shopfront Agent (updated 2026-10-16, session "part 3")
+# HANDOFF: Shopfront Agent (updated 2026-10-16, end of session "part 3"; the next session is "part 4")
 
-## Where we are (updated 2026-10-15, session "part 2")
-- **Phase 1: DONE.** Proof: `docs/screenshots/phase-1/GATE-PROOF.md`.
-- **Phase 2: DONE.** AT-2 passed on Render. Proof: `docs/screenshots/phase-2/AT-2.md`. Run it again with `pnpm --filter web phase2-checks -- --base <app>`.
-- **Phase 3: BUILT, AT-3 pending.** The owner is shooting 6 real product photos plus 1 shipping label into `docs/demo-photos/` (format in D-049). Then run `pnpm --filter web phase3-checks -- --base <app> --photos ../../docs/demo-photos --injection <file> --keep`. Strip EXIF/GPS before committing the photos.
-- **Phase 4: DONE.** AT-4 passed on Render. Proof: `docs/screenshots/phase-4/AT-4.md`. Re-run the label check with the real label photo.
-- **Phase 5: DONE.** AT-5 passed on Render. Proof: `docs/screenshots/phase-5/AT-5.md`. Dashboard at `/studio/dashboard` (D-052, D-053).
-- **Phase 6: DONE.** AT-6 passed. Proof: `docs/screenshots/phase-6/AT-6.md`. The owner still verifies the Claude Desktop / claude.ai connector from the README.
-- **Phase 7: in progress** (session "part 3", 2026-10-16). Done:
-  - Landing page `/`, README for judges, `docs/DEVPOST.md` draft, secret scan, Official Rules check.
-  - **Phase 8 plan in PLAN.md** (D-057, D-058): `video/` outside the workspace, CDP screencast capture, `beats.ts`, SRT.
-  - **`DEMO-SCRIPT.md` v1**: 2:45, 11 beats, caption cues, real UI labels.
-  - **`/capture?left=&right=`**: 16:9 split screen of real routes. `/live?from=now` starts the wire empty. `screens --video` takes 1920×1080 shots.
-  - **Fresh-clone check passed** (D-059): `pnpm start` didn't read the root `.env`, and `next.config.ts` now loads it. A side effect: local builds are now AG Studio–licensed.
-  - **Design pass** (D-060): `SellerNav` on all seller pages, placeholders, the storefront mobile overflow, the orders summary. Freeze mirrors seeded listings to the PayPal catalog. The critique snapshot is in `.impeccable/critique/`.
-  - **Next:**
-    1. AT-3 when the photos land: strip EXIF, run `phase3-checks --keep`, then **freeze** (this also mirrors seeds to PayPal), and add the README row.
-    2. Re-record replay transcripts after any prompt change. A pending candidate is sentence-case note subjects (D-060).
-    3. Before recording: seeded sales at least 24 h old, and a paid $95 bowl order for beat 9 (DEMO-SCRIPT prerequisites).
-    4. AT-7's idle-load check waits for the keep-warm ping (Nov 8).
-    5. Feature freeze end of Nov 3. Phase 8 starts after it.
-- **Open owner items:**
-  - The 6 demo photos and the label photo, then AT-3 and re-freezing the demo catalog (`POST /api/admin/demo {freeze}`).
-  - The Claude connector check.
-  - Sandbox buyer credentials into the README on submission day.
-  - cron-job.org from Nov 8: keep-warm ping plus nightly reset.
-  - The AG Studio trial extension email around Nov 20.
-- **Admin token:** `HMAC-SHA256(SESSION_SECRET, "admin:demo-reset")`, base64url. Compute it locally; never commit it.
-- New surfaces:
-  - `/live`: public console.
-  - `/studio`: seller studio, judge-mode sign-in.
-  - `/studio/orders`: refund queue + shipping.
-  - `/s/[handle]` and `/s/[handle]/[productId]`: storefront.
-  - `/llms.txt`.
-  - `/capture?left=/shop&right=/live`: the 16:9 split screen for the video (allowlisted routes only).
-  - `/spike/studio`: internal AG Studio spike.
+## Completed state
 
-## Deployed
-- **URL:** https://shopfront-agent.onrender.com. Render free tier, service `srv-db8e76dg1s2s739vvv0g`, region Ohio, auto-deploy on push to `main`.
-- **Repo:** https://github.com/RAK2315/shopfront-agent (public, MIT detected).
-- **Live health:** `GET /api/health`, deep check of DB, PayPal token and webhook. `GET /api/health/live` is the keep-warm ping and never touches the DB.
-- **Routes:**
-  - `/mcp`: MCP over Streamable HTTP, stateless, JSON responses.
-  - `/pay/[id]?t=`: JS SDK v6 approval page.
-  - `/pay/return`: return URL for redirect-mode approvals.
-  - `/api/checkouts/[id]/capture` and `/api/checkouts/[id]/status`.
-  - `/webhooks/paypal`.
-  - `/design`: the style guide.
-- **Verified live:**
-  - Agent → MCP → Orders v2 → popup approval → capture → verified webhooks → Neon `paid`.
-  - MCP Inspector connect.
-  - Protocol-level injection rejected.
-  - Idempotency.
-  - Buyer and merchant evidence of the payment.
-- **Deploy:** `node scripts/render-deploy.mjs` (create or update the service, sync env, deploy, wait). Add `--webhook` to also create or reuse the PayPal webhook.
+**Deployed:**
+- **App:** https://shopfront-agent.onrender.com (Render free, service `srv-db8e76dg1s2s739vvv0g`, Ohio, auto-deploys on push to `main`).
+- **Repo:** https://github.com/RAK2315/shopfront-agent (public, MIT).
+- **Last code commit:** `eb76f15`, which Render serves.
+- **Last commit overall:** the docs commit that adds this file. Run `git log -1`.
+
+| Phase | Status | Proof |
+|---|---|---|
+| 1 The gate | ✅ Done | `docs/screenshots/phase-1/GATE-PROOF.md` |
+| 2 Webhooks and reliability | ✅ Done | `docs/screenshots/phase-2/AT-2.md` |
+| 3 Photos → catalog | Built; **AT-3 waits for the owner's photos** | (none yet) |
+| 4 Seller ops | ✅ Done | `docs/screenshots/phase-4/AT-4.md` |
+| 5 AG Studio dashboard | ✅ Done | `docs/screenshots/phase-5/AT-5.md` |
+| 6 Buyer agent and guardrails | ✅ Done, plus **#7 compromised-agent test** and **#6 replay re-run** (D-061) | `docs/screenshots/phase-6/AT-6.md` |
+| 7 Polish, docs, hardening | Done except AT-7 #2 (keep-warm, Nov 8) | `docs/screenshots/phase-7/AT-7.md` |
+| 8 Video | Plan in PLAN.md; **toolchain proven** with a 20 s Remotion render (D-062) | `docs/screenshots/phase-7/video-test-clip.mp4` |
+| 9–13 | **Planned** (PLAN.md, DESIGN.md, D-063 to D-067) | (not started) |
+
+**Verified live on Render:**
+- The full agent → MCP → Orders v2 → popup approval → capture → verified-webhook loop.
+- Fallback checks, refunds (automatic and queued), tracking, Catalog mirroring (all 4 seed listings are now in the PayPal catalog), Transaction Search insights, AG Studio dashboard, `/capture` split screen.
+- **AT-6 #7:** a real model sending injected money fields was rejected; an injected quantity was priced by the server ($101 in our DB = $101 on the PayPal order).
+- Replay with no AI keys (11/11 AI steps replayed or cached; PayPal calls live).
+- A fresh clone that follows only the README (D-059).
+
+## REVIEW-1 (`docs/REVIEW-1.md`)
+
+Five fresh-context judge agents scored the build:
+
+| Criterion | Score |
+|---|---|
+| J1 Technological implementation | 8 |
+| J2 Design | 7 |
+| J3 Potential impact | 6 |
+| J4 Innovation | 5 |
+| J5 Presentation | 6 |
+| **Average** | **6.4** |
+
+**Fixes planned as Phase 9** (REVIEW-1 numbering):
+1. **#2 Token leak (confirmed, HIGH).** `/pay/return` mints an order token for any checkout id.
+2. **#1 Sandbox buyer credentials** in the README and on `/pay`. **Needs the owner's OK.**
+3. **#3 Dead suggested prompt** ("housewarming" returns nothing).
+4. **#7 Hack-demo result tone.**
+5. **#4 Noisy live feeds:** collapse repeats, scope the feed to the session, plain source words, one timezone.
+6. **#6 Dashboard as the seller's view.**
+7. **#8 Webhook recovery.**
+8. **#11 Orders grouping and one page frame.**
+9. **#5 Real photos.**
+10. **#9 "Who and why" story.**
+
+## Plan: Phases 9–13 (PLAN.md, D-063)
+
+**Order (spikes first), all inside the Nov 3 freeze:**
+
+| Dates | Work |
+|---|---|
+| Oct 17–19 | Phase 9: review fixes |
+| Oct 20 | **Spike V:** Vault plus a merchant-initiated order |
+| Oct 21 | **Spike M:** Partner Referrals, payee routing, fee, Auth-Assertion refund |
+| Oct 22–25 | Phase 10: agent reorder with Vault |
+| Oct 26–29 | Phase 11: dispute defense (open sandbox disputes on Oct 26 morning) |
+| Oct 30–Nov 1 | Phase 12: multi-seller payouts |
+| Nov 2–3 | Phase 13: adversarial arena; freeze at end of Nov 3 |
+
+**Rules for these phases:**
+- **Cut order** if a phase slips more than 1 day: 13 → 12 → 11 → 10.
+- A failed spike cuts its phase, gets logged, and is never faked.
+- No feature work before AT-9 passes on Render.
+
+**Exact next step:** start Phase 9 with **REVIEW-1 #2, the `/pay/return` token leak.**
+1. Require PayPal's `token` query to equal the checkout's `paypal_order_id`.
+2. Stop minting the order token there.
+3. Hash checkout ids for display in `/api/events` and `/live`. Keep a server-side hash → id map for the follow filter (PLAN 9.1).
+
+Then do #1 (once the owner decides), #3 and #7 the same day.
 
 ## IDs (not secrets)
+
 | Thing | Value |
 |---|---|
-| Sandbox buyer (US Personal) | `sb-kaj47u53384870@personal.example.com` |
-| Sandbox merchant (US Business) | `sb-0navv53304003@business.example.com`, merchant id `DY7U9FZDLKJRE`, display name "Juniper Clay Studio" (renamed by owner 2026-10-15) |
+| Sandbox buyer (US Personal) | `sb-kaj47u53384870@personal.example.com`; spare buyer `sb-tuny953392663@personal.example.com` (credentials only in `.env`) |
+| Sandbox merchant (US Business) | `sb-0navv53304003@business.example.com`, merchant id `DY7U9FZDLKJRE`, display name "Juniper Clay Studio" |
 | PayPal REST app | `shopfront-agent` (`APP-0ET80889P79461507`), Transaction Search on |
-| PayPal webhook | `5M73856081740924U` → `/webhooks/paypal`, events `*` (D-041) |
-| Gate order / capture | `08472107251603326` / `4S9806225X591341H` |
-| Gate webhook events | `WH-3PX21178M1172734P-09203140H58494013` (CAPTURE.COMPLETED), `WH-7TS05562SW8095046-2WT23330J4087021Y` (ORDER.APPROVED) |
-| Seed sellers | `juniper_clay` (Juniper Clay Studio), `fern_and_loom` |
-| Seed variant used by tests | `var_cobalt120000` (Cobalt drip mug $32 + $5 shipping) |
-| Neon | project `shopfront`, branch `production`, PostgreSQL 18.6, 16 tables, migrations `0000`, `0001` |
-| AG Studio trial | key in env; **deactivates 2026-11-29**; email for an extension around Nov 20 (D-032) |
+| PayPal webhook | `5M73856081740924U` → `/webhooks/paypal`, events `*` |
+| Seed sellers | `juniper_clay`, `fern_and_loom` |
+| Test variant | `var_cobalt120000` (Cobalt drip mug, $32 + $5 shipping) |
+| Seed listings in the PayPal catalog | `prd_cobaltdrip00`, `prd_speckledmug0`, `prd_ashbowl00000`, `prd_budvases0000` |
+| Neon | project `shopfront`, branch `production`, migrations `0000`–`0007` |
+| AG Studio trial | key in env; **expires 2026-11-29** |
+| Render service | `srv-db8e76dg1s2s739vvv0g` |
 
-## Env var names (values live only in `.env` and Render)
+## Env var names (values only in `.env` and on Render)
+
+**Existing:**
 - **PayPal:** `PAYPAL_BASE_URL`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`.
-- **LLM:** `LLM_MODE`, `LLM_AGENT_PROVIDERS` (=groq,gemini), `LLM_VISION_PROVIDERS` (=gemini), `GEMINI_API_KEY`, `GEMINI_MODEL` (gemini-3.5-flash-lite), `GEMINI_MODEL_STRONG`, `GROQ_API_KEY`, `GROQ_MODEL` (openai/gpt-oss-120b), `LLM_MAX_CALLS_PER_DAY`, `LLM_MAX_CALLS_PER_IP_PER_HOUR`.
-- **App:** `DATABASE_URL` (pooled, `sslmode=verify-full`), `DATABASE_URL_UNPOOLED` (migrations), `APP_URL`, `SESSION_SECRET`, `NEXT_PUBLIC_AG_LICENSE_KEY`.
-- **Local only:** `SANDBOX_BUYER_EMAIL`, `SANDBOX_BUYER_PASSWORD`, `SANDBOX_BUYER2_EMAIL`, `SANDBOX_BUYER2_PASSWORD`, `DEV_ALLOW_UNVERIFIED_WEBHOOKS`, `RENDER_API_KEY`, `SHOPFRONT_DISABLE_TIMERS` (set to 1 when running a local server against the shared DB). These are never sent to Render.
+- **LLM:** `LLM_MODE`, `LLM_AGENT_PROVIDERS`, `LLM_VISION_PROVIDERS`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_MODEL_STRONG`, `GROQ_API_KEY`, `GROQ_MODEL`, `LLM_MAX_CALLS_PER_DAY`, `LLM_MAX_CALLS_PER_IP_PER_HOUR`.
+- **App:** `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APP_URL`, `SESSION_SECRET`, `NEXT_PUBLIC_AG_LICENSE_KEY`.
+- **Local only:** `SANDBOX_BUYER_EMAIL`, `SANDBOX_BUYER_PASSWORD`, `SANDBOX_BUYER2_EMAIL`, `SANDBOX_BUYER2_PASSWORD`, `DEV_ALLOW_UNVERIFIED_WEBHOOKS`, `RENDER_API_KEY`, `SHOPFRONT_DISABLE_TIMERS`.
+
+**New, by phase:**
+
+| Phase | Var or setting | Where to get it |
+|---|---|---|
+| 10 | **No new env var.** Turn on the **Vault** feature. The client token is minted from the existing client id and secret. | developer.paypal.com → Apps & Credentials → **Sandbox** → `shopfront-agent` → Features → tick "Save payment methods" / Vault → **Save** (allow about 10 min to apply) |
+| 12 | `PAYPAL_PARTNER_MERCHANT_ID` (= our sandbox business merchant id, `DY7U9FZDLKJRE`) | sandbox.paypal.com, logged in as the business account → Account settings → Business information → "PayPal Merchant ID" |
+| 12 | `PAYPAL_PARTNER_ATTRIBUTION_ID` (optional BN code; only if the spike shows it's needed) | Issued by PayPal to approved partners. Leave unset in sandbox unless asked. |
+| 12 (local only) | `SANDBOX_SELLER2_EMAIL`, `SANDBOX_SELLER2_PASSWORD` | developer.paypal.com → Testing Tools → **Sandbox Accounts** → Create account → **Business**, country **United States** → Create; then ⋯ → View/edit account for the password |
+| 13 | `ARENA_COOLDOWN_SECONDS` (not secret, default 600) | none |
+
+## Known quirks (details in `docs/DECISIONS.md` and in the session notes in the OS temp folder)
+- **Headless PayPal popup fails:** always run approvals **headed** (`channel: "chromium"`). The popup sometimes won't open after many logins; retry with a fresh context and a reload (D-048). The scripts already do this.
+- **Gemini latency** is about 12–14 s per call. Groq is primary for agents and chat; Gemini is for vision and big Studio turns (D-038, D-052). Groq's free limit is 8k tokens/min.
+- **PayPal AI Toolkit token** (for Claude Code's PayPal MCP): run `pnpm paypal:toolkit-token`, then **fully restart Claude Code**. It was last refreshed 2026-10-16 and expires about 22:55 that day. The app refreshes its own tokens.
+- **Render cold starts** take about 1 min after 15 min idle. The keep-warm ping is **OFF until Nov 8**, then cron-job.org hits `/api/health/live` every 10 min, plus a nightly `POST /api/admin/demo {reset}`.
+- **AG Studio trial ends Nov 29.** Email AG Grid for an extension around Nov 20.
+- **Local server:** `next dev` is unusable on this Windows machine. Use a production build, `SHOPFRONT_DISABLE_TIMERS=1`, port 3000. The root `.env` now loads automatically (D-059). **A local server writes to the shared production database**, including public events.
+- **Repeat-buyer refund rule:** 2 automatic refunds per buyer since the last demo reset. Reset before any refund demo or replay (D-061).
+
+## Open items for the owner
+1. **Photos:** 6 product photos and 1 shipping label, into `docs/demo-photos/`. Then AT-3, freeze the catalog again (this also mirrors listings to PayPal), and add the README row.
+2. **Decision:** publish the sandbox buyer credentials now (REVIEW-1 #1) or on submission day (D-034).
+3. **Before Spike V (Oct 20):** enable Vault in the sandbox app (click path above).
+4. **Before Spike M (Oct 21):** create seller 2 (a US sandbox Business account). Optionally ask in the PayPal Discord whether sandbox partner referrals and platform fees work without partner approval.
+5. **Restart Claude Code** to load the refreshed toolkit token.
+6. **Official Rules:** done (2026-10-16, India eligible). Re-read only if the organisers post updates.
+7. **Still open from before:** the Claude Desktop / claude.ai connector check; cron-job.org from Nov 8; the AG Grid trial email around Nov 20; buyer credentials on submission day if not published earlier.
+
+## Standing rules (owner)
+- Commit and push at the end of every phase.
+- Acceptance tests run **on Render**.
+- Screenshots at desktop, mobile **and 1920×1080** go in `docs/screenshots/phase-N/`.
+- Give a 5-line report per phase: done, tests, screenshots, risks, next.
+- Stop only for irreversible decisions, scope cuts, or changes to what judges see.
+- Visual clarity and real PayPal integration are **equal priority**.
+- **Never mock a PayPal call.**
+- Every deviation goes in `DECISIONS.md`.
+- Free tiers only: Groq or Gemini through the `llm` router, Render free, Neon free. No Anthropic API.
+- **Feature freeze at end of Nov 3.**
+- No tooling changes mid-build unless something breaks.
+
+## Docs reading order
+1. `CLAUDE.md`
+2. `docs/HANDOFF.md` (this file)
+3. `docs/REVIEW-1.md`
+4. `docs/PLAN.md`: Phases 9–13, Phase 8, §2 risks, §3 cut list, §5 calendar
+5. `docs/DECISIONS.md`: D-058 to D-067 are new this session
+6. `apps/web/PRODUCT.md`, then `apps/web/DESIGN.md` (its Phases 9–13 section) before any UI work
+7. `docs/DEMO-SCRIPT.md` (v2), `docs/SUBMISSION.md`
+8. `docs/REQUIREMENTS.md` (frozen), `docs/ARCHITECTURE.md`, `docs/STACK.md`, `docs/SETUP.md`, as needed
 
 ## Commands
-- **Day to day:** `pnpm dev`, `pnpm test` (77 tests), `pnpm typecheck`, `pnpm lint`.
-- **Database:** `pnpm --filter @shopfront/db db:generate`, then `db:migrate`.
-- **Web app scripts:**
-  - `pnpm --filter web seed`.
-  - `pnpm --filter web buyer-agent -- --url <app>/mcp "request"`.
-  - `pnpm --filter web gate -- --base <app> --headed`.
-  - `pnpm --filter web phase1-checks -- --base <app>`.
-- `pnpm paypal:toolkit-token` refreshes the PayPal AI Toolkit token in `~/.claude/settings.json`. **Restart Claude Code after running it.**
-
-## Open risks and known quirks
-0. **Sandbox popup flakiness (D-048).** After many automated logins the sandbox sometimes refuses or won't open the popup. Use a fresh browser context per purchase and retry. Resends of fresh webhook events can take minutes.
-1. **Headless PayPal popup fails.** In headless Chromium, the sandbox shows "Things don't appear to be working at the moment" after login. Run automated approval **headed** (`--headed`); the gate script already defaults to the full Chromium channel.
-2. **Gemini latency.** The free tier takes ~12–14 s per call, including vision. So Groq leads for agent and chat (D-038), and Gemini is for vision only, hidden behind the card animation and cached by image hash. `gemini-3.8-flash` returned 503 once.
-3. **Token expiry.** PayPal tokens last about 8–9 h. The app refreshes its own automatically. The Claude Code PayPal AI Toolkit MCP token does not: run `pnpm paypal:toolkit-token`, then restart, or use `/paypal:setup refresh`.
-4. **Render cold starts.** About 1 minute after 15 minutes idle. The pinger stays **OFF** until Nov 8, then cron-job.org hits `/api/health/live` every 10 minutes (PLAN §5). Webhooks that land on a sleeping service are retried by PayPal.
-5. **Neon free compute** is 100 CU-hours a month. Nothing may poll the DB; compute is pinned at 0.25 CU.
-6. **Groq free limits** are 8k tokens/min and 1,000 requests/day. Keep agent histories and tool schemas small.
-7. **The prompt-injection live test is weak.** The agent declined rather than checking out; add a stronger test in Phase 6.
-8. **Merchant display name:** renamed to "Juniper Clay Studio" by the owner (2026-10-15). Payments made before the rename still show "Test Store".
-9. **MCP client name isn't stored.** In stateless mode the client name doesn't reach later requests, so `checkouts.mcp_client_name` is null. Pass it via a header or initialize info in Phase 6.
-10. **`request_refund` is implemented** (Phase 4, `server/refunds.ts`): policy engine → server-computed amount → GET capture → refund with `PayPal-Request-Id = refund-{id}`.
-11. **Repeat-buyer limit vs. the demo:** the policy allows 2 automatic refunds per buyer per 30 days. Judges and test runs share the sandbox buyers, so automatic refunds will start going to the seller queue. Decide in Phase 6 (judge-mode reset or a higher demo limit).
-
-## Standing rules from the owner (apply to Phases 2–8)
-- **Run Phases 2–8 per PLAN.md without waiting between phases**, except:
-  - Commit and push at the end of **every** phase.
-  - At each phase end:
-    - Run the acceptance tests.
-    - Save screenshots of every new screen (desktop and mobile) to `docs/screenshots/phase-N/`.
-    - Give a **5-line report**: done, tests, screenshots, risks, next.
-  - **Stop and ask only** for irreversible decisions, scope cuts, or anything that changes what the judges see.
-  - Visual quality and real PayPal integration are **equal priority**. **Never replace a real PayPal call with a mock** to save time.
-  - Update `DECISIONS.md` for **every** deviation from PLAN.md.
-- **Feature freeze: end of Nov 3** (PLAN). After that, only fixes, polish, README, the judge test path and the demo script.
-- **Zero spend:** free tiers only. No Anthropic API, no paid Render.
-- **No tooling changes mid-build unless something breaks.** The impeccable update is declined.
-- **The second-country buyer is skipped** (D-040).
-
-## Reading order for a fresh session
-1. `CLAUDE.md`: the rules and the commands.
-2. `docs/HANDOFF.md`: this file.
-3. `docs/REQUIREMENTS.md`: frozen; requirement IDs.
-4. `docs/DECISIONS.md`: D-001 to D-042, append-only.
-5. `docs/PLAN.md`: phases, acceptance tests, risks (§2 and §2b), keep-alive calendar (§5).
-6. `docs/ARCHITECTURE.md` and `docs/STACK.md` (LOCKED v3).
-7. `apps/web/PRODUCT.md` and `apps/web/DESIGN.md`, before any UI work.
-8. `docs/screenshots/phase-1/GATE-PROOF.md`.
-9. `docs/SETUP.md`, `docs/SUBMISSION.md`, `docs/WEBINAR-NOTES.md`, as needed.
+- **Checks:** `pnpm test` (80 tests), `pnpm typecheck`, `pnpm lint`.
+- **Acceptance:** `pnpm --filter web phaseN-checks -- --base <url>`. AT-6 adds `--only 7` (the compromised agent).
+- **Re-record the AI transcripts** after any prompt change: `pnpm --filter web record-demo -- --base <url>` (D-061).
+- **Screenshots:** `pnpm --filter web screens -- --base <url> --out <dir> [--seller juniper_clay] [--video] <paths>`.
+- **Video:**
+  - Install: `cd video && pnpm install --ignore-workspace`.
+  - Capture: `node capture/capture.mts --beat split-shop`.
+  - Render: `pnpm render:test`.
+- **Admin:** the demo reset/freeze bearer token is `HMAC-SHA256(SESSION_SECRET, "admin:demo-reset")`, base64url. Compute it locally and never print it.
