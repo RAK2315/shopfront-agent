@@ -5,7 +5,7 @@
 
 ## Day-1 admin
 - [ ] Registered on Devpost for the hackathon.
-- [ ] **Read the Official Rules**; confirmed eligibility from India; noted anything new in DECISIONS "Requirement updates" (R6, D4).
+- [x] **Read the Official Rules**; confirmed eligibility from India; noted anything new in DECISIONS "Requirement updates" (R6, D4). *(owner, 2026-10-16)*
 - [ ] Joined the PayPal Discord (G17).
 - [ ] Checked the AG Grid, Render and APIMatic sponsor resource pages for licences and credits (P9, P13).
 
@@ -37,7 +37,7 @@
 ## Functional demo (S3)
 - [ ] The hosted URL works from an incognito window, on desktop and mobile (S3.b).
 - [x] A full judge path completes in under 3 minutes (AT-6: 33 s automated). Re-check with the README once credentials are in.
-- [ ] Local run verified on a clean machine (S3.a, D-020).
+- [ ] Local run verified from a fresh clone with only the README (S3.a, D-056).
 - [ ] Services stay up **through results announcement**: Render free + Neon free (D-022), keep-warm ping in the PLAN §5 windows, nightly demo reset.
 - [ ] Sandbox buyer passwords are not changed after submission.
 

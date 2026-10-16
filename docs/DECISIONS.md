@@ -64,6 +64,8 @@
 | D-053 | 2026-10-15 | Ledger on AG Grid Community (Studio key does not license standalone Grid); deterministic add_chart; one layout save path; Lighthouse report hygiene | ACCEPTED | P9, J2, J1 |
 | D-054 | 2026-10-15 | Phase 6: hosted /shop agent over our own /mcp, hack demo, blocked calls on the timeline, rate limits, signed failover hook (Groq primary), judge-mode reset | ACCEPTED | P8, P7, J1, J5 |
 | D-055 | 2026-10-15 | Replay keys: recorded-transcript replay ignores tool-result contents (migration 0007) | ACCEPTED | P6, R4 |
+| D-056 | 2026-10-16 | No Docker: S3.a verified as a fresh-clone pnpm run per the README (amends D-020, AT-7 #1) | ACCEPTED (owner) | S3.a, S5.1 |
+| D-057 | 2026-10-16 | Phase 8 video built programmatically (Remotion + real Playwright captures), target 2:45; host and sponsor logos only | ACCEPTED (owner) | S6, P6, J5 |
 
 ---
 
@@ -551,9 +553,29 @@
 - **Why this is safe:** in replay mode the PayPal calls and tool results stay live. Only the model's words and tool choices are replayed, and money still goes through the deterministic code. A unit test covers a recorded step replaying after the stock changed.
 - **Serves:** P6, R4, D-029.
 
+
+## D-056: No Docker; S3.a verified as a fresh-clone pnpm run (amends D-020 and AT-7 #1)
+- **Owner decision (2026-10-16):** drop `docker compose`. Docker isn't installed on the owner's machine, and the rules accept clear local-run instructions **or** a hosted URL (S3); we provide both.
+- **AT-7 #1 becomes:** a fresh clone of the public repo, following only the README (`pnpm install` → `.env` → `db:migrate` → `seed` → `build` → `start`), serves the app and passes its health check.
+- **Serves:** S3.a, S5.1, D-020.
+
+## D-057: Phase 8 video is built programmatically (owner directive)
+- **Timing:** deferred until after the feature freeze, but planned now so nothing needs rework.
+- **Production:** Remotion (or a similar code-driven tool) composes **real Playwright screen captures of the deployed app** with motion graphics, captions and transitions. Every product beat is real footage, never a mockup (S6.2, S3.x). Motion graphics are used only for the intro, the problem framing, transitions and the stack recap.
+- **Length:** under 3:00, target **2:45** (S6.1).
+- **Voice:** to be decided later (the owner's voice-over or a free open-source TTS). Timing is designed so either fits: a fixed beat sheet with caption timings.
+- **Music:** CC0 or self-generated only. **Logos:** none from third parties except PayPal (the host) and the sponsor tools actually used. This amends D-015, which allowed no logos at all; the owner accepts it for the host and sponsors (S6.4 risk noted: use official marks unaltered).
+- **Now:**
+  - Keep `DEMO-SCRIPT.md` current per phase.
+  - Keep key screens capture-friendly: stable data (demo freeze and reset, D-054), deterministic replay mode (D-055), 1920×1080 16:9 layouts including a split screen.
+  - The Phase 8 plan is in PLAN.md: capture script, Remotion project structure, caption file, render command.
+- **Tooling note:** Remotion is free for individuals and small teams (check its licence at the time). It is added in Phase 8 only, as a dev-time tool in its own folder, not shipped with the app.
+- **Serves:** S6, P6, J5, G15.
+
 ---
 
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
 - **2026-10-15, AG Grid sponsor resources page (Devpost):** "Best Use of AG Grid… covers both what your dashboard looks like and how you build it. Show us polish: custom widgets, theming, and layout tools, not just AG Grid or AG Charts on their own. Take Studio Agent Framework for a spin: a custom agent talking to Studio's built-in agents, or a swapped-in harness." Free 45-day trial license; boilerplate with AG Studio + PayPal provided; support via PayPal Discord. Docs: ag-grid.com/studio/react/quick-start/, /custom-widgets/, /ai-agents/. → D-023.
+- **2026-10-16, Official Rules (owner):** the owner read the Official Rules and confirmed that entrants from **India are eligible** (R6, D4). No other rule changes affect the build.
