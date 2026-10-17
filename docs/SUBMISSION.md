@@ -17,15 +17,16 @@
 
 ## Devpost form
 - [ ] Project name (S7).
-- [ ] Elevator pitch, 2–3 sentences (S7).
+- [ ] Elevator pitch, 2–3 sentences (S7). **Lead with the Telegram seller copilot (owner, D-072)** once AT-10 passes; the draft is in `docs/DEVPOST.md`. If Spike T fails, keep the current pitch.
 - [ ] Project story: inspiration, how built, tools, why, challenges, what's next (S7).
 - [ ] Text description of features and functionality (S2).
-  - **Planned for Phases 9–13 (2026-10-16). Add each line only once its AT passes on Render; never describe a cut phase:**
-    - **Agent reorder with consent:** the buyer saves PayPal once (Vault v3) with a spend cap; their agent reorders with no popup inside the cap; above the cap, or once revoked or expired, the popup returns; there is a per-agent audit log and instant revoke. *(Phase 10; Spike V decides.)*
-    - **Dispute defense agent:** code assembles an evidence pack (tracking, delivery, chat, photos), the agent drafts the words, and the seller approves before it's submitted through the Disputes API. *(Phase 11)*
-    - **Real multi-seller payouts:** Partner Referrals onboarding, per-seller payee routing, and a platform fee ledger. This retires the single-account caveat (D-006). *(Phase 12; Spike M decides.)*
+  - **Planned for Phases 9–13, in the re-planned order (2026-10-17, D-071). Add each line only once its AT passes on Render; never describe a cut phase. The Telegram line goes first in the description:**
+    - **Seller copilot on Telegram (the lead):** the seller runs the shop from her phone. A photo becomes a listing, the price is confirmed by tap, and the listing is mirrored to PayPal and agent-buyable. Order pings, a label photo becomes tracking on the PayPal order, refunds are approved by tap, and "what sold this week?" is answered with sourced figures. Every money action is a deterministic button, never the model. *(Phase 10; Spike T decides.)*
+    - **Real multi-seller payouts:** Partner Referrals onboarding, per-seller payee routing, and a platform fee ledger. This retires the single-account caveat (D-006). *(Phase 9; Spike M decides.)*
+    - **Agent reorder with consent:** the buyer saves PayPal once (Vault v3) with a spend cap; their agent reorders with no popup inside the cap; above the cap, or once revoked or expired, the popup returns; there is a per-agent audit log and instant revoke. *(Phase 11; Spike V decides.)*
+    - **Dispute defense agent:** code assembles an evidence pack (tracking, delivery, chat, photos), the agent drafts the words, and the seller approves before it's submitted through the Disputes API. *(Phase 12)*
     - **Adversarial agent arena:** 50 live attacks against our own MCP server, each shown BLOCKED with the guardrail that caught it. *(Phase 13)*
-- [ ] **Tools section**: each model or AI service and how it's used (S4). Add when shipped: **PayPal Vault v3 payment tokens and merchant-initiated Orders** (Phase 10), the **Disputes API** (Phase 11), and **Partner Referrals / multiparty** (Phase 12). The arena (Phase 13) uses no new tool: it is our own MCP client. Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
+- [ ] **Tools section**: each model or AI service and how it's used (S4). Add when shipped: the **Telegram Bot API** (Phase 10; the chat interface, with no AI of its own), **Partner Referrals / multiparty** (Phase 9), **PayPal Vault v3 payment tokens and merchant-initiated Orders** (Phase 11), and the **Disputes API** (Phase 12). The arena (Phase 13) uses no new tool: it is our own MCP client. Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
 - [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password (already in the README and on `/pay`, D-069), judge-seller login.
 - [ ] GitHub repo URL (S5).
 - [ ] YouTube video URL (S6.3).
@@ -50,7 +51,7 @@
 - [ ] Under 3:00. Target is **2:45** (S6.1, D-057; beat sheet in `DEMO-SCRIPT.md`).
 - [ ] Shows the real build functioning (S6.2).
 - [ ] Public on YouTube (S6.3).
-- [ ] No third-party logos or UIs; music is licensed or absent (S6.4, D-015).
+- [ ] No third-party logos or UIs; music is licensed or absent (S6.4, D-015). **Telegram phone footage is cropped to the conversation, with no Telegram chrome or logo, or replaced by the labelled chat strip (owner decides, PLAN risk 21).**
 - [ ] Captions, readable at 1080p.
 
 ## Final

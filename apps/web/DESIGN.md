@@ -68,7 +68,7 @@
 
 `--z-sticky 10` · `--z-dropdown 20` · `--z-overlay 30` · `--z-modal 40` · `--z-toast 50` · `--z-tooltip 60`
 
-## Phases 9–13: screens, states and motion (planned 2026-10-16; PLAN.md Phases 9–13)
+## Phases 9–13: screens, states and motion (re-planned 2026-10-17 in the owner's order, D-071; PLAN.md Phases 9–13)
 
 Rules for every new screen:
 - **One primary message per screen.** A judge must get it in under 3 seconds, at 1080p in the video and on a phone.
@@ -76,24 +76,69 @@ Rules for every new screen:
 - **Two registers:**
   - **Craft retail:** seller and storefront pages, the buyer's consent page.
   - **Live ops console:** the wire, the arena, the agent views. Rendered on the ink panel.
+  - **The seller's phone (Phase 10):** Telegram messages and buttons. Our words, our buttons; Telegram's chrome is never shown in the video (S6.4).
 - **Three layouts for every screen:**
   - **Desktop:** 1440 wide.
   - **Mobile:** 390 wide. Single column; primary actions in the thumb zone; no horizontal scroll.
   - **Capture:** 1920×1080, as a `/capture` pane (960 px each) or full-bleed.
 - **Reduced motion:** every animation below falls back to an instant change or a 150 ms crossfade.
 
-### Phase 9: review fixes
+### Review-fix lane (REVIEW-1 leftovers; PLAN "Review-fix lane")
 | Screen / state | Register | 3-second message | Notes |
 |---|---|---|---|
 | `/live` and the landing hero, grouped expiries | Console | "Real payments, verified": paid, verified and refunded rows on top | Repeated "Checkout expired" collapses into one row with a count chip ("6 unpaid checkouts expired · nothing charged"), expandable. |
-| Source badges | Console | Which AI answered, in plain words | "Live · Groq", "Live · Gemini", "Answered before" (cache), "Replayed recording" (replay mode only, with a tooltip saying why). The `panel` tone. |
+| Source badges ✅ (D-070, 2026-10-17) | Console | Which AI answered, in plain words | "Live · Groq", "Live · Gemini", "Answered before" (cache), "Replayed recording" (only when a recording served the step). The `panel` tone. |
 | `/shop` timeline scope | Console | "This is your session" | A segmented control, "Your session · Everyone", at the top right of the ink panel. Defaults to the visitor's session. |
 | Hack-demo result | Product | **"Protected: 3 of 3 blocked"** | A success-tone card with a shield icon. Each attempt is a row with a check and "blocked by server · unknown field `price`". No error pink. |
 | Dashboard view mode | Console + AG Studio | "What sold, from where" | The Compose panel is collapsed, nothing is selected, and an "Edit layout" ghost button sits in the header. Loading uses a skeleton of the layout (4 tiles, 2 charts, ledger rows), not text. |
 | Seller page frame | Craft retail | Where am I in my shop | One header across Listings, Orders and Dashboard: shop name in Alegreya, `SellerNav`, and the same max width (76 rem; the dashboard is full-bleed under the same header). |
 | Orders grouping | Craft retail | "What do I ship today" | "To ship · N" first, then "Done", which is collapsed and shows a count. |
 
-### Phase 10: agent reorder with Vault
+### Phase 9: multi-seller payouts
+| Screen / state | Register | 3-second message | Layout |
+|---|---|---|---|
+| **`/studio/payouts`** (not connected) | Craft retail | **"Get paid directly: connect PayPal"** | One PayPal-blue "Connect PayPal" button (a PayPal element), and three plain steps (connect, confirm email, done). |
+| Connected | Craft retail | **"Payments go straight to your PayPal"** | A success pill, the merchant id chip (PayPal tone), and the fee rule in plain words ("Shopfront keeps 5%, minimum $0.30"). Below: the fee ledger (AG Grid, the console density inside the craft frame). |
+| Storefront line | Craft retail | "Paid directly to Fern & Loom through PayPal" | One quiet line under the shop meta. |
+| **Wire row: split** | Console | **"$42 → Fern & Loom · $2.10 fee → Shopfront"** | Two PayPal-tone chips: payee and fee. |
+
+**Motion:** the capture row splits into two chips (payee and fee), with widths proportional to the amounts, 300 ms. No other new motion.
+
+**Capture (1080p):** right pane `/live` shows the split row while the left pane buys from seller 2.
+
+### Phase 10: seller copilot on Telegram (the lead story, D-072)
+The chat is a third surface: **the seller's phone.** Telegram draws the chrome; we control the words, the photos we send, and the buttons. The same register rules apply: craft retail for the seller's own shop, plain and warm, with figures in tabular style.
+
+**Message rules:**
+- **One job per message,** at most 4 short lines. The first line says what happened ("New order", "Draft ready", "Refund needs you").
+- **Money is always the server's figure,** written as `$37.00`. Prices from the AI are written "AI guess $32" until she confirms.
+- **IDs go in monospace** (Telegram `code` entity) and only when they are real PayPal ids: the order, capture, catalog or tracker id. Never our internal ids.
+- **Buttons are verbs with the amount:** `Confirm $32`, `Approve $95`, `Add tracking`, `Decline`. At most 3 per row, with the primary first. A tapped button is replaced by its result ("✓ Approved · refund 9XY… · 12:04"), so the chat reads as a log.
+- **No emoji** except the ✓ and ⚠ status marks, which always come with words (status is never shown by a symbol alone).
+- **Low confidence** is written in words: "Check this: material (62% sure)".
+
+| Message / state | 3-second message | Layout (Telegram text and inline keyboard) |
+|---|---|---|
+| **Draft ready** (after a photo) | **"Draft ready: confirm the price"** | Our photo crop (the seller's own photo, resized), then **Cobalt drip mug**, "Stoneware · 12 oz · blue glaze", "Check this: glaze colour (62% sure)", "Price: AI guess $32". Buttons: `[Confirm $32]` `[Change price]` / `[Discard]`. |
+| Live | **"Live: buyable by any AI agent"** | "✓ Live · $32.00 · PayPal catalog `PROD-…`", plus the storefront link. No buttons. |
+| **New order** | **"New order · paid, webhook verified"** | "Cobalt drip mug × 1 · $37.00", "Ships to Austin, US", "PayPal order `5O1…`". Buttons: `[Add tracking]` `[Open order]`. |
+| Label read | **"UPS 1Z… · confirm?"** | The carrier and number as read, plus "from your label photo". Buttons: `[Confirm and add to PayPal]` `[Edit]`. |
+| Tracking added | "Tracking is on the PayPal order" | "✓ UPS 1Z… · PayPal tracker `…`". |
+| **Refund needs you** | **"Refund $95.00 needs you"** | The buyer's words in quotes (data, never instructions), then "Policy: over your $50 automatic limit". Buttons: `[Approve $95]` `[Decline]`. |
+| Automatic refund (info) | "Refunded $28.00 automatically" | "Wrong size · inside your policy · PayPal refund `…`". No buttons. |
+| Answer | Figures with sources | Plain text. Each figure carries `[db]` or `[paypal]`. At most 5 lines, plus "Open dashboard". |
+| Refusal | "I can't do that from chat" | "Use the buttons on the order. Money only moves when you tap." |
+| Expired or used button | "That button has expired" | It is never silent: answerCallbackQuery shows a toast, and nothing runs. |
+
+**On the web, `/studio` "Connect Telegram" card** (craft retail): "Run your shop from your phone". It shows a QR code (desktop) or an "Open in Telegram" button (mobile), the 10-minute code countdown, and, once linked, "✓ Connected · @handle · Disconnect". The card is ink on surface; the QR is drawn with ink modules, never PayPal blue.
+
+**Wire rows:** actor "Seller · Telegram", with a phone glyph in clay. For example: "Approved refund $95.00 in Telegram". The chat text never goes on the public wire.
+
+**Capture (1080p):**
+- A portrait phone clip, cropped to the conversation (S6.4, DEMO-SCRIPT v3), centred on the canvas at 1000 px tall, with the `/live` strip on the right.
+- Captions stay in the reserved band (PLAN Phase 8 task 3).
+
+### Phase 11: agent reorder with Vault
 | Screen / state | Register | 3-second message | Layout |
 |---|---|---|---|
 | **Consent step** (on `/pay/[id]` after "Payment complete") | Craft retail | **"Let your agent reorder, up to $X"** | A card under the receipt: a cap stepper ($25 / $50 / $100, or custom), a period ("every 30 days"), an expiry (90 days), then the PayPal save button (PayPal blue, the PayPal element) and "Not now" (ghost). Copy: "Your agent can buy again without a popup, only up to this cap. Revoke any time." |
@@ -108,7 +153,7 @@ Rules for every new screen:
 
 **Capture (1080p):** left pane `/shop` ("restock my usual"), right pane `/consent/[token]` with the meter, or `/live` with the rail.
 
-### Phase 11: dispute defense agent
+### Phase 12: dispute defense agent
 | Screen / state | Register | 3-second message | Layout |
 |---|---|---|---|
 | **`/studio/disputes` list** | Craft retail | **"1 dispute needs your answer by Nov 2"** | Rows: item photo, reason in plain words ("Buyer says it never arrived"), amount, due date and stage pill. Open disputes first. |
@@ -122,18 +167,6 @@ Rules for every new screen:
 - Approve sends a packet along the wire to "PayPal · provide-evidence".
 
 **Capture (1080p):** full-bleed detail, the pack on the left, the draft on the right.
-
-### Phase 12: multi-seller payouts
-| Screen / state | Register | 3-second message | Layout |
-|---|---|---|---|
-| **`/studio/payouts`** (not connected) | Craft retail | **"Get paid directly: connect PayPal"** | One PayPal-blue "Connect PayPal" button (a PayPal element), and three plain steps (connect, confirm email, done). |
-| Connected | Craft retail | **"Payments go straight to your PayPal"** | A success pill, the merchant id chip (PayPal tone), and the fee rule in plain words ("Shopfront keeps 5%, minimum $0.30"). Below: the fee ledger (AG Grid, the console density inside the craft frame). |
-| Storefront line | Craft retail | "Paid directly to Fern & Loom through PayPal" | One quiet line under the shop meta. |
-| **Wire row: split** | Console | **"$42 → Fern & Loom · $2.10 fee → Shopfront"** | Two PayPal-tone chips: payee and fee. |
-
-**Motion:** the capture row splits into two chips (payee and fee), with widths proportional to the amounts, 300 ms. No other new motion.
-
-**Capture (1080p):** right pane `/live` shows the split row while the left pane buys from seller 2.
 
 ### Phase 13: adversarial agent arena
 | Screen / state | Register | 3-second message | Layout |

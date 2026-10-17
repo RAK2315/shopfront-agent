@@ -66,6 +66,21 @@
 | D-055 | 2026-10-15 | Replay keys: recorded-transcript replay ignores tool-result contents (migration 0007) | ACCEPTED | P6, R4 |
 | D-056 | 2026-10-16 | No Docker: S3.a verified as a fresh-clone pnpm run per the README (amends D-020, AT-7 #1) | ACCEPTED (owner) | S3.a, S5.1 |
 | D-057 | 2026-10-16 | Phase 8 video built programmatically (Remotion + real Playwright captures), target 2:45; host and sponsor logos only | ACCEPTED (owner) | S6, P6, J5 |
+| D-058 | 2026-10-16 | Phase 8 production details (CDP screencast, `video/` outside the workspace, `/capture`) | ACCEPTED | S6, J5 |
+| D-059 | 2026-10-16 | `pnpm start` loads the root `.env` (fresh-clone fix) | ACCEPTED | S3.a |
+| D-060 | 2026-10-16 | Phase 7 design pass (SellerNav, placeholders, catalog freeze mirrors) | ACCEPTED | J2, P9, S6 |
+| D-061 | 2026-10-16 | Sentence-case notes, session aliases for the hosted agent, AT-6 #7 | ACCEPTED | J1, P7, P8, D-002 |
+| D-062 | 2026-10-16 | Video toolchain proven now (Remotion 4.0.532) | ACCEPTED | S6, J5 |
+| D-063 | 2026-10-16 | Phase 9 = review fixes; Phases 9–13 schedule | SUPERSEDED by D-071 (order and dates) | J1–J5 |
+| D-064 | 2026-10-16 | Agent reorder with Vault (now **Phase 11**, D-071) | PROPOSED (Spike V) | P8, J4, J1 |
+| D-065 | 2026-10-16 | Dispute defense agent (now **Phase 12**) | PROPOSED | P7, J3 |
+| D-066 | 2026-10-16 | Real multi-seller payouts (now **Phase 9**) | PROPOSED (Spike M) | J1, J3, G1 |
+| D-067 | 2026-10-16 | Adversarial agent arena (Phase 13) | PROPOSED | J1, J4, J5 |
+| D-068 | 2026-10-16 | Order tokens can't be minted from a checkout id; idempotency keys scoped | ACCEPTED | J1, P7, P8, G9 |
+| D-069 | 2026-10-16 | Sandbox buyer credentials published now (supersedes D-034's timing) | ACCEPTED | J5, S3.b |
+| D-070 | 2026-10-16 | Test and replay runs flagged `is_test`, kept off public views; plain AI-source words | ACCEPTED | J2, J4, J5, D-022 |
+| D-071 | 2026-10-17 | Re-plan Phases 9–13 in the owner's order (multi-seller, Telegram, Vault, disputes, arena) | ACCEPTED | J1–J5, P4–P9 |
+| D-072 | 2026-10-17 | Phase 10: seller copilot on Telegram (design; leads the pitch) | PROPOSED (Spike T) | J3, J4, J5, P7, P8, R3 |
 
 ---
 
@@ -758,6 +773,58 @@
   - Source badges use plain words: "Live · Groq", "Live · Gemini", "Answered before", and "Replayed recording". The last appears only when a recording actually served the step (`source = replay`).
   - The README frames replay as resilience, not staging.
 - **Serves:** J2, J4, J5, S3.b, D-022, D-029, D-055, REVIEW-1 #4.
+
+## D-071: Phases 9–13 re-planned in the owner's order (owner override, 2026-10-16; written 2026-10-17)
+- **Supersedes D-063's order, dates and its "Phase 9 = review fixes" framing.** The review fixes the owner listed were done first as Step 1 (D-068 to D-070). The remaining REVIEW-1 items run in a **review-fix lane** fitted around the phases (PLAN), and are cut before any phase work.
+- **New order and dates (IST), spikes first:**
+
+| Dates | Work |
+|---|---|
+| Oct 18 | Review-fix lane #3 and #7 (40 min), **Spike M** and **Spike T** |
+| Oct 19–22 | **Phase 9: multi-seller payouts** (design D-066, plus webhook recovery, REVIEW-1 #8) |
+| Oct 23–27 | **Phase 10: seller copilot on Telegram** (D-072) |
+| Oct 28 | **Spike V** |
+| Oct 29–31 | **Phase 11: Vault reorder** (D-064). Sandbox disputes opened on Oct 29 morning. |
+| Nov 1–2 | **Phase 12: dispute defense** (D-065) |
+| Nov 3 | **Phase 13: arena** (D-067). Freeze at end of day. |
+
+- **Renumbering:**
+
+| Phase | Was | Decision | Migration |
+|---|---|---|---|
+| 9 Multi-seller | 12 | D-066 | `0009` |
+| 10 Telegram copilot | new | D-072 | `0010` |
+| 11 Vault reorder | 10 | D-064 | `0011` |
+| 12 Disputes | 11 | D-065 | `0012` |
+| 13 Arena | 13 | D-067 | `0013` |
+
+  - Migration `0008` is now D-070's `is_test`.
+  - Problem ids and AT ids follow the new numbers (PLAN 9.x … 13.x).
+- **Cut rule:** a slip of more than 1 day cuts **13 → 12 → 11**. **Phases 9 and 10 are protected** unless their own spike fails. A failed Spike M gives its days to Phase 10. A failed Spike T gives its days to 11, then 12, then 13. Nothing is ever faked.
+- **The arena** gains a Telegram-abuse category (3 attacks) if Phase 10 ships. Tool-call spoofing drops from 8 to 5 attacks to keep the total at 50.
+- **The pitch, DEMO-SCRIPT (v3) and SUBMISSION lead with the Telegram copilot** (owner).
+- **Serves:** J1–J5, P4–P9, S6, G1.
+
+## D-072: Phase 10, seller copilot on Telegram (planned; Spike T on Oct 18)
+- **What:** the seller runs the shop from a Telegram chat. A photo becomes a listing (vision), she confirms the price by tap, and the listing is mirrored to PayPal and agent-buyable. She gets order pings, adds tracking from a label photo, approves refunds by tap, and asks questions with `[db]`/`[paypal]` figures. Full design in PLAN Phase 10 and DESIGN.md Phase 10.
+- **Why (J3/J4):** REVIEW-1's skeptical judge put us close to PayPal Agent Ready / Store Sync and Shopify MCP. Those assume a store exists. Ours starts from a phone and a chat, with no website ever. This is the innovation answer, so it leads the story.
+- **Guardrail (D-002, unchanged):**
+  - The chat model only classifies messages and drafts words.
+  - Every catalog or money change is a tap on a single-use, seller-scoped, expiring `telegram_actions` row, run by the same deterministic server functions the web studio uses.
+  - Typed prices are parsed by code.
+  - No new LLM tools.
+- **Stack:**
+  - The **raw Telegram Bot API** over `fetch`, in **webhook mode** (no polling, so Neon can sleep, D-022), verified by the `secret_token` header and idempotent on `update_id`.
+  - **No new dependency:** the Vercel Chat SDK was considered and rejected. We need only 8 Bot API methods, and a framework adds a moving part 2 weeks before the freeze.
+  - It is free, so the $0 rule holds.
+  - Env: `TELEGRAM_BOT_TOKEN` and `TELEGRAM_WEBHOOK_SECRET`, server-only.
+- **Judge access:**
+  - A one-time code links a seller's own chat.
+  - A README demo link connects any chat to the shared demo seller (judge mode, D-011). Demo pings leave out buyer details, and the nightly reset clears demo links.
+  - The web studio keeps every flow for judges without Telegram.
+- **Video (S6.4 risk, for the owner to decide):** the owner wants real phone footage, but Telegram's UI is a third-party brand UI. The plan crops to the conversation, with no app chrome or logo, and narrates "her chat". The zero-risk fallback is a labelled chat strip rebuilt from the real transcript (PLAN risk 21, DEMO-SCRIPT v3).
+- **Spike T fail rule:** if the webhook, file download or buttons don't work on Render, the phase is cut and logged, and the pitch reverts to the web-studio story.
+- **Serves:** J3, J4, J5, P4, P5, P7, P8, R2, R3, D-002, D-011, D-022.
 
 ---
 

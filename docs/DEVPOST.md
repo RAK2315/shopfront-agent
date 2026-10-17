@@ -6,6 +6,10 @@
 Shopfront Agent
 
 ## Elevator pitch (S7)
+**Planned lead (D-072). Use it only once AT-10 passes on Render; until then, keep the current pitch below.**
+> Sellers with no website can now be bought from by AI shopping agents, and they run the whole shop from a chat on their phone. With Shopfront, a photo becomes a PayPal-backed listing any MCP agent can buy. Order pings, label-photo tracking and refund approvals happen in the chat, and every dollar moves through deterministic PayPal code, never the model.
+
+**Current (verified):**
 Makers who sell through social posts have no store that AI shopping agents can buy from. Shopfront Agent turns their product photos into a PayPal-backed catalog that any MCP agent can order from. The agent shops, the human approves in PayPal, and the seller's own agent ships and refunds within her rules, with every money step done by deterministic code.
 
 ## Inspiration

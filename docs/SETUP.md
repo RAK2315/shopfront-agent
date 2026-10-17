@@ -99,6 +99,16 @@ I already minted a sandbox token and wrote it to `~/.claude/settings.json` as `e
 2. Choose **Personal**, Country **United Kingdom** (or Canada), then Create.
 3. Note its email and password for the tests. This one isn't needed in `.env`.
 
+## 13. Telegram bot (Phase 10, D-072): before Spike T on Oct 18
+1. In Telegram, open **@BotFather**, then `/newbot`. Name: `Shopfront`. Username: something ending in `bot` (for example `shopfront_agent_bot`).
+2. Copy the token into `.env` as `TELEGRAM_BOT_TOKEN=…`. Don't paste it anywhere else; Claude puts it on Render.
+3. Optionally, in BotFather run `/setuserpic` (our logo) and `/setdescription` ("Run your shop from this chat. Sandbox demo: no real money moves.").
+4. Claude generates `TELEGRAM_WEBHOOK_SECRET` (random) and runs `setWebhook` during the spike.
+- **If the token ever leaks:** in BotFather run `/revoke`, put the new token in `.env`, and Claude re-runs `setWebhook`.
+
+## 14. Sandbox seller 2 (Phase 9 multi-seller, D-066): before Spike M on Oct 18
+developer.paypal.com → Testing Tools → **Sandbox Accounts** → **Create account** → **Business**, country **United States** → Create. Then ⋯ → **View/edit account** for the email and password. Put them in `.env` as `SANDBOX_SELLER2_EMAIL` / `SANDBOX_SELLER2_PASSWORD`.
+
 ## Local tools
 - ✔ Node 24, pnpm 10, git, gh.
 - ☐ **Docker Desktop** (https://www.docker.com/products/docker-desktop/). Only needed in Phase 7 to verify `docker compose up` for judges (S3.a). Not needed now, because dev runs against the Neon dev branch.
