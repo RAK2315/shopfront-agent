@@ -83,7 +83,10 @@
 | D-072 | 2026-10-17 | Phase 10: seller copilot on Telegram (design; leads the pitch) | PROPOSED (Spike T) | J3, J4, J5, P7, P8, R3 |
 | D-073 | 2026-10-17 | Owner decisions: video deferred (no Telegram UI), Telegram judge mode, seed purchases, UI review pack before Phase 9 | ACCEPTED | J2, J5, S6.4, P8 |
 | D-074 | 2026-10-17 | Review-fix lane: seller views hide test orders; no scripted seeding; starters, legend, calm hack card; insights prompt fix pulled forward | ACCEPTED | J2, J3, J5, P9 |
-| D-075 | 2026-10-17 | Spike M, part 1: Partner Referrals and platform fees are gated for our sandbox app; payee routing is accepted. Verdict waits for seller 2 | IN PROGRESS | J1, J3, R2 |
+| D-075 | 2026-10-17 | Spike M, part 1: Partner Referrals and platform fees are gated for our sandbox app; payee routing is accepted | ACCEPTED (closed by D-076) | J1, J3, R2 |
+| D-076 | 2026-10-17 | Spike verdicts: M = Partial, go (direct payee, no fee, seller-side refund handoff); T = go. Owner: hide boot rows, delete /spike/studio, keep two styles | ACCEPTED | J1, J3, J4, R2, P8 |
+| D-077 | 2026-10-17 | AG Grid "Best Use" becomes a protected track: the grid is where the seller runs the business | PLANNED (build after the UI review) | P9, J1, J2 |
+| D-078 | 2026-10-17 | Visual richness fixes (rich chat cards, inline checkout, tighter /shop, a heavier live wire, photos) | PLANNED (build after the UI review) | J2, J5 |
 
 ---
 
@@ -889,8 +892,90 @@
     1. whether a capture with `payee` = seller 2 lands in seller 2's balance;
     2. whether our app can **refund** that capture. Without onboarding, seller 2 never granted us third-party REFUND permission, so a refund with `PayPal-Auth-Assertion` is expected to fail. If it does, refunds for routed orders couldn't run from Shopfront, and our refund policy engine and the Telegram refund approval wouldn't work for that seller;
     3. whether webhooks for a payee-routed capture reach our webhook (the capture belongs to seller 2's account).
-- **Not yet a verdict.** Phase 9 is "protected unless its own spike fails". Partial means a scope cut to payee-only routing, possibly with seller-side refunds. That is an owner decision once the seller-2 checks run.
+- **Closed by D-076** (Partial, go). Originally: not yet a verdict. Phase 9 is "protected unless its own spike fails". Partial means a scope cut to payee-only routing, possibly with seller-side refunds. That is an owner decision once the seller-2 checks run.
 - **Serves:** J1, J3, R2, D-006, PLAN risk 9.1.
+
+## D-076: Spike verdicts and the owner's answers (2026-10-17)
+### Spike M, part 2: Partial, go (the owner pre-approved this path)
+- **Method:** `pnpm --filter web spike-m2`, using real sandbox calls and a real approval in a headed browser. Then seller 2 logged in to its own sandbox PayPal (Playwright).
+- **Results** (order `6JB543581E932525M`, capture `3G13556369039540R`, seller 2 = merchant `B83JSV9ELHV74`):
+
+| Step | Result | Debug id |
+|---|---|---|
+| Order with `payee.email_address` = seller 2 | 201 | `f199968873f06` |
+| Buyer approval (the spare sandbox buyer) | approved | — |
+| Capture | **COMPLETED. Payee = seller 2. $37.00 gross, $1.78 PayPal fee, $35.22 net to seller 2** | `f396435a2aef5` |
+| GET capture (our app) | 200, COMPLETED, payee merchant id shown | `f256761588120` |
+| Refund by our app, no assertion | **403 NOT_AUTHORIZED / PERMISSION_DENIED** | `f8807608bd500` |
+| Refund with `PayPal-Auth-Assertion` (`email` form, then `payer_id` form) | **400 invalid_request** both times | `f960769c731d1`, `ca4c0c9440f13` |
+| Our webhook for the routed order | **CHECKOUT.ORDER.APPROVED and PAYMENT.CAPTURE.COMPLETED arrive, signature-verified** | — |
+| Seller 2 opens `sandbox.paypal.com/activity/payment/{captureId}` | Its own transaction page, with **"Issue a refund"** | — |
+| Seller 2 refunds in its own PayPal | Refund `9CW39521NN902483V`, $37.00 COMPLETED (the full amount, PayPal's default; the script's $5 entry missed the field) | — |
+| Our app afterwards | **GET capture shows REFUNDED; GET order lists the refund; PAYMENT.CAPTURE.REFUNDED arrived signature-verified 13 s after the seller's refund** | `ca4c0ce5ce84e` |
+
+- **Verdict:** PayPal gates partner onboarding (403) and platform fees (422, D-075) for a non-approved partner, and a refund of another merchant's capture needs the third-party permission that only onboarding grants. **Payee routing works, and our webhook sees the order's whole life, including a refund the seller makes themselves.**
+- **Phase 9 on the Partial path (owner, pre-approved):**
+  - Each seller is paid **directly into their own PayPal**, and **Shopfront takes no cut.** There's no fee ledger. The pitch says "each seller is paid directly to their own PayPal; Shopfront takes no cut".
+  - **Refunds for sellers other than the platform account are handed off.** The seller agent still decides with the deterministic policy and drafts the decision. The seller gets a one-tap deep link to the transaction in their own PayPal (`/activity/payment/{captureId}`, "Issue a refund"). We track the outcome from the `PAYMENT.CAPTURE.REFUNDED` webhook, with a GET of the capture as the fallback, and update the order, the buyer's page and the wire.
+  - The README says this plainly (see "Honest limitations").
+  - The platform's own demo seller (`juniper_clay` on the platform account) keeps automatic refunds, because it is the API caller's own capture.
+- **Seller connect without Partner Referrals:** the seller gives their PayPal email or merchant id. The first routed capture proves it: the capture's `payee.merchant_id` comes back from PayPal and is stored. "Log in with PayPal" (identity) could verify it up front; it gets a 30-minute check on Oct 19 and is dropped if it needs a separate approval.
+- **Not faked, and not claimed:** partner onboarding, platform fees and API refunds for other sellers' captures.
+
+### Spike T: go
+- **Bot:** `@juniper_clay_copilot_bot`. `TELEGRAM_BOT_TOKEN` and a generated `TELEGRAM_WEBHOOK_SECRET` are in `.env` and on Render (`pnpm --filter web spike-t -- setup`).
+- **On Render, all four pass criteria were met:**
+  1. `setWebhook` to `/telegram/webhook` with `secret_token` and `allowed_updates: [message, callback_query]`. Requests with no secret or the wrong one get **401** (both checked).
+  2. The owner's text got a reply.
+  3. The owner's phone photo was downloaded server-side through `getFile`. The bot showed "Reading your photo…", then edited the message with the size, a sha256 prefix and the delivery delay.
+  4. The inline keyboard, the tap, `answerCallbackQuery` (a toast), then `editMessageText` ("✓ Confirmed · spike only"). The owner confirmed all three steps.
+  - `getWebhookInfo`: 0 pending, no delivery error.
+- **Bot API facts checked against core.telegram.org (the PLAN's were from memory):** they all hold.
+  - The header is `X-Telegram-Bot-Api-Secret-Token` (1–256 characters of `A-Za-z0-9_-`).
+  - `callback_data` is 1–64 bytes.
+  - File links last at least 1 hour, with a 20 MB download cap.
+  - Non-2xx deliveries are retried "a reasonable amount of attempts", and updates are kept up to 24 h.
+  - New since the PLAN was written: `editMessageText` takes `rich_message` as an alternative to `text`.
+- **Cold start (criterion 5, measured, not a pass gate):** COLD_START_RESULT
+- **The spike route stays deployed** until Phase 10 replaces it. It stores nothing and touches no seller data. Phase 10 adds the `telegram_updates` dedupe table, links and action rows.
+
+### Owner answers to the review-pack questions (provisional, 2026-10-17)
+- **Hide "Restarted" rows from public views: yes.** The boot re-arm event is now always test-flagged, with one event listing every re-armed id. It's kept in the database and visible to test runs (AT-2 reads it from the database). The 9 existing public boot rows were archived as test (`5b39055`).
+- **Delete `/spike/studio`: yes.** Removed; it returns 404.
+- **Keep the two visual registers: yes.**
+- **The paid-page heading and the hack button colour:** wait for the owner's review.
+- **Serves:** J1, J3, J4, R2, P7, P8, D-002, D-006, D-022, D-072.
+
+## D-077: AG Grid "Best Use" as a protected track (owner, 2026-10-17; build after the UI review)
+- **Why:** the AG Grid prize (P9, requirement update of 2026-10-15) asks for "polish: custom widgets, theming, and layout tools, not just AG Grid or AG Charts on their own". The owner targets first place. The grid becomes **where the seller runs the business**, not a display. **It's protected like Phases 9 and 10.**
+- **Features and the checks found while planning (each has an AT in PLAN "AG Grid Best Use"):**
+  1. **Inline edits that write back to PayPal.** *Deviation found in PayPal's own schema* (`/api/catalog-products/v1/schema.json`): a Catalog product has **no price or stock field**, and PATCH accepts only `description`, `category`, `image_url` and `home_url`. So:
+     - **Price and stock cells** write to our catalog through the same deterministic, seller-only server function the studio uses (D-002). Row badges say "used on the next PayPal order".
+     - **Description, category and image cells** PATCH the PayPal Catalog product. Each row shows the PayPal request id, the debug id and a sync status (synced, syncing, failed with a retry).
+     - Nothing claims that a price lives in PayPal's catalog.
+  2. **Live rows from webhooks:** new orders flash in, and status cells animate PENDING → PAID → SHIPPED → REFUNDED from the real SSE events (never a timer).
+  3. **Master-detail rows:** expand an order to see its full PayPal history (order, capture, refund, dispute, tracking) with ids, from our `paypal_calls` and events tables.
+  4. **The AI Toolkit:** "show unshipped orders over $50 this week" filters, groups and pivots the grid. The model goes through our `llm.call` guard (Groq first, D-038), with schema-validated output, temperature 0, and the output limited to grid state (never data or money).
+  5. **Integrated charts:** a sales sparkline per product, and a revenue pivot by product and status.
+- **Licence risk (D-053):** the AI Toolkit, master-detail, integrated charts, sparklines and pivoting are **AG Grid Enterprise**. Our AG Studio trial key does not license standalone AG Grid Enterprise; it watermarked the grid. **Spike G (Oct 18, 1 h):**
+  - (a) Do AG Studio's own grid widgets expose these features under the Studio key?
+  - (b) Otherwise, the owner requests an AG Grid Enterprise trial key (ag-grid.com trial form or the sponsor channel in the PayPal Discord).
+  - (c) Otherwise, Community fallbacks: detail rows as full-width rows (the D-053 pattern), sparklines as an AG Charts cell renderer, and natural-language grid state through our own schema-validated Community filter, sort and group model.
+  - Whatever we ship, no watermark is ever shown.
+- **Schedule:** Oct 22–24, after Phase 9 (which is a day shorter on the Partial path). It absorbs REVIEW-1 #6.
+- **Serves:** P9, J1, J2, J5, D-002, D-023, D-053.
+
+## D-078: Visual richness fixes (owner, 2026-10-17; build after the UI review)
+- **Owner's finding:** the current UI reads as a wireframe.
+- **Fixes, with before and after notes in DESIGN.md "Visual richness":**
+  1. Rich product cards in the buyer chat (photo, seller name, variants, price).
+  2. An inline checkout card with the PayPal button and the total broken down (items, shipping, total), not a text line.
+  3. A tighter `/shop` layout with less dead space in the chat column.
+  4. A live wire with more visual weight: one colour per system (agent, MCP, PayPal, webhook), packet motion between steps, and PayPal events visually dominant.
+  5. Product photos replace the letter placeholders the day the owner's photos land (AT-3).
+- **Rules held:** clay stays the single accent and PayPal blue stays for PayPal elements. The per-system colours are muted tints, each with an icon and a label, and status is never shown by colour alone. Motion follows real events, with a reduced-motion fallback.
+- **Schedule:** Oct 30–31, plus the photos the day they land.
+- **Serves:** J2, J5, P8.
 
 ---
 

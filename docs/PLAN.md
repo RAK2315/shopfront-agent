@@ -225,26 +225,31 @@ video/
 >
 > **Spikes first:** Spike M (multi-seller) and Spike T (Telegram) both run on **Oct 18**, before any feature build. Spike V (Vault) runs on Oct 28, before Phase 11. Each spike has at most its stated time. A failed spike cuts its phase at once, the decision is logged, and nothing is ever faked.
 >
-> **Cut rule:** if the schedule slips more than 1 day, cut **13 → 12 → 11**. **Phases 9 and 10 are protected** unless their own spike fails. If Spike M fails, Phase 9's days go to Phase 10. If Spike T fails, Phase 10's days go to 11, then 12, then 13.
+> **Cut rule:** if the schedule slips more than 1 day, cut **13 → 12 → 11**. **Phases 9 and 10 and the AG Grid "Best Use" track (D-077) are protected.** Spike M passed as Partial and Spike T passed (D-076), so both phases go ahead.
+>
+> **Re-planned 2026-10-17 (D-076 to D-078):** Phase 9 is a day shorter on the Partial path. The AG Grid track (3 days) and the visual richness fixes (2 days) are added. Phases 12 and 13 have no slot in the dates below; they are the first cuts under the cut rule unless time is won back. The owner confirms cuts.
 >
 > Phase 8 (video) still comes after the freeze. Its beat sheet leads with Telegram (`DEMO-SCRIPT.md` v3).
 
 | Dates (IST) | Work | Exit |
 |---|---|---|
 | Oct 17 (Sat) ✅ | Owner override Step 1 fixes (D-068 to D-070) and this re-plan | Fixes accepted on Render (`docs/screenshots/fixes-1/FIXES.md`) |
-| Oct 18 (Sun) | Review-fix lane: the REVIEW-2 seller-view clean-up, the legend, #3 and #7 (about 2 h). **Then the UI review pack for the owner** (D-073: every public and seller screen at desktop and mobile in `docs/review-pack/`, plus one page listing each screen's route, purpose and primary message). Phase 9 UI work waits for the owner's style review. **Spike M:** Partner Referrals, payee routing, platform fee, `PayPal-Auth-Assertion` refund. **Spike T:** bot webhook, photo download, buttons | Go or no-go for Phases 9 and 10, logged in DECISIONS |
-| Oct 19–22 (Mon–Thu) | **Phase 9: real multi-seller payouts** (plus webhook recovery) | AT-9 on Render |
-| Oct 23–27 (Fri–Tue) | **Phase 10: seller copilot on Telegram, including judge mode** (D-073), plus review-fix lane #4, #11 and #9. Save the real bot transcripts for the video's chat strip. | AT-10 on Render |
-| Oct 28 (Wed) | **Spike V:** Vault (PayPal wallet) plus a merchant-initiated order | Go or no-go for Phase 11 |
-| Oct 29–31 (Thu–Sat) | **Phase 11: agent reorder with Vault** (if Spike V passed). **Open the sandbox disputes on Oct 29 morning** for Phase 12. | AT-11 |
-| Nov 1–2 (Sun–Mon) | **Phase 12: dispute defense agent** | AT-12 |
-| Nov 3 (Tue) | **Phase 13: adversarial agent arena**. **Freeze at end of Nov 3.** | AT-13 |
+| Oct 17 (Sat, evening) ✅ | Review-fix lane (D-074), the **UI review pack** (D-073), **Spike M = Partial, go** and **Spike T = go** (D-075, D-076) | Done; logged in DECISIONS |
+| Oct 18 (Sun) | **Owner's UI review.** Meanwhile, backend only (no new screens): Phase 10 prep (migration `0010`, `telegram_updates` dedupe, action rows, the price parser by TDD, the `judge_demo` seed and its test-row exception, D-074), **Spike G** (AG Grid Enterprise licence, 1 h, D-077), webhook recovery (#8), the `mcp_client_name` fix | Spike G go or no-go; unit tests |
+| Oct 19–21 (Mon–Wed) | **Phase 9 on the Partial path:** each seller paid directly (payee), seller connect, the refund handoff, README | AT-9 on Render |
+| Oct 22–24 (Thu–Sat) | **AG Grid "Best Use"** (D-077), absorbing REVIEW-1 #6 | AT-G on Render |
+| Oct 25–29 (Sun–Thu) | **Phase 10: seller copilot on Telegram, including judge mode** (D-073), plus review-fix lane #4, #11 and #9. Save the real bot transcripts for the video's chat strip. | AT-10 on Render |
+| Oct 30–31 (Fri–Sat) | **Visual richness fixes** (D-078) | AT-V screenshots |
+| Nov 1 (Sun) | **Spike V:** Vault (PayPal wallet) plus a merchant-initiated order | Go or no-go for Phase 11 |
+| Nov 2–3 (Mon–Tue) | **Phase 11: agent reorder with Vault**, compressed to 2 days (if Spike V passed; otherwise Phase 12 takes these days). **Freeze at end of Nov 3.** | AT-11 |
+| At risk | **Phase 12 (disputes)** and **Phase 13 (arena)**: no slot. Either one comes back only if a phase above finishes early. Open sandbox disputes on Oct 29 morning only if Phase 12 is still alive then. | — |
 | Any day | Phase 3 AT-3, the day the owner's photos land | AT-3 |
 
 **Owner actions with dates (confirmed by the owner, D-073):**
-- **Before Oct 18:** create the Telegram bot (@BotFather → `TELEGRAM_BOT_TOKEN`, SETUP §13). Create sandbox seller 2, a US Business account (SETUP §14).
+- ✅ **Done Oct 17:** the Telegram bot (`@juniper_clay_copilot_bot`) and sandbox seller 2 (merchant `B83JSV9ELHV74`).
+- **Oct 18:** if Spike G needs it, request an AG Grid Enterprise trial key (D-077).
 - **Oct 18–19:** review the UI review pack (`docs/review-pack/`) before Phase 9 UI work.
-- **Before Oct 28:** enable Vault in the sandbox app.
+- **Before Nov 1:** enable Vault in the sandbox app.
 - **Oct 29 morning:** be available if a sandbox dispute must be opened by hand.
 - **Before Nov 8, and again before judging (Nov 11):** run one real public purchase on the hosted site (§5).
 - **Product photos:** placeholders stay until they arrive; then run AT-3.
@@ -266,66 +271,64 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | 5 | Real product photos (AT-3) | The day the owner's photos land | Also the Telegram demo photos |
 | — | Found on Oct 17: `checkouts.mcp_client_name` is always null (the stateless `/mcp` never sees `initialize` on a tool call), so `/pay` says "your shopping agent" and the console can't name the agent | Phase 9, 15 min | Read `x-shopfront-client` / the MCP client header in `/mcp` |
 
-#### Phase 9 — Real multi-seller payouts (Spike M Oct 18; build Oct 19–22). Serves J1, J3, G1, R2, R5; retires D-006 if it ships. **Protected** unless Spike M fails
-- **Goal:** each seller is paid into **their own** PayPal account, with a platform fee taken. This needs an onboarding UI, per-seller payee routing, a fee ledger, and an honest README update.
-- **Spike M** (1 day maximum, **Oct 18**; the owner creates seller 2 first, see HANDOFF):
-  1. Create a second US sandbox Business account (seller 2).
-  2. `POST /v2/customer/partner-referrals` with:
-     - `operations: [API_INTEGRATION]` (`integration_type: THIRD_PARTY`);
-     - `third_party_details.features: [PAYMENT, REFUND, PARTNER_FEE]`;
-     - `products: [EXPRESS_CHECKOUT]`;
-     - `legal_consents: [SHARE_DATA_CONSENT]` and a `tracking_id`.
-
-     Open the returned `action_url` as seller 2 and complete onboarding.
-  3. Read the return parameters `merchantIdInPayPal` and `permissionsGranted`. `GET /v1/customer/partners/{partner_merchant_id}/merchant-integrations/{seller_merchant_id}` must show `payments_receivable` and `primary_email_confirmed` as true.
-  4. Create an order with `purchase_units[].payee.merchant_id` set to seller 2 and `purchase_units[].payment_instruction.platform_fees: [{ amount }]`, then capture it. Seller 2 should receive the net amount and we should receive the fee.
-  5. Refund with a `PayPal-Auth-Assertion` header (an unsigned JWT: `iss` = our client id, `payer_id` = the seller's merchant id), with `payment_instruction.platform_fees` on the refund.
-  - **Pass** if steps 2–5 work.
-  - **Partial** if onboarding is gated but `payee` routing works: ship payee routing without fees, and say exactly that.
-  - **Fail:** keep D-006, say so plainly in the README, and cut the phase.
-- **PayPal APIs:**
-  - `/v2/customer/partner-referrals`.
-  - `/v1/customer/partners/{partner}/merchant-integrations/{merchant}`.
-  - `/v2/checkout/orders` with `payee` and `platform_fees`.
-  - `/v2/payments/captures/{id}/refund` with `PayPal-Auth-Assertion`.
-  - Webhooks `MERCHANT.ONBOARDING.COMPLETED`, `MERCHANT.PARTNER-CONSENT.REVOKED`, `PAYMENT.CAPTURE.COMPLETED`.
+#### Phase 9 — Each seller paid directly, on the Partial path (Spike M passed as Partial, D-075/D-076; build Oct 19–21). Serves J1, J3, G1, R2, R5; retires D-006's "one platform account" caveat. **Protected**
+- **What Spike M proved** (real sandbox calls, D-076):
+  - **Works:** an order with `purchase_units[].payee` = the seller settles **into the seller's own PayPal** ($37.00 gross, $1.78 PayPal fee, $35.22 net to seller 2). Our webhook receives that order's APPROVED, CAPTURE.COMPLETED and CAPTURE.REFUNDED events, signature-verified.
+  - **Gated for a non-approved partner:** Partner Referrals onboarding (403), `platform_fees` (422), and refunding another merchant's capture from our app (403 without, 400 with `PayPal-Auth-Assertion`).
+- **Goal (owner, pre-approved):** every sale goes straight to the seller's own PayPal, and **Shopfront takes no cut**. Refunds for sellers other than the platform account are **handed off**: the policy engine still decides, and the seller taps once to refund in their own PayPal, and we see it by webhook.
+- **Seller connect:**
+  - The seller enters their PayPal email or merchant id in Studio (one field, plus the Phase 10 Telegram `/connect`).
+  - It's stored as `sellers.payout_email` / `paypal_merchant_id`, with `payout_status` going `unverified` → `verified`. The first routed capture verifies it: PayPal returns `payee.merchant_id` on the capture.
+  - **Check on Oct 19 (30 min):** "Log in with PayPal" could verify the account up front. Use it only if the sandbox app can enable it without an approval.
+- **Routing:**
+  - `create_checkout` puts `payee` = the seller's email or merchant id on the order. The platform's own seller (`juniper_clay`, the platform account) omits `payee` as today.
+  - A seller with no payout account is refused before any PayPal call, so nothing is ever silently routed to the platform.
+  - MCP inputs are unchanged (IDs and quantities only). The output adds `paid_to: { display_name }`. Tool descriptions are unchanged (replay keys, D-055).
+- **The refund handoff (for routed sellers only):**
+  - `request_refund` runs the same policy engine. The decision is recorded as `handoff` instead of being executed.
+  - The seller sees "Refund $28.00 · wrong size · inside your policy" with a one-tap **"Refund in your PayPal"** deep link (`https://www.sandbox.paypal.com/activity/payment/{captureId}`; the base comes from env), in Studio Orders and later in Telegram.
+  - **Tracking:** `PAYMENT.CAPTURE.REFUNDED` (verified) or, as the fallback, a GET of the capture (the existing fallback timers) moves the request to `executed`, records the PayPal refund id, updates the buyer's order page and writes a wire row ("Refunded by the seller in PayPal · $28.00").
+  - A partial refund of a different amount is recorded as the amount PayPal reports, never the amount we asked for.
+  - **Honest copy:** "Refunds for this shop are made by the seller in their own PayPal; we track them automatically."
 - **Data model** (migration `0009`):
-  - **`sellers`:** `paypal_merchant_id` (already exists), plus new `onboarding_status`, `onboarding_tracking_id`, `payments_receivable`, `fee_bps`.
-  - **`platform_fees`:** `checkout_id`, `seller_id`, `fee_cents`, `refunded_fee_cents`, `paypal_capture_id`.
-  - **Fee rule** in `packages/core`, deterministic and unit-tested (for example 5%, minimum $0.30).
-- **MCP:**
-  - No input changes.
-  - `create_checkout` output adds `paid_to: { seller display name }`.
-  - A seller who hasn't onboarded is refused with a clear error, so nothing is ever silently routed to the platform.
-- **Screens:**
-  - `/studio/payouts`: a "Connect PayPal" button (a PayPal element, so PayPal blue is allowed), the status steps, and the fee ledger (AG Grid).
-  - On the storefront: "Paid directly to {seller} through PayPal".
-  - Wire rows showing the payee and the fee split.
-
-- **Also in this phase (REVIEW-1 #8, the payment code is open anyway):** webhook recovery. Return 5xx when PayPal's verify call itself fails; on boot and with each timer check, sweep verified-but-unprocessed events; after `INSTRUMENT_DECLINED`, retry the capture with `capture-{id}-{n}`. Index `(verified, processed_at)` on `webhook_events` and `checkouts.capture_attempt` go in migration `0009`.
+  - `sellers`: `payout_email`, `payout_status`, `payout_verified_at` (`paypal_merchant_id` already exists).
+  - `refund_requests.decision` gains `handoff`, plus `handoff_link_sent_at`.
+  - Webhook recovery: an index `(verified, processed_at)` on `webhook_events` and `checkouts.capture_attempt`.
+  - **No `platform_fees` table** (no fee, owner).
+- **Screens** (after the owner's UI review):
+  - The Studio "Get paid" card: one field and the status steps.
+  - The storefront line "Paid directly to {seller} through PayPal".
+  - The wire row "$37.00 → Fern & Loom's PayPal".
+  - The handoff row in Orders.
+  - No Connect-PayPal partner button (it's gated).
+- **Also in this phase:** webhook recovery (REVIEW-1 #8, started Oct 18), and the `mcp_client_name` header fix.
 
 **AT-9**
-- [ ] **Onboarding.** Seller 2 is onboarded through the real Partner Referrals flow, and its status shows `payments_receivable: true`.
-- [ ] **Routing.** A buyer's agent buys from seller 2 and the PayPal order's payee is seller 2:
-  - seller 2's sandbox account shows the net amount;
-  - our account shows the fee;
-  - the fee ledger row matches the capture's breakdown.
-- [ ] **Refund.** A refund made with `PayPal-Auth-Assertion` completes, and the fee is reversed proportionally, both in our ledger and at PayPal.
+- [ ] **Connect.** `fern_and_loom` is set to seller 2's PayPal. A checkout before any payout account exists is refused before any PayPal call.
+- [ ] **Routing.** A buyer's agent buys from seller 2 on Render:
+  - the PayPal capture's payee is seller 2 (`B83JSV9ELHV74`) and the net lands in seller 2's account;
+  - the platform account receives nothing;
+  - seller 2's `payout_status` becomes `verified` from the capture;
+  - the wire, the order page and the README show "paid directly to Fern & Loom".
+- [ ] **Refund handoff.**
+  - A $28 in-policy refund on seller 2's order creates a `handoff` decision with the deep link, and **0 refund calls from our app**.
+  - Seller 2 refunds in its own PayPal (headed script). Within 60 s the request is `executed` with PayPal's refund id, from the webhook, or the GET fallback if the webhook is withheld (test hook).
+  - The buyer's page shows the refund.
+- [ ] **The platform seller is unchanged.** `juniper_clay`: AT-4 #2 and #3 still pass (automatic refunds, one PayPal call on a double tap).
 - [ ] **Unhappy paths:**
-  - A checkout for a seller who hasn't onboarded is refused before any PayPal call.
-  - A webhook revoking the partner consent makes that seller's listings no longer agent-buyable.
-  - A fee larger than the item total is rejected by the core rule.
-- [ ] **Webhook recovery (REVIEW-1 #8).** A forced verify-call failure (test hook) returns 5xx. After a Render restart, the sweep processes a verified but unprocessed event. A sandbox decline is retried as `capture-{id}-1` and succeeds.
-- [ ] **README.** The D-006 caveat is removed from "Honest limitations", or kept word for word if the spike failed.
+  - A payee email that isn't a PayPal account: PayPal's error is surfaced plainly, and no checkout is left half-created.
+  - A seller-side refund larger than the policy amount: the actual PayPal amount is recorded and flagged on the wire.
+- [ ] **Webhook recovery (REVIEW-1 #8).** A forced verify-call failure (test hook) returns 5xx. After a Render restart, the sweep processes a verified but unprocessed event. A sandbox decline is retried as `capture-{id}-1`.
+- [ ] **README.** "Each seller is paid directly to their own PayPal; Shopfront takes no cut." The handoff is stated plainly, the D-006 caveat is replaced, and the gated partner features are named as gated, not as done.
 
 **Problems I anticipate (Phase 9):**
 
 | # | Problem | Solution |
 |---|---|---|
-| 9.1 | Multiparty requires an approved partner, and platform fees need the partner to be enabled by PayPal | That is exactly what Spike M tests. If it is gated, cut the phase or ship the partial payee-only path, and say why in the README. Ask in the PayPal Discord (G17) on Oct 18. |
-| 9.2 | If the partner account receives fees, PayPal requires it to hold no balance | Use a separate sandbox account to receive the fees if PayPal requires it, and note this in SETUP.md. |
-| 9.3 | Onboarding needs a browser login as seller 2 | Use headed Playwright with a fresh context (D-048). The credentials live only in `.env`. |
-| 9.4 | Earlier orders settled to the platform account | Leave them as they are. Only new checkouts route to the seller, and the ledger starts at the switch date. |
+| 9.1 | ✅ Resolved by Spike M: partner onboarding, fees and API refunds are gated | The Partial path above (D-076) |
+| 9.2 | A seller types someone else's email and gets paid for another seller's goods | Sandbox demo only. The first capture shows the real merchant id, and the README says verification is by first payment. "Log in with PayPal" closes this if the Oct 19 check passes. |
+| 9.3 | A seller refunds in PayPal but our webhook is late | The existing GET fallback timers (D-045) plus the boot sweep |
+| 9.4 | Earlier orders settled to the platform account | Leave them as they are. Only new checkouts for routed sellers go to the payee. |
 
 #### Phase 10 — Seller copilot on Telegram (Spike T Oct 18; build Oct 23–27). Serves J3, J4, J5, P4, P5, P7, P8, R2, R3. **Protected**
 - **Goal:** a seller with no website never needs one. From Telegram on her phone she:
@@ -340,7 +343,8 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
   - A typed price ("28", "$28.00") is parsed by a regex in `packages/core`, never by the model.
   - No LLM gets a tool that publishes, captures, refunds or adds tracking.
 - **Why it matters (the J3/J4 answer):** PayPal Agent Ready, Store Sync and Shopify's MCP assume a store already exists. Our seller has a phone and a Telegram chat, and that is now enough to be agent-buyable with PayPal checkout. The pitch, the demo and the Devpost text **lead with this** (D-072).
-- **Spike T** (half a day maximum, Oct 18):
+- **Spike T: ✅ go (2026-10-17, D-076).** Webhook with secret (401 when forged), text reply, phone photo downloaded via `getFile`, inline keyboard and callback with the toast and edit, all on Render. The cold-start delay is in D-076.
+- **Spike T as planned** (half a day maximum, Oct 18):
   - **Owner first:** create the bot with @BotFather (`/newbot`, name "Shopfront", a username ending in `bot`). Put the token in `.env` and on Render as `TELEGRAM_BOT_TOKEN`.
   - Steps, all on Render:
     1. `setWebhook` to `https://shopfront-agent.onrender.com/telegram/webhook` with `secret_token` (`TELEGRAM_WEBHOOK_SECRET`) and `allowed_updates: [message, callback_query]`.
@@ -442,6 +446,52 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | 10.6 | Some judges won't install Telegram | The web studio does the same five jobs. The README quick path has a 20-second "or try it in Telegram" link to judge mode. |
 | 10.7 | The bot token leaks | It lives only in env, and the webhook requires the secret token. If it leaks, rotate it with BotFather `/revoke` and run `setWebhook` again (written in SETUP.md). |
 | 10.8 | No AI is available on camera | Drafts and insights replay (D-055). Taps never need AI, because they are deterministic. |
+
+#### AG Grid "Best Use" (D-077; Spike G Oct 18; build Oct 22–24). Serves P9 (the AG Grid prize), J1, J2, J5. **Protected**
+- **Goal:** the grid is where the seller runs the business, not a display. It lives on `/studio/dashboard` (AG Studio) and absorbs REVIEW-1 #6.
+- **Spike G** (1 h, Oct 18). Can we use the Enterprise features without a watermark?
+  - (a) Do AG Studio's grid widgets expose them under the Studio key?
+  - (b) Otherwise, an AG Grid Enterprise trial key (owner).
+  - (c) Otherwise, Community fallbacks (D-077).
+  - Log the result in DECISIONS. A watermark is never shipped.
+- **Features:**
+  1. **Inline edits with PayPal write-back.**
+     - Description, category and image cells PATCH `/v1/catalogs/products/{id}`: the only patchable fields, per PayPal's schema.
+     - Price and stock cells write to our catalog (deterministic, seller-only, D-002) and are marked "used on the next PayPal order".
+     - Every row shows the PayPal request id, the debug id and a sync status.
+  2. **Live rows** from the SSE wire: new orders flash; status cells animate PENDING → PAID → SHIPPED → REFUNDED on real events.
+  3. **Master-detail:** an order expands into its full PayPal history (order, capture, refund, tracking, dispute) with id chips, from `paypal_calls` and events.
+  4. **AI Toolkit:** natural language → grid state (filter, sort, group, pivot). It runs through the `llm.call` guard (Groq, Zod output, temperature 0). The output is grid state only.
+  5. **Integrated charts:** a sparkline per product, and a revenue pivot by product and status.
+  6. **REVIEW-1 #6:**
+     - opens in view mode;
+     - a `$` axis;
+     - a skeleton while loading;
+     - KPIs read $0.00, not "No data";
+     - no sideways scroll at 1400 px;
+     - `[paypal]` figures are reconciled with the test-capture cutover (D-074).
+
+**AT-G**
+- [ ] **G1 Write-back.** Editing a description cell gives PayPal Catalog PATCH 204, and the row shows the request id, the debug id and "synced". A forced PayPal failure shows "failed · retry", and the retry succeeds. A price edit changes the next `create_checkout` total and never a past order.
+- [ ] **G2 Live rows.** A purchase in another browser adds a flashing row within 5 s of the verified webhook, and its status cell animates to PAID, then SHIPPED after tracking, then REFUNDED after a refund, with no reload.
+- [ ] **G3 Master-detail.** Expanding a refunded order shows its order, capture and refund ids, matching PayPal GETs.
+- [ ] **G4 AI Toolkit.** "show unshipped orders over $50 this week" gives the expected filter and grouping (state checked, not pixels). 10 injection prompts never change data, and the output is schema-valid every time.
+- [ ] **G5 Charts.** The sparkline per product matches the DB totals, and the pivot totals equal the ledger sum.
+- [ ] **G6 Polish.**
+  - No watermark and no licence console error.
+  - Lighthouse accessibility ≥ 90.
+  - No horizontal scroll at 1400 and 390 px.
+  - Screenshots at desktop, mobile and 1920×1080.
+- [ ] **AT-5** still passes.
+
+#### Visual richness fixes (D-078; build Oct 30–31 after the owner's review). Serves J2, J5
+- See DESIGN.md "Visual richness" for the before and after of each.
+  1. Rich product cards in the chat.
+  2. The inline checkout card with the PayPal button and the total broken down.
+  3. A tighter `/shop`.
+  4. A live wire with per-system colours, packet motion and PayPal emphasis.
+  5. Photos the day they land.
+- **AT-V:** screenshots at desktop, mobile and 1920×1080. `lane-checks` and AT-6 #1 still pass. Lighthouse accessibility ≥ 90 on `/shop`. Reduced-motion is checked (the packet motion turns into a crossfade).
 
 #### Phase 11 — Agent reorder with Vault (Spike V Oct 28; build Oct 29–31). Serves P8, P7, J1, J4, R2, R3, G1. Cut third (after 13 and 12)
 - **Goal:** the buyer approves once and saves PayPal through Vault v3 with a **spend cap they set**. Later their agent can "restock my usual" with **no popup, up to the cap**. Above the cap, or with an expired or revoked consent, the popup comes back.

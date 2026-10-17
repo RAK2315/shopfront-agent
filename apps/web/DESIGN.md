@@ -94,17 +94,20 @@ Rules for every new screen:
 | Seller page frame | Craft retail | Where am I in my shop | One header across Listings, Orders and Dashboard: shop name in Alegreya, `SellerNav`, and the same max width (76 rem; the dashboard is full-bleed under the same header). |
 | Orders grouping | Craft retail | "What do I ship today" | "To ship · N" first, then "Done", which is collapsed and shows a count. |
 
-### Phase 9: multi-seller payouts
+### Phase 9: each seller paid directly (the Partial path, D-076; screens wait for the owner's UI review)
+No partner "Connect PayPal" button: Partner Referrals is gated for us (D-075). No fee anywhere: Shopfront takes no cut.
+
 | Screen / state | Register | 3-second message | Layout |
 |---|---|---|---|
-| **`/studio/payouts`** (not connected) | Craft retail | **"Get paid directly: connect PayPal"** | One PayPal-blue "Connect PayPal" button (a PayPal element), and three plain steps (connect, confirm email, done). |
-| Connected | Craft retail | **"Payments go straight to your PayPal"** | A success pill, the merchant id chip (PayPal tone), and the fee rule in plain words ("Shopfront keeps 5%, minimum $0.30"). Below: the fee ledger (AG Grid, the console density inside the craft frame). |
+| **Studio "Get paid" card**, not set | Craft retail | **"Where should buyers pay you?"** | One field (your PayPal email or merchant id), a primary "Save", and three plain steps: add your PayPal, first sale confirms it, done. Not PayPal blue: it's our form, not a PayPal element. |
+| Set, unverified | Craft retail | "Saved: your first sale confirms it" | A warning-tone pill with an icon, "Unverified until your first sale". |
+| Verified | Craft retail | **"Payments go straight to your PayPal"** | A success pill, the merchant id chip (PayPal tone: a real PayPal id), and "Shopfront takes no cut". |
 | Storefront line | Craft retail | "Paid directly to Fern & Loom through PayPal" | One quiet line under the shop meta. |
-| **Wire row: split** | Console | **"$42 → Fern & Loom · $2.10 fee → Shopfront"** | Two PayPal-tone chips: payee and fee. |
+| **Orders: refund handoff** | Craft retail | **"Refund $28.00 in your PayPal"** | The policy decision in words ("Wrong size · inside your policy"), then one primary button, **"Refund in your PayPal ↗"** (opens the PayPal transaction), then "We'll mark it done when PayPal tells us". Once done: "✓ Refunded by you in PayPal · refund `9CW…`". |
+| **Wire row: direct payment** | Console | **"$37.00 → Fern & Loom's PayPal"** | A PayPal-tone payee chip with the merchant id. No fee chip. |
+| Wire row: seller refund | Console | "Refunded by the seller in PayPal · $28.00" | Actor "Seller · PayPal", with the PayPal refund id chip. |
 
-**Motion:** the capture row splits into two chips (payee and fee), with widths proportional to the amounts, 300 ms. No other new motion.
-
-**Capture (1080p):** right pane `/live` shows the split row while the left pane buys from seller 2.
+**Motion:** none new. The direct-payment row slides in like every wire row.
 
 ### Phase 10: seller copilot on Telegram (the lead story, D-072)
 The chat is a third surface: **the seller's phone.** Telegram draws the chrome; we control the words, the photos we send, and the buttons. The same register rules apply: craft retail for the seller's own shop, plain and warm, with figures in tabular style.
@@ -185,3 +188,26 @@ The chat is a third surface: **the seller's phone.** Telegram draws the chrome; 
 - **Capture (1080p):** full-bleed board, 10 × 5 tiles, readable at 1080p (tile text ≥ 18 px).
 - **Desktop:** 10 columns.
 - **Mobile:** 2 columns grouped by category, with a sticky pass-rate bar.
+
+### AG Grid "Best Use" (D-077; build Oct 22–24 after the owner's review)
+The grid on `/studio/dashboard` is where the seller works. Console density inside the craft frame; the Shopfront ledger theme (`makeLedgerTheme`).
+
+| Element | 3-second message | Notes |
+|---|---|---|
+| **Editable cells** | "Change it here; PayPal follows" | A ✎ affordance on editable columns. Description, category and image sync to the PayPal Catalog, and each row has a sync cell: a spinner and "syncing", then a ✓ with "synced" and the PayPal request id chip, or a ⚠ with "failed · retry". Price and stock cells carry a small "next order" note: PayPal's catalog has no price field, so we never imply it does. |
+| **Live rows** | "Orders arrive by themselves" | A new row flashes with a clay-soft background that fades over 1.2 s. The status cell crossfades PENDING → PAID → SHIPPED → REFUNDED, each with an icon and a label. Reduced motion: no flash, an instant change. |
+| **Master-detail** | "Everything PayPal did for this order" | A vertical rail inside the detail row (order → capture → tracking → refund → dispute), each node with its PayPal id chip (PayPal tone), time and status. |
+| **Ask the grid** | "Say what you want to see" | One input above the grid ("show unshipped orders over $50 this week"). The resulting state shows as removable chips (filter, group, pivot), so the seller can see and undo what the AI did. The AI changes the view only. |
+| **Charts** | "What sells" | A sparkline column per product (ink line, clay last point), and a pivot panel by product × status with `$` totals in tabular figures. |
+| **View mode on open** | "What sold, from where" | REVIEW-1 #6: Compose collapsed, a skeleton while loading, KPIs at $0.00 when empty. |
+
+### Visual richness (D-078; owner: "the UI reads as a wireframe"; build Oct 30–31 after the owner's review)
+| # | Surface | Before (review pack, 2026-10-17) | After |
+|---|---|---|---|
+| 1 | **Chat product cards** (`/shop`) | A letter tile, title and "from $32.00" in a small card; no seller and no variants (`shop-checkout-card-desktop.png`) | The photo (4:5) leads. Title in Alegreya, the seller name with a shop glyph, variant chips (glaze or size, sold-out struck through), price in tabular figures, an in-stock dot with a label. Two cards per row on desktop, a horizontal scroller on mobile. |
+| 2 | **Inline checkout card** | Totals list plus a navy "Review and pay with PayPal" link that opens `/pay` in a new tab | A card with the item photo thumbnail, line items, a **Items / Shipping / Total** breakdown (total in display size, "set by the shop" underneath), and the real PayPal button inline (the JS SDK v6 button, PayPal's own styling) once the buyer opens the card. `/pay` stays as the fallback and the consent record. |
+| 3 | **`/shop` layout** | A chat column with large empty areas; starters in a loose pill cloud; the hack button competes with the header | The chat column max width is 46 rem, with the timeline wider. Starters become 2×2 suggestion cards with an icon each. The empty state shows what the agent can do in 3 lines. The hack button moves to a quieter secondary slot (pending the owner's Q4). |
+| 4 | **Live wire weight** | Every row the same: ink panel, small glyphs, PayPal rows blue only in their chips | One muted tint per system, each always with its icon and label: agent (clay), MCP (stone), **PayPal** (PayPal blue: a real PayPal event), webhook (green-grey). **PayPal rows are dominant:** larger title, a left rule in PayPal blue, the order and capture ids on top. A **packet** (a 6 px dot) travels down the rail from step to step, driven only by real SSE arrivals. Reduced motion: no packet, an instant row. |
+| 5 | **Photos** | Letter placeholders everywhere (storefront, product page, studio, chat) | The owner's photos the day they land (AT-3). Each tile keeps its 4:5 crop, and a warm empty state stays for listings without a photo. |
+
+Rules: no new accent (the per-system tints are low-chroma and never carry status alone), PayPal blue only on PayPal events and elements, one orchestrated motion per surface.
