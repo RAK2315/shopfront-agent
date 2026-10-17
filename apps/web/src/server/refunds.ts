@@ -4,6 +4,8 @@ import {
   decideRefund,
   money,
   newId,
+  reconcileSellerRefund,
+  refundHandoffLink,
   REFUNDABLE_STATUSES,
   refundAmountForItems,
   RefundPolicy,
@@ -16,9 +18,11 @@ import { and, eq, gt, inArray, schema, sql } from "@shopfront/db";
 import { isPayPalApiError } from "@shopfront/paypal";
 import type { RefundRequestView } from "@shopfront/mcp";
 import { checkRefundSpike } from "./dashboard";
+import { env } from "./env";
 import { recordEvent } from "./events";
 import { llm } from "./llm";
 import { publishMessage } from "./messages";
+import { scheduleHandoffChecks } from "./handoff";
 import { applyCheckoutEvent } from "./payments";
 import { services } from "./services";
 import { verifyOrderToken } from "./tokens";
@@ -66,7 +70,7 @@ export async function requestRefund(input: RequestRefundInput): Promise<RefundRe
   const [open] = await db
     .select()
     .from(schema.refundRequests)
-    .where(and(eq(schema.refundRequests.checkoutId, c.id), inArray(schema.refundRequests.status, ["pending", "approved"])));
+    .where(and(eq(schema.refundRequests.checkoutId, c.id), inArray(schema.refundRequests.status, ["pending", "approved", "handoff"])));
   if (open) return view(open, "A refund request for this order is already open.");
 
   // Judge mode (D-011): for the shared demo seller the per-buyer count restarts at each demo reset.
@@ -130,7 +134,14 @@ export async function requestRefund(input: RequestRefundInput): Promise<RefundRe
 
   if (d.decision === "auto_approve") {
     const done = await executeRefund(row!.id, "policy");
-    return view(done, done.status === "executed" ? "Refunded automatically under the seller's policy." : d.explanation);
+    return view(
+      done,
+      done.status === "executed"
+        ? "Refunded automatically under the seller's policy."
+        : done.status === "handoff"
+          ? "Approved under the seller's policy. This shop is paid directly into its own PayPal, so the seller sends the refund from there; the order page updates when PayPal confirms it."
+          : d.explanation,
+    );
   }
   await publishMessage(c.id, "refund", { reason: input.reason_code, amountCents: d.amountCents, outcome: "review" });
   return view(row!, d.explanation);
@@ -145,7 +156,7 @@ export async function executeRefund(refundRequestId: string, by: "policy" | "sel
   const result = await db.transaction(async (tx) => {
     const [r] = await tx.select().from(schema.refundRequests).where(eq(schema.refundRequests.id, refundRequestId)).for("update");
     if (!r) throw new ShopError("NOT_FOUND", "Refund request not found.");
-    if (r.status === "executed" || r.status === "rejected") return { row: r, fresh: false };
+    if (r.status === "executed" || r.status === "rejected" || r.status === "handoff") return { row: r, fresh: false };
     const [cap] = await tx.select().from(schema.captures).where(eq(schema.captures.id, r.captureId!)).for("update");
     const [c] = await tx.select().from(schema.checkouts).where(eq(schema.checkouts.id, r.checkoutId));
 
@@ -155,6 +166,17 @@ export async function executeRefund(refundRequestId: string, by: "policy" | "sel
     if (!["COMPLETED", "PARTIALLY_REFUNDED"].includes(live.status) || remaining < r.amountCents) {
       const [failed] = await tx.update(schema.refundRequests).set({ status: "failed", decidedAt: new Date() }).where(eq(schema.refundRequests.id, r.id)).returning();
       return { row: failed!, fresh: false, reason: `capture ${live.status}, ${centsToValue(remaining)} left` };
+    }
+
+    // Phase 9 (D-083): a routed seller was paid into their own PayPal, and our app has no permission to refund their
+    // capture (D-076). Hand it off: the seller refunds in one tap in their PayPal; we track it by webhook or GET.
+    if (c!.payeeEmail || c!.payeeMerchantId) {
+      const [handed] = await tx
+        .update(schema.refundRequests)
+        .set({ status: "handoff", handoffAt: new Date(), decidedAt: r.decidedAt ?? new Date() })
+        .where(eq(schema.refundRequests.id, r.id))
+        .returning();
+      return { row: handed!, fresh: false, handoff: refundHandoffLink(env().PAYPAL_BASE_URL, cap!.paypalCaptureId), sellerId: c!.sellerId };
     }
 
     const requestId = `refund-${r.id}`;
@@ -196,6 +218,18 @@ export async function executeRefund(refundRequestId: string, by: "policy" | "sel
     });
     await publishMessage(r.checkoutId, "refund", { reason: r.reasonCode, amountCents: r.amountCents, outcome: "refunded" });
     if (result.sellerId) await checkRefundSpike(result.sellerId);
+  } else if ("handoff" in result && result.handoff) {
+    const [s] = await db.select({ name: schema.sellers.displayName }).from(schema.sellers).where(eq(schema.sellers.id, result.sellerId));
+    await recordEvent(db, {
+      actor: "server",
+      kind: "refund_handoff",
+      checkoutId: r.checkoutId,
+      sellerId: result.sellerId,
+      summary: `Refund handed to ${s?.name ?? "the seller"} · refund $${centsToValue(r.amountCents)} in your PayPal · ${by === "seller" ? "approved by seller" : "inside policy"} · 0 refund calls from Shopfront`,
+      data: { refundRequestId: r.id, link: result.handoff },
+    });
+    await publishMessage(r.checkoutId, "refund", { reason: r.reasonCode, amountCents: r.amountCents, outcome: "review" });
+    scheduleHandoffChecks(r.id);
   } else if (r.status === "failed") {
     await recordEvent(db, {
       actor: "server",
@@ -238,4 +272,56 @@ export async function refundQueue(sellerId: string) {
     .innerJoin(schema.checkouts, eq(schema.checkouts.id, schema.refundRequests.checkoutId))
     .where(and(eq(schema.checkouts.sellerId, sellerId), gt(schema.refundRequests.createdAt, sql`now() - interval '60 days'`)))
     .orderBy(sql`${schema.refundRequests.createdAt} desc`);
+}
+
+/** The deep link a seller taps to refund a handed-off request in their own PayPal. */
+export async function handoffLinkFor(refundRequestId: string) {
+  const { db } = services();
+  const [r] = await db
+    .select({ status: schema.refundRequests.status, captureId: schema.captures.paypalCaptureId })
+    .from(schema.refundRequests)
+    .innerJoin(schema.captures, eq(schema.captures.id, schema.refundRequests.captureId))
+    .where(eq(schema.refundRequests.id, refundRequestId));
+  return r?.status === "handoff" ? refundHandoffLink(env().PAYPAL_BASE_URL, r.captureId) : null;
+}
+
+/**
+ * A refund the seller made in their own PayPal (Phase 9, D-083), seen by the verified webhook or the GET fallback.
+ * Closes the oldest open handoff for the checkout with PayPal's refund id and the amount PayPal reports. Idempotent:
+ * a refund id already recorded is a no-op, so the webhook and the fallback can both see the same refund.
+ */
+export async function recordSellerRefund(checkoutId: string, refund: { id: string; amountCents: number }, via: "webhook" | "poll") {
+  const { db } = services();
+  const out = await db.transaction(async (tx) => {
+    const seen = await tx.select({ id: schema.refundRequests.id }).from(schema.refundRequests).where(eq(schema.refundRequests.paypalRefundId, refund.id));
+    if (seen.length) return null;
+    const [open] = await tx
+      .select()
+      .from(schema.refundRequests)
+      .where(and(eq(schema.refundRequests.checkoutId, checkoutId), eq(schema.refundRequests.status, "handoff")))
+      .orderBy(schema.refundRequests.createdAt)
+      .limit(1)
+      .for("update");
+    if (!open) return null;
+    const r = reconcileSellerRefund({ requestedCents: open.amountCents, refundedCents: refund.amountCents });
+    const [done] = await tx
+      .update(schema.refundRequests)
+      .set({ status: "executed", paypalRefundId: refund.id, refundedCents: r.refundedCents, executedAt: new Date() })
+      .where(eq(schema.refundRequests.id, open.id))
+      .returning();
+    return { row: done!, r };
+  });
+  if (!out) return null;
+  const [c] = await db.select({ sellerId: schema.checkouts.sellerId }).from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
+  await recordEvent(db, {
+    actor: via === "webhook" ? "webhook" : "poller",
+    kind: "refund_by_seller",
+    checkoutId,
+    sellerId: c?.sellerId,
+    summary: `Refunded by the seller in PayPal · $${centsToValue(out.r.refundedCents)}${out.r.differs ? ` (requested $${centsToValue(out.row.amountCents)}${out.r.over ? ", more than the policy amount" : ""})` : ""} · ${via === "webhook" ? "seen by verified webhook" : "confirmed by checking PayPal"}`,
+    data: { refundRequestId: out.row.id, refundId: refund.id, refundedCents: out.r.refundedCents, requestedCents: out.row.amountCents, differs: out.r.differs, via },
+  });
+  await publishMessage(checkoutId, "refund", { reason: out.row.reasonCode, amountCents: out.r.refundedCents, outcome: "refunded" });
+  if (c?.sellerId) await checkRefundSpike(c.sellerId);
+  return out.row;
 }

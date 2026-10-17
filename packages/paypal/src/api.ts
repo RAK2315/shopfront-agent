@@ -17,6 +17,8 @@ export interface PayPalCapture {
   custom_id?: string;
   status_details?: { reason?: string };
   supplementary_data?: { related_ids?: { order_id?: string } };
+  /** Who received the money (Phase 9 payee routing proves the seller, not the platform). */
+  payee?: { email_address?: string; merchant_id?: string };
   links?: PayPalLink[];
 }
 
@@ -28,8 +30,9 @@ export interface PayPalOrder {
   purchase_units?: Array<{
     reference_id?: string;
     custom_id?: string;
+    payee?: { email_address?: string; merchant_id?: string };
     shipping?: { name?: { full_name?: string }; address?: Record<string, string>; trackers?: Array<{ id: string; status?: string }> };
-    payments?: { captures?: PayPalCapture[] };
+    payments?: { captures?: PayPalCapture[]; refunds?: PayPalRefund[] };
   }>;
 }
 

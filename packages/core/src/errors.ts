@@ -9,6 +9,7 @@ export const SHOP_ERROR_CODES = [
   'RATE_LIMITED',
   'UPSTREAM_ERROR',
   'CONFLICT',
+  'SELLER_NOT_READY',
 ] as const;
 
 export type ShopErrorCode = (typeof SHOP_ERROR_CODES)[number];

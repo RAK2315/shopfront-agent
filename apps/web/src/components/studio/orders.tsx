@@ -97,7 +97,7 @@ export function RefundQueue({ refunds }: { refunds: QueuedRefund[] }) {
             <li key={r.id} className="flex flex-wrap items-center gap-2 text-sm text-ink-2">
               <Undo2 aria-hidden className="size-3.5 text-muted" />
               <Money cents={r.amountCents} /> · {REASON[r.reasonCode] ?? r.reasonCode} ·{" "}
-              {r.status === "executed" ? (r.decision === "auto_approve" ? "refunded automatically" : "refunded by you") : r.status}
+              {r.status === "executed" ? (r.decision === "auto_approve" ? "refunded automatically" : "refunded by you") : r.status === "handoff" ? "refund it in your PayPal" : r.status}
               {r.paypalRefundId && <RequestId label="Refund" value={r.paypalRefundId} tone="paypal" />}
             </li>
           ))}

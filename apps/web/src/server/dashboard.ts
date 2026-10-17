@@ -106,7 +106,7 @@ export async function dbSalesSummary(sellerId: string, fromIso: string, toIso: s
       and (${includeTest} or not c.is_test)
     group by 1 order by revenue_cents desc`);
   const refunds = await db
-    .select({ n: sql<number>`count(*)::int`, cents: sql<number>`coalesce(sum(${schema.refundRequests.amountCents}),0)::int` })
+    .select({ n: sql<number>`count(*)::int`, cents: sql<number>`coalesce(sum(coalesce(${schema.refundRequests.refundedCents}, ${schema.refundRequests.amountCents})),0)::int` /* what PayPal refunded (D-083) */ })
     .from(schema.refundRequests)
     .innerJoin(schema.checkouts, eq(schema.checkouts.id, schema.refundRequests.checkoutId))
     .where(
@@ -119,8 +119,12 @@ export async function dbSalesSummary(sellerId: string, fromIso: string, toIso: s
       ),
     );
   const total = rows.rows.reduce((n, r) => n + Number(r.revenue_cents), 0);
+  const orders = rows.rows.reduce((n, r) => n + Number(r.orders), 0);
+  const refundN = refunds[0]?.n ?? 0;
   return {
     source: "db",
+    // Written by code, quoted by the agent: the source label never depends on the model's wording (AT-5 #4).
+    summary_line: `[db] $${centsToValue(total)} revenue from ${orders} order${orders === 1 ? "" : "s"}; ${refundN} refund${refundN === 1 ? "" : "s"} ($${centsToValue(refunds[0]?.cents ?? 0)}).`,
     from: fromIso,
     to: toIso,
     revenue_usd: centsToValue(total),
@@ -142,6 +146,7 @@ export async function paypalTransactions(fromIso: string, toIso: string) {
   const sum = (xs: typeof tx) => xs.reduce((n, t) => n + Math.round(Number(t.transaction_amount?.value ?? 0) * 100), 0);
   return {
     source: "paypal",
+    summary_line: `[paypal] $${centsToValue(sum(sales))} gross from ${sales.length} transaction${sales.length === 1 ? "" : "s"}; ${refunds.length} refund${refunds.length === 1 ? "" : "s"} ($${centsToValue(Math.abs(sum(refunds)))}).`,
     from: fromIso,
     to: toIso,
     note: "PayPal Transaction Search can lag by up to about 3 hours.",

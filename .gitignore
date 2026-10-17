@@ -12,3 +12,4 @@ test-results/
 .vercel
 # private notes stay out of the public repo
 personal research/
+docs/screenshots/phase-9/_state.json

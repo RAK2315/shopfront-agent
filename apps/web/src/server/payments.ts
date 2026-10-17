@@ -5,6 +5,7 @@ import { firstCapture, isPayPalApiError, type PayPalCapture, type PayPalOrder } 
 import { recordEvent } from "./events";
 import { scheduleFallbackChecks } from "./fallback";
 import { publishMessage } from "./messages";
+import { verifyPayeeFromCapture } from "./payouts";
 import { services } from "./services";
 
 type Checkout = typeof schema.checkouts.$inferSelect;
@@ -55,7 +56,7 @@ function buyerDetails(order: PayPalOrder) {
 }
 
 /** Insert the capture once (unique paypal_capture_id) and decrement stock exactly once. */
-async function recordCapture(checkoutId: string, cap: PayPalCapture) {
+async function recordCapture(checkoutId: string, cap: PayPalCapture, payeeMerchantId?: string) {
   const { db } = services();
   const inserted = await db
     .insert(schema.captures)
@@ -66,8 +67,9 @@ async function recordCapture(checkoutId: string, cap: PayPalCapture) {
       amountCents: valueToCents(cap.amount.value),
       status: cap.status,
       capturedAt: cap.create_time ? new Date(cap.create_time) : new Date(),
+      payeeMerchantId: payeeMerchantId ?? null,
     })
-    .onConflictDoUpdate({ target: schema.captures.paypalCaptureId, set: { status: cap.status } })
+    .onConflictDoUpdate({ target: schema.captures.paypalCaptureId, set: { status: cap.status, ...(payeeMerchantId ? { payeeMerchantId } : {}) } })
     .returning({ id: schema.captures.id, xmax: sql<string>`xmax` });
   const isNew = inserted[0]?.xmax === "0";
   if (isNew && cap.status === "COMPLETED") {
@@ -170,7 +172,10 @@ export async function settleFromOrder(
     if (order.status === "APPROVED") await applyCheckoutEvent(checkoutId, "APPROVED", via, details);
     return { ok: false, reason: "not_approved", message: `Order is ${order.status}.` };
   }
-  await recordCapture(checkoutId, cap);
+  // Phase 9: PayPal names who was paid, on the order's purchase unit or on the capture.
+  const paidTo = order.purchase_units?.[0]?.payee?.merchant_id ?? cap.payee?.merchant_id;
+  await recordCapture(checkoutId, cap, paidTo);
+  if (cap.status === "COMPLETED") await verifyPayeeFromCapture(checkoutId, paidTo);
   const ev: CheckoutEvent = cap.status === "COMPLETED" ? "CAPTURE_COMPLETED" : cap.status === "PENDING" ? "CAPTURE_PENDING" : "CAPTURE_DENIED";
   const r = await applyCheckoutEvent(checkoutId, ev, via, details);
   if (r?.result.kind === "changed") {

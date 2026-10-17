@@ -1,16 +1,5 @@
 import "server-only";
-import {
-  buildPayPalOrderRequest,
-  centsToValue,
-  money,
-  newId,
-  quoteCheckout,
-  ShopError,
-  STATUS_LABEL,
-  type CheckoutStatus,
-  type PricedVariant,
-  type SellerPricing,
-} from "@shopfront/core";
+import { buildPayPalOrderRequest, centsToValue, type CheckoutStatus, money, newId, payeeRoute, type PricedVariant, quoteCheckout, type SellerPricing, ShopError, STATUS_LABEL } from "@shopfront/core";
 import { and, asc, eq, inArray, schema, sql } from "@shopfront/db";
 import { approveLink, isPayPalApiError } from "@shopfront/paypal";
 import type { CallContext, ShopPort } from "@shopfront/mcp";
@@ -188,6 +177,12 @@ export const shop: ShopPort = {
 
     // PRICING ENGINE: totals come from the DB rows above, never from the caller (D-002).
     const quote = quoteCheckout(input.items, variants, sellers);
+    // Phase 9 (D-083): money goes straight to the seller's own PayPal. A seller with no payout account is refused
+    // here, before any row or PayPal call, so nothing is ever routed to the platform by default.
+    const sellerRow = rows.find(({ s }) => s.id === quote.sellerId)!.s;
+    const route = payeeRoute(sellerRow);
+    if (route.kind === "not_ready") throw new ShopError("SELLER_NOT_READY", `${sellerRow.displayName} hasn't connected a PayPal account yet, so this shop can't take payments. Nothing was charged.`);
+    const payee = route.kind === "payee" ? route.payee : undefined;
     const checkoutId = newId("checkout");
     const token = newOrderToken(checkoutId, input.client_request_id ?? null);
     const seller = sellers.get(quote.sellerId)!;
@@ -202,6 +197,8 @@ export const shop: ShopPort = {
         mcpClientName: ctx.clientName ?? null,
         // Every order for a test_only seller (the judge demo, D-073) is a test by design, header or not.
         isTest: (await isTestRun()) || rows.some(({ s }) => s.id === quote.sellerId && s.testOnly),
+        payeeEmail: payee && "email_address" in payee ? payee.email_address : null,
+        payeeMerchantId: payee && "merchant_id" in payee ? payee.merchant_id : null,
         status: "created",
         itemTotalCents: quote.itemTotalCents,
         shippingCents: quote.shippingCents,
@@ -239,6 +236,7 @@ export const shop: ShopPort = {
       // The return URL carries the creator's token: /pay/return never issues one (REVIEW-1 #2).
       returnUrl: appUrl(`/pay/return?checkout=${checkoutId}&t=${token}`),
       cancelUrl: appUrl(`/pay/${checkoutId}?t=${token}&cancelled=1`),
+      payee,
     });
     const requestId = `checkout-${checkoutId}`;
     try {

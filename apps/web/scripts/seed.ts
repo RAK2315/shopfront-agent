@@ -13,6 +13,7 @@ const sellers = [
     bio: "Wheel-thrown stoneware from a one-person studio. Every glaze is mixed by hand.",
     flatShippingCents: 500,
     shipsTo: ["US"],
+    payoutStatus: "platform", // the platform sandbox merchant itself (D-083)
   },
   {
     id: id("sel", "fernandloom"),
@@ -32,6 +33,7 @@ const sellers = [
     flatShippingCents: 500,
     shipsTo: ["US"],
     testOnly: true,
+    payoutStatus: "platform",
   },
 ];
 

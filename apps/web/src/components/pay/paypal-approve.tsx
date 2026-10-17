@@ -247,7 +247,7 @@ export function PayPalApprove({
   );
 }
 
-const REFUND_STATUS: Record<string, string> = { pending: "Waiting for the seller", approved: "Approved, sending", executed: "Refunded", rejected: "Declined", failed: "Not sent" };
+const REFUND_STATUS: Record<string, string> = { pending: "Waiting for the seller", approved: "Approved, sending", executed: "Refunded", rejected: "Declined", failed: "Not sent", handoff: "Approved · the seller is sending it from their PayPal" };
 
 /** What happened after payment: the seller's notes, tracking and refunds (D-008: published here, never emailed). */
 function AfterSale({ status }: { status: Status | null }) {

@@ -139,6 +139,8 @@ export interface OrderPayloadOptions {
   brandName: string;
   returnUrl: string;
   cancelUrl: string;
+  /** The seller's own PayPal (Phase 9, D-083). Omitted for the platform account, which is the API caller. */
+  payee?: { email_address: string } | { merchant_id: string };
 }
 
 export function buildPayPalOrderRequest(q: CheckoutQuote, o: OrderPayloadOptions) {
@@ -149,6 +151,7 @@ export function buildPayPalOrderRequest(q: CheckoutQuote, o: OrderPayloadOptions
       {
         reference_id: o.checkoutId,
         custom_id: o.checkoutId,
+        ...(o.payee ? { payee: o.payee } : {}),
         amount: {
           ...amt(q.totalCents),
           breakdown: {

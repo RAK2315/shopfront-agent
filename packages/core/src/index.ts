@@ -13,3 +13,4 @@ export * from './price-input';
 export * from './chat-action';
 export * from './recovery';
 export * from './telegram-link';
+export * from './payout';

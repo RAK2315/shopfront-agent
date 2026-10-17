@@ -5,6 +5,8 @@ import { isPayPalApiError, type PayPalCapture, type PayPalOrder, type PayPalRefu
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { applyCheckoutEvent, captureCheckout } from "./payments";
+import { verifyPayeeFromCapture } from "./payouts";
+import { recordSellerRefund } from "./refunds";
 import { services } from "./services";
 
 interface WebhookEvent {
@@ -224,8 +226,9 @@ async function route(event: WebhookEvent): Promise<boolean> {
       if (!c) return false;
       await db
         .insert(schema.captures)
-        .values({ id: newId("capture"), checkoutId: c.id, paypalCaptureId: cap.id, amountCents: valueToCents(cap.amount.value), status: cap.status, capturedAt: cap.create_time ? new Date(cap.create_time) : new Date() })
-        .onConflictDoUpdate({ target: schema.captures.paypalCaptureId, set: { status: cap.status } });
+        .values({ id: newId("capture"), checkoutId: c.id, paypalCaptureId: cap.id, amountCents: valueToCents(cap.amount.value), status: cap.status, capturedAt: cap.create_time ? new Date(cap.create_time) : new Date(), payeeMerchantId: cap.payee?.merchant_id ?? null })
+        .onConflictDoUpdate({ target: schema.captures.paypalCaptureId, set: { status: cap.status, ...(cap.payee?.merchant_id ? { payeeMerchantId: cap.payee.merchant_id } : {}) } });
+      if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") await verifyPayeeFromCapture(c.id, cap.payee?.merchant_id);
       const ev = event.event_type === "PAYMENT.CAPTURE.COMPLETED" ? "CAPTURE_COMPLETED" : event.event_type === "PAYMENT.CAPTURE.PENDING" ? "CAPTURE_PENDING" : "CAPTURE_DENIED";
       const r = await applyCheckoutEvent(c.id, ev, "webhook");
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
@@ -264,6 +267,8 @@ async function route(event: WebhookEvent): Promise<boolean> {
         summary: `PAYMENT.CAPTURE.REFUNDED · signature verified · $${refund.amount?.value ?? "?"} refunded ($${centsToValue(refundedCents)} in total) · ${r?.result.kind === "changed" ? `status → ${r.result.to}` : "confirms existing state"}`,
         data: { eventId: event.id, refundId: refund.id, captureId: cap.paypalCaptureId, debugId },
       });
+      // Phase 9: a refund the seller made in their own PayPal closes a handed-off request (D-083).
+      await recordSellerRefund(cap.checkoutId, { id: refund.id, amountCents: valueToCents(refund.amount?.value ?? "0") }, "webhook");
       return true;
     }
     case "PAYMENT.CAPTURE.REVERSED": {

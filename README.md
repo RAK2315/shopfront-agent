@@ -68,6 +68,7 @@ Each phase ends with acceptance tests run **against the deployed app**, with rea
 | 2 | Webhooks processed exactly once (PayPal resends change nothing), forged webhooks rejected, lost webhook *and* lost capture recovered by a fallback check in 50 s, restart-safe timers, live timeline | [AT-2](docs/screenshots/phase-2/AT-2.md) |
 | 4 | Policy refunds (100% branch-covered policy engine), seller queue with one-tap approve (a double tap refunds once), `NOT_REFUNDABLE` before any PayPal call, label photo → tracking on the PayPal order | [AT-4](docs/screenshots/phase-4/AT-4.md) |
 | 5 | AG Studio dashboard: agent-built widgets with money data untouched (checksum), PayPal Transaction Search figures matched, refund-spike alert from 4 real refunds, Lighthouse accessibility 100 | [AT-5](docs/screenshots/phase-5/AT-5.md) |
+| Recovery | A PayPal verify outage gets 503 (PayPal retries); stored-but-unprocessed webhooks are swept on boot; a declined card's next capture gets a new `PayPal-Request-Id`. **The decline is produced with PayPal's documented sandbox negative-testing header (`PayPal-Mock-Response`) on a real capture call, so PayPal itself answers `INSTRUMENT_DECLINED` with a real debug id; nothing is mocked on our side.** | [RECOVERY](docs/screenshots/recovery/RECOVERY.md) |
 
 ## Guardrails: the model proposes, deterministic code disposes
 

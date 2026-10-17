@@ -25,7 +25,8 @@ export const productStatus = pgEnum('product_status', ['draft', 'approved', 'arc
 export const checkoutStatus = pgEnum('checkout_status', CHECKOUT_STATUSES);
 export const refundReason = pgEnum('refund_reason', REFUND_REASON_CODES);
 export const refundDecision = pgEnum('refund_decision', ['auto_approve', 'needs_seller', 'deny']);
-export const refundStatus = pgEnum('refund_status', ['pending', 'approved', 'executed', 'rejected', 'failed']);
+// handoff: a routed seller refunds in their own PayPal; we track it by webhook or GET (Phase 9, D-083).
+export const refundStatus = pgEnum('refund_status', ['pending', 'approved', 'executed', 'rejected', 'failed', 'handoff']);
 export const eventActor = pgEnum('event_actor', [
   'buyer_agent',
   'mcp',
@@ -43,7 +44,11 @@ export const sellers = pgTable('sellers', {
   handle: text('handle').notNull().unique(),
   displayName: text('display_name').notNull(),
   bio: text('bio').notNull().default(''),
-  paypalMerchantId: text('paypal_merchant_id'), // production path only (D-006)
+  paypalMerchantId: text('paypal_merchant_id'), // from the first routed capture (Phase 9, D-083)
+  /** platform | none | unverified | verified (payeeRoute in core). New sellers start at none: refused, never routed by default. */
+  payoutStatus: text('payout_status').notNull().default('none'),
+  payoutEmail: text('payout_email'),
+  payoutVerifiedAt: ts('payout_verified_at'),
   currency: text('currency').notNull().default('USD'),
   flatShippingCents: integer('flat_shipping_cents').notNull().default(500),
   shipsTo: jsonb('ships_to').$type<string[]>().notNull().default(['US']),
@@ -151,6 +156,9 @@ export const checkouts = pgTable(
     expiresAt: ts('expires_at').notNull(),
     /** Bumped once per INSTRUMENT_DECLINED, so the buyer's next approval captures with a new PayPal-Request-Id (REVIEW-1 #8). */
     captureAttempt: integer('capture_attempt').notNull().default(0),
+    /** Where PayPal was told to send the money (Phase 9). Both null = the platform account. */
+    payeeEmail: text('payee_email'),
+    payeeMerchantId: text('payee_merchant_id'),
     createdAt: createdAt(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },
@@ -183,6 +191,8 @@ export const captures = pgTable('captures', {
   refundedCents: integer('refunded_cents').notNull().default(0),
   status: text('status').notNull(),
   capturedAt: ts('captured_at').notNull(),
+  /** The payee PayPal reported on this capture (Phase 9: proves where the money went). */
+  payeeMerchantId: text('payee_merchant_id'),
 });
 
 export const shipments = pgTable('shipments', {
@@ -209,6 +219,9 @@ export const refundRequests = pgTable('refund_requests', {
   decisionTrace: jsonb('decision_trace').notNull(),
   status: refundStatus('status').notNull().default('pending'),
   paypalRefundId: text('paypal_refund_id'),
+  /** What PayPal actually refunded (a seller-side refund may differ from amount_cents). */
+  refundedCents: integer('refunded_cents'),
+  handoffAt: ts('handoff_at'),
   createdAt: createdAt(),
   decidedAt: ts('decided_at'),
   executedAt: ts('executed_at'),

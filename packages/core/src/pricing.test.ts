@@ -127,6 +127,20 @@ describe('PayPal order payload', () => {
   });
 });
 
+describe('PayPal order payee (Phase 9, D-083)', () => {
+  const q = () => quoteCheckout([{ variant_id: mugBlue.id, quantity: 1 }], variants, sellers);
+  const base = { checkoutId: 'chk_abcdefghijkl', brandName: 'Fern & Loom', returnUrl: 'https://example.test/r', cancelUrl: 'https://example.test/c' };
+  it('names the seller as payee when routed, and leaves the money fields untouched', () => {
+    const routed = buildPayPalOrderRequest(q(), { ...base, payee: { email_address: 'seller@example.com' } });
+    const plain = buildPayPalOrderRequest(q(), base);
+    expect(routed.purchase_units[0]!.payee).toEqual({ email_address: 'seller@example.com' });
+    expect(routed.purchase_units[0]!.amount).toEqual(plain.purchase_units[0]!.amount);
+  });
+  it('omits payee for the platform account', () => {
+    expect('payee' in buildPayPalOrderRequest(q(), base).purchase_units[0]!).toBe(false);
+  });
+});
+
 describe('prompt-injection guardrail at the contract layer (D-002)', () => {
   it('rejects any attempt to pass a price, total or discount into create_checkout', () => {
     const attacks = [

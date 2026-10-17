@@ -91,6 +91,7 @@
 | D-080 | 2026-10-18 | Spike G: Studio's own widgets are unwatermarked under the Studio key; master-detail, grid sparklines, integrated charts and the AI Toolkit need an AG Grid + Charts Enterprise (BOTH) key, behind a no-watermark guard | ACCEPTED (go) | P9, J1, J2 |
 | D-081 | 2026-10-18 | Webhook recovery: 503 on a verify outage, a boot and fallback sweep, `capture-<id>-<n>` after a decline; `/mcp` names the agent from headers; migration 0010 (Phase 9 → 0011) | ACCEPTED | G7, G9, J1 |
 | D-082 | 2026-10-18 | Phase 10 backend: telegram_updates dedupe, single-use link codes (owner token for the public demo seller), the action executor, judge_demo seeded and isolated | ACCEPTED | J1, J3, J4, P7, P8 |
+| D-083 | 2026-10-18 | Phase 9 backend (Partial): payee routing per seller (refused when not ready), first-capture verification, refund handoff status with the PayPal deep link, seller refunds reconciled from webhook or GET fallback | ACCEPTED | J1, J3, G1, R2 |
 
 ---
 
@@ -1127,6 +1128,40 @@
 - **Ids:** `newId("telegramAction")` gives `tga_` + 12 characters (64-byte `callback_data`).
 - **Tests:** core `telegram-link.test.ts` (5). On Render: `pnpm --filter web telegram-checks` (T1 to T6), from made-up chat ids. Telegram itself refuses replies to them ("chat not found"), so the checks read our database.
 - **Serves:** J1, J3, J4, P7, P8, R2, D-002, D-070, D-073.
+
+## D-083: Phase 9 backend on the Partial path (2026-10-18; owner approvals for part 6; no UI)
+- **Owner approvals (part 6):**
+  - The sandbox negative-testing header for declines is kept. It's in the README's "What's real" table.
+  - The admin-token requirement for linking `juniper_clay` is approved (D-082).
+  - The owner is requesting the AG Grid + AG Charts Enterprise bundle; the key-gated fallback stays (D-080).
+  - The UI review becomes a guided walkthrough with the owner, logged in `docs/review-pack/FEEDBACK.md`. It replaces waiting on the screenshot pack.
+- **Payout routing per seller** (`payeeRoute`, core). `sellers.payout_status` is one of:
+  - `platform`: the API caller's own account; no `payee`. `juniper_clay` and `judge_demo`.
+  - `none`: **the checkout is refused with `SELLER_NOT_READY` before any row or PayPal call.**
+  - `unverified`: `payee.email_address`.
+  - `verified`: `payee.merchant_id`.
+  - The checkout stores the payee it was routed to (`payee_email`, `payee_merchant_id`), so later refunds know which path applies.
+- **Verified by the first capture:** the payee's merchant id is read from PayPal's capture or order response (the response, the webhook or the fallback GET). An `unverified` seller becomes `verified`, and the merchant id is stored. A merchant id that differs from the stored one is flagged on the wire and changes nothing.
+- **Connecting a payout account** (`parsePayoutAccount`: an email, or a 13-character merchant id):
+  - `POST /api/seller/payout` with a seller session. **The public demo seller is refused without the admin token**, since any visitor can sign in as it and could reroute its sales.
+  - The admin action `set_payout` (used by the AT for `fern_and_loom` → seller 2).
+- **The refund handoff:**
+  - For a routed checkout, `executeRefund` still locks the row and GETs the capture first, but **sends no refund to PayPal**.
+  - The request becomes the new `refund_status` value **`handoff`**, with `handoff_at`. The wire shows "Refund handed to {seller}: refund $X in your PayPal", with the deep link `https://www.sandbox.paypal.com/activity/payment/{captureId}` (`refundHandoffLink`; the web host comes from `PAYPAL_BASE_URL`).
+  - The buyer's order page gets the "under review" message.
+  - *Deviation from PLAN:* PLAN put `handoff` on `decision`. It's a **status** here, because the policy decision (`auto_approve` or `needs_seller`) still applies and is still shown.
+- **Tracking the seller's refund** (`reconcileSellerRefund`, core):
+  - Sources: `PAYMENT.CAPTURE.REFUNDED` (verified), or a fallback GET of the order (its `payments.refunds`). The fallback runs at +2 min, +10 min, +1 h and +6 h after the handoff, again on boot, and on the admin action `handoff_check`.
+  - One function reconciles both, locking the oldest open handoff request. The request moves to `executed` with PayPal's refund id, and **the amount PayPal reports** goes in the new `refunded_cents`.
+  - A refund id seen twice is a no-op.
+  - If the amount differs from the request, the wire says so ("seller refunded $46.00 in PayPal; $42.00 was requested"). Then the buyer message goes out.
+- **Not changed:**
+  - MCP inputs.
+  - MCP tool descriptions and output schemas: `paid_to` waits, because the output schema is part of the replay key (D-055). The `/pay` and storefront "paid directly to" copy is Phase 9 UI, after the walkthrough.
+  - The platform seller's automatic refunds.
+- **Migration `0011`:** the seller payout columns (existing sellers are set by handle), checkout and capture payee columns, `refund_status` + `handoff`, and `refund_requests.handoff_at` and `refunded_cents`.
+- **"Log in with PayPal" (the Oct 19 30-minute check):** not done. It needs a Developer Dashboard toggle that only the owner can see. That's an owner item; the first capture is the verification meanwhile (PLAN 9.2).
+- **Serves:** J1, J3, G1, G9 (#04), R2, R5, D-002, D-006, D-076.
 
 ---
 

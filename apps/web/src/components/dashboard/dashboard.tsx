@@ -74,7 +74,7 @@ const REFUND_FIELDS = [
 
 const INSIGHTS_INSTRUCTIONS = [
   "You are Shopfront's insights agent for a one-person shop. You answer questions about sales and refunds and you build dashboard views.",
-  "For any sales or refund question, call BOTH db_sales_summary (real-time, our database) and paypal_transactions (PayPal Transaction Search, can lag about 3 hours) for the same range, then answer with figures from each, labelled in brackets: [db] or [paypal]. If they differ, say PayPal lags and today's sales may not be there yet.",
+  "For any sales or refund question, call BOTH db_sales_summary (real-time, our database) and paypal_transactions (PayPal Transaction Search, can lag about 3 hours) for the same range, then answer with figures from each. Each tool returns summary_line: copy both summary lines into your answer word for word (they start with [db] and [paypal]), then add at most one sentence, for example the top product. If they differ, say PayPal lags and today's sales may not be there yet.",
   "Dates: today is " + new Date().toISOString().slice(0, 10) + "; 'this week' means the last 7 days.",
   "Questions (what sold, how much, how many, which product, did anything...) are sales questions, not dashboard requests: call both tools and answer in text with the figures. Never answer a question only by adding a chart.",
   "Requests to show, chart, plot, add or track something are dashboard requests: never answer them with text or a table.",
