@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { newId, normalizeTrackingNumber, paypalCarrier, ShopError } from "@shopfront/core";
 import { and, eq, schema } from "@shopfront/db";
-import { PayPalApiError } from "@shopfront/paypal";
+import { isPayPalApiError } from "@shopfront/paypal";
 import { recordEvent } from "./events";
 import { loadImage } from "./images";
 import { llm } from "./llm";
@@ -72,8 +72,8 @@ export async function addTracking(seller: Seller, checkoutId: string, input: z.i
     debugId = r.debugId;
     trackerId = r.data.purchase_units?.[0]?.shipping?.trackers?.find((t) => t.id.endsWith(number))?.id;
   } catch (e) {
-    const d = e instanceof PayPalApiError ? e.debugId : undefined;
-    await recordEvent(db, { actor: "paypal", kind: "tracking_failed", checkoutId, sellerId: seller.id, summary: `PayPal tracking failed${e instanceof PayPalApiError ? ` (${e.issue})` : ""}`, data: { debugId: d, paypalRequestId: requestId } });
+    const d = isPayPalApiError(e) ? e.debugId : undefined;
+    await recordEvent(db, { actor: "paypal", kind: "tracking_failed", checkoutId, sellerId: seller.id, summary: `PayPal tracking failed${isPayPalApiError(e) ? ` (${e.issue})` : ""}`, data: { debugId: d, paypalRequestId: requestId } });
     throw new ShopError("UPSTREAM_ERROR", "PayPal didn't accept the tracking number. Check it and try again.", { debug_id: d });
   }
   const [ship] = await db

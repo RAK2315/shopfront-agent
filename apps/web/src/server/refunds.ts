@@ -13,7 +13,7 @@ import {
   type RequestRefundInput,
 } from "@shopfront/core";
 import { and, eq, gt, inArray, schema, sql } from "@shopfront/db";
-import { PayPalApiError } from "@shopfront/paypal";
+import { isPayPalApiError } from "@shopfront/paypal";
 import type { RefundRequestView } from "@shopfront/mcp";
 import { checkRefundSpike } from "./dashboard";
 import { recordEvent } from "./events";
@@ -177,9 +177,9 @@ export async function executeRefund(refundRequestId: string, by: "policy" | "sel
         .returning();
       return { row: done!, fresh: true, refund, debugId, requestId, full: refunded >= cap!.amountCents, sellerId: c!.sellerId };
     } catch (e) {
-      const debugId = e instanceof PayPalApiError ? e.debugId : undefined;
+      const debugId = isPayPalApiError(e) ? e.debugId : undefined;
       const [failed] = await tx.update(schema.refundRequests).set({ status: "failed" }).where(eq(schema.refundRequests.id, r.id)).returning();
-      return { row: failed!, fresh: false, reason: e instanceof PayPalApiError ? `${e.issue}` : "error", debugId };
+      return { row: failed!, fresh: false, reason: isPayPalApiError(e) ? `${e.issue}` : "error", debugId };
     }
   });
 

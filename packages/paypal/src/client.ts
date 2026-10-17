@@ -36,6 +36,17 @@ export class PayPalApiError extends Error {
   }
 }
 
+/**
+ * Use this, not `instanceof`: the server's PayPal client is a globalThis singleton shared by Next's separate bundles
+ * (instrumentation and route handlers), so an error thrown by one bundle's class fails `instanceof` in another.
+ * That silently skipped every PayPal error branch on Render until D-081 (found by the decline AT).
+ */
+export function isPayPalApiError(e: unknown): e is PayPalApiError {
+  if (e instanceof PayPalApiError) return true;
+  const x = e as Partial<PayPalApiError> | null;
+  return e instanceof Error && x!.name === 'PayPalApiError' && typeof x!.status === 'number' && typeof x!.issue === 'string';
+}
+
 export interface RequestOptions {
   body?: unknown;
   /** Raw JSON string body (webhook verification must forward the event byte-for-byte). */

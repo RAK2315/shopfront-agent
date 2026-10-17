@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { draftFromExtraction, newId, paypalCatalogCategory, ProductExtraction, ShopError } from "@shopfront/core";
 import { and, asc, desc, eq, inArray, isNull, ne, schema } from "@shopfront/db";
-import { PayPalApiError } from "@shopfront/paypal";
+import { isPayPalApiError } from "@shopfront/paypal";
 import { appUrl } from "./env";
 import { recordEvent } from "./events";
 import { imageUrl, loadImage } from "./images";
@@ -287,8 +287,8 @@ async function syncToPayPalCatalog(seller: Seller, p: typeof schema.products.$in
     await recordEvent(db, { actor: "paypal", kind: "catalog_synced", sellerId: seller.id, summary: `PayPal catalog entry updated · “${p.title}”`, data: { productId: p.id, catalogId: p.paypalCatalogId, debugId } });
     return { ok: true as const, catalogId: p.paypalCatalogId };
   } catch (e) {
-    const debugId = e instanceof PayPalApiError ? e.debugId : undefined;
-    await recordEvent(db, { actor: "paypal", kind: "catalog_sync_failed", sellerId: seller.id, summary: `PayPal catalog sync failed${e instanceof PayPalApiError ? ` (${e.issue})` : ""} · listing is live in Shopfront`, data: { productId: p.id, debugId, paypalRequestId: requestId } });
+    const debugId = isPayPalApiError(e) ? e.debugId : undefined;
+    await recordEvent(db, { actor: "paypal", kind: "catalog_sync_failed", sellerId: seller.id, summary: `PayPal catalog sync failed${isPayPalApiError(e) ? ` (${e.issue})` : ""} · listing is live in Shopfront`, data: { productId: p.id, debugId, paypalRequestId: requestId } });
     return { ok: false as const, debugId };
   }
 }

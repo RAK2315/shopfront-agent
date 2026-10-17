@@ -1,7 +1,7 @@
 import "server-only";
 import { centsToValue, isVerifyOutage, newId, sweepEligible, valueToCents, WEBHOOK_SWEEP } from "@shopfront/core";
 import { and, asc, eq, isNull, lt, schema, sql } from "@shopfront/db";
-import { PayPalApiError, refundCaptureId, type PayPalCapture, type PayPalOrder, type PayPalRefund } from "@shopfront/paypal";
+import { isPayPalApiError, type PayPalCapture, type PayPalOrder, type PayPalRefund, refundCaptureId } from "@shopfront/paypal";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { applyCheckoutEvent, captureCheckout } from "./payments";
@@ -84,8 +84,8 @@ async function verifySignature(eventId: string, rawBody: string, headers: Header
       // Request id per transmission: a resend of the same event is a new delivery to verify.
       verified = await services().paypal.verifyWebhookSignature(h, rawBody, e.PAYPAL_WEBHOOK_ID, `verify-${eventId}-${h.transmissionId}`.slice(0, 100));
     } catch (err) {
-      const status = err instanceof PayPalApiError ? err.status : undefined;
-      if (isVerifyOutage(status)) throw new WebhookVerifyUnavailable(status, err instanceof PayPalApiError ? err.debugId : undefined);
+      const status = isPayPalApiError(err) ? err.status : undefined;
+      if (isVerifyOutage(status)) throw new WebhookVerifyUnavailable(status, isPayPalApiError(err) ? err.debugId : undefined);
       verified = false; // PayPal judged the delivery invalid (4xx)
     }
   }

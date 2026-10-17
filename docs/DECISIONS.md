@@ -1079,6 +1079,16 @@
   - The name is used only when `initialize` wasn't seen.
   - It's a display label only. This also fixes `source`: `/shop` checkouts had been recorded as `mcp_external`.
   - `/pay` shows a friendly label (`agentLabel`: "our demo shopping agent", "Claude").
+- **A bug found by the decline AT, older than this change (fixed with `isPayPalApiError`, packages/paypal):**
+  - **What happened:** on Render, every `e instanceof PayPalApiError` branch was false.
+  - **Why:** the PayPal client is a `globalThis` singleton shared by Next's separate bundles (instrumentation and route handlers, like the timers), so an error from one bundle's class fails `instanceof` in another.
+  - **Effect:**
+    - `captureCheckout`'s `INSTRUMENT_DECLINED`, `ORDER_ALREADY_CAPTURED` and `ORDER_NOT_APPROVED` branches never ran. The pay page got a 500 instead of "declined, choose another method".
+    - The debug ids and issue names on the catalog, refund, order-creation and tracking failure events were dropped.
+    - The new verify-outage check would have treated every PayPal error as a network outage.
+  - **Evidence:** `recovery-checks` R3 on `b0463b9`. PayPal answered the mocked capture `422 INSTRUMENT_DECLINED` (debug `f787547b8a986`), but Render logged an unhandled `PayPalApiError`, and no `capture_declined` event was written.
+  - **The fix:** a structural type guard (name, status and issue), with a unit test for the cross-bundle case. All 6 call sites use it.
+  - **Also seen in that run:** after the mocked decline, PayPal accepted a real capture under the *same* `capture-<id>` id. The mock doesn't occupy the request id. Our attempt counter still follows PayPal's guidance for real declines.
 - **Migration numbering (deviation):** these changes are migration **`0010`** (`checkouts.capture_attempt`, the partial index). **Phase 9's migration becomes `0011`.**
 - **Tests:** core `recovery.test.ts` (7), mcp `client-name.test.ts` (5) and web `agent-label.test.ts` (2). On Render: `pnpm --filter web recovery-checks` (R1 to R4).
 - **Serves:** G7, G9 (unhappy path #05), J1, D-045.

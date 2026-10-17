@@ -1,7 +1,7 @@
 import "server-only";
 import { captureRequestId, transition, type CheckoutEvent, type CheckoutStatus, valueToCents, newId } from "@shopfront/core";
 import { and, eq, schema, sql } from "@shopfront/db";
-import { firstCapture, PayPalApiError, type PayPalCapture, type PayPalOrder } from "@shopfront/paypal";
+import { firstCapture, isPayPalApiError, type PayPalCapture, type PayPalOrder } from "@shopfront/paypal";
 import { recordEvent } from "./events";
 import { scheduleFallbackChecks } from "./fallback";
 import { publishMessage } from "./messages";
@@ -125,7 +125,7 @@ export async function captureCheckout(
     if (out.ok && via === "capture_response") scheduleFallbackChecks(checkoutId, "paid");
     return out;
   } catch (e) {
-    if (e instanceof PayPalApiError) {
+    if (isPayPalApiError(e)) {
       const issue = JSON.stringify(e.details ?? "");
       if (/ORDER_ALREADY_CAPTURED/.test(issue)) {
         const { data: order } = await paypal.getOrder(c.paypalOrderId, { context: { checkoutId } });

@@ -12,7 +12,7 @@ import {
   type SellerPricing,
 } from "@shopfront/core";
 import { and, asc, eq, inArray, schema, sql } from "@shopfront/db";
-import { approveLink, PayPalApiError } from "@shopfront/paypal";
+import { approveLink, isPayPalApiError } from "@shopfront/paypal";
 import type { CallContext, ShopPort } from "@shopfront/mcp";
 import { appUrl } from "./env";
 import { recordEvent } from "./events";
@@ -257,13 +257,13 @@ export const shop: ShopPort = {
       scheduleExpiryCheck(checkoutId, new Date(Date.now() + CHECKOUT_TTL_MS));
     } catch (e) {
       await db.update(schema.checkouts).set({ status: "cancelled", updatedAt: new Date() }).where(eq(schema.checkouts.id, checkoutId));
-      const debugId = e instanceof PayPalApiError ? e.debugId : undefined;
+      const debugId = isPayPalApiError(e) ? e.debugId : undefined;
       await recordEvent(db, {
         actor: "paypal",
         kind: "order_failed",
         checkoutId,
         sellerId: quote.sellerId,
-        summary: `PayPal order creation failed${e instanceof PayPalApiError ? ` (${e.issue})` : ""}`,
+        summary: `PayPal order creation failed${isPayPalApiError(e) ? ` (${e.issue})` : ""}`,
         data: { debugId, paypalRequestId: requestId },
       });
       throw new ShopError("UPSTREAM_ERROR", "PayPal could not create the order. Please try again.", { debug_id: debugId });

@@ -1,7 +1,7 @@
 // Unit tests of the client's own behaviour (token cache, headers, retries) with a stubbed transport.
 // Real PayPal calls are exercised by the Phase 1 gate against the sandbox, never mocked in the product.
 import { describe, expect, it, vi } from 'vitest';
-import { PayPalApiError, PayPalClient } from './client';
+import { isPayPalApiError, PayPalApiError, PayPalClient } from './client';
 import { createPayPalApi, refundCaptureId } from './api';
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
@@ -97,5 +97,25 @@ describe('refundCaptureId', () => {
   });
   it('is undefined without an up link', () => {
     expect(refundCaptureId({ links: [] })).toBeUndefined();
+  });
+});
+
+describe('isPayPalApiError', () => {
+  it('recognises an error thrown by another bundle copy of the class (instanceof fails there)', () => {
+    class OtherBundlePayPalApiError extends Error {
+      constructor(readonly status: number, readonly issue: string) {
+        super('x');
+        this.name = 'PayPalApiError';
+      }
+    }
+    const e = new OtherBundlePayPalApiError(422, 'UNPROCESSABLE_ENTITY');
+    expect(e instanceof PayPalApiError).toBe(false);
+    expect(isPayPalApiError(e)).toBe(true);
+    expect(isPayPalApiError(new PayPalApiError(500, 'INTERNAL', 'x', undefined, null))).toBe(true);
+  });
+  it('rejects other errors', () => {
+    expect(isPayPalApiError(new Error('boom'))).toBe(false);
+    expect(isPayPalApiError({ name: 'PayPalApiError', status: 422, issue: 'X' })).toBe(false);
+    expect(isPayPalApiError(null)).toBe(false);
   });
 });
