@@ -193,10 +193,30 @@ video/
 
 - Upload to YouTube as public, with the SRT as captions.
 
+**Phase 8 tasks from the D-062 test render (logged 2026-10-16, owner override Step 1.4):**
+1. **Card crop on zoom.**
+   - Defect: the zoom scaled around the checkout card's centre, which cropped the card's left edge.
+   - Fix: in `src/scenes/Clip.tsx`, compute the scale as `min(scale, 0.9 × frameW / boxW, 0.9 × frameH / boxH)`, then clamp the translation so all four box edges stay inside the 1920×1080 frame.
+   - Check: a unit test over the sidecar boxes of every beat proves no zoom keyframe pushes the box outside the frame.
+2. **Stale `/live` data.**
+   - Defect: `/live?from=now` empties the timeline, but its checkout list still showed old test checkouts.
+   - Fix:
+     - With `from=now`, the checkout list also starts empty and adds only checkouts created after page load (`created_at` ≥ the page's load time, passed to `/api/console/checkouts?since=`).
+     - Test runs are already hidden from public views (D-070).
+     - `capture.mts` does **not** load the test-run preload: the takes are real demo sessions, shown as such.
+     - Run `POST /api/admin/demo {reset}` before each session.
+   - Check: the first frame of every `/live` pane shows 0 checkouts.
+3. **Captions overlapping the agent's reply.**
+   - Defect: captions overlapped the left pane's reply text.
+   - Fix: keep captions in a reserved bottom band, 1920×132 px, in an ink-panel tone. `/capture` gets `?band=1`, which shortens both panes by 132 px, so no app text is ever under a caption.
+   - Check: per beat, the caption box doesn't intersect the sidecar's active-text box (`capture.mts` records the reply's bounding box).
+4. **"fallback after mode:replay" wording on `/live`:** fixed by D-070, which uses plain source badges. Nothing left to do for the video.
+
 **AT-8**
 - [ ] Video length is 2:55 or less (S6.1); it shows the hosted build actually working (S6.2).
 - [ ] A cold viewer can explain the product after one watch (test on 2 people).
 - [ ] `npx remotion render` from a fresh `video/` install reproduces the video from the captured clips.
+- [ ] The D-062 tasks above are fixed: no zoom crops its target, every `/live` pane starts with 0 checkouts, and no caption covers app text (each has its automated check).
 
 ### Phases 9–13: planned 2026-10-16, all inside the Nov 3 feature freeze (D-063 to D-067)
 > **Gate (owner rule):** REVIEW-1 scored J3 = 6, J4 = 5 and J5 = 6, all below 7. So **Phase 9 is the review fixes**, and the owner's four feature phases become **10 to 13**. **No feature work starts before AT-9 passes on Render.**
