@@ -105,7 +105,11 @@ All model calls go through one router: cache → per-IP and daily caps → prima
 
 ## Honest limitations
 
-- **One merchant account.** In this build every sale settles to one sandbox business account (the platform's). The production path is PayPal multiparty / partner onboarding, so each seller is paid directly.
+- **One merchant account, for now.** In the deployed build every sale still settles to one sandbox business account (the platform's).
+- **What's next, and what PayPal gates.** We tested multiparty in the sandbox (PayPal-Debug-Ids in `docs/DECISIONS.md`, D-075 and D-076).
+  - **Works, and being built now:** each seller is paid directly into their own PayPal (the order's `payee`). Shopfront takes no cut.
+  - **Gated for apps that aren't approved PayPal partners:** partner onboarding (403), platform fees (422), and refunding another seller's payment from our app (403).
+  - **So refunds for those sellers are handed off.** Our policy engine still decides. The seller gets a one-tap link to refund in their own PayPal, and our verified webhook marks it done (it arrived 13 seconds after the seller's refund in the test).
 - **Sandbox only, US buyers only.** The "buyer from another country" test uses a second **US** sandbox buyer.
 - **PayPal Transaction Search lags** by up to about 3 hours, so the insights agent labels every figure with its source.
 - **Free tiers:** Render cold starts (about 1 minute), Groq's 8k tokens per minute, Gemini latency. Answers are cached and the demo can replay.
