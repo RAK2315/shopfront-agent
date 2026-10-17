@@ -1,0 +1,35 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T19:17:55.095Z",
+  "results": [
+    {
+      "id": "R1 verify outage → 503 + nothing stored; real FAILURE → 200 unverified",
+      "ok": true,
+      "detail": {
+        "outageStatus": 503,
+        "storedAfterOutage": false,
+        "verdictStatus": 200,
+        "verified": false,
+        "row": {
+          "verified": false,
+          "deliveries": 1
+        }
+      }
+    },
+    {
+      "id": "R4 /mcp names the agent: header, then User-Agent; /pay says 'Prepared by Claude'",
+      "ok": true,
+      "detail": {
+        "header": {
+          "mcp_client_name": "recovery-checks",
+          "source": "mcp_external"
+        },
+        "userAgent": {
+          "mcp_client_name": "Claude-User",
+          "source": "mcp_external"
+        },
+        "payPageNamesClaude": true
+      }
+    }
+  ]
+}

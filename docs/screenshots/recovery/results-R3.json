@@ -1,0 +1,36 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T19:29:35.730Z",
+  "results": [
+    {
+      "id": "R3 decline → 422 + attempt 1; the next capture is capture-<id>-1 and pays",
+      "ok": true,
+      "detail": {
+        "checkout": "chk_cr7lagj37ia1",
+        "declined": {
+          "mock": true,
+          "debugId": "ca4c1b4999e7e",
+          "nextRequestId": "capture-chk_cr7lagj37ia1-1",
+          "paypalRequestId": "capture-chk_cr7lagj37ia1"
+        },
+        "afterDecline": {
+          "capture_attempt": 1,
+          "status": "created"
+        },
+        "captureCalls": [
+          {
+            "paypal_request_id": "capture-chk_cr7lagj37ia1",
+            "status": 422,
+            "debug_id": "ca4c1b4999e7e"
+          },
+          {
+            "paypal_request_id": "capture-chk_cr7lagj37ia1-1",
+            "status": 201,
+            "debug_id": "ca4c1b4a0de4f"
+          }
+        ],
+        "final": "paid"
+      }
+    }
+  ]
+}

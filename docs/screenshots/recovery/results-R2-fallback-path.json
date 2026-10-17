@@ -1,0 +1,20 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T19:30:16.625Z",
+  "results": [
+    {
+      "id": "R2 restart → boot sweep processes the stored, unprocessed event once",
+      "ok": false,
+      "detail": {
+        "eventId": "WH-5WY42636P55791734-51E263963D1602712",
+        "reason": "fallback",
+        "sweptAt": "2026-10-17T19:30:11.764Z",
+        "row": {
+          "processed_at": "2026-10-17T19:30:11.761Z",
+          "attempts": 2,
+          "error": null
+        }
+      }
+    }
+  ]
+}

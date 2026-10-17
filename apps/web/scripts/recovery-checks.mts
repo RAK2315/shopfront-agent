@@ -138,8 +138,9 @@ if (only.has("R3")) {
   const buyer = { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD };
   const approve = async () => {
     await page.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(2500); // the v6 button needs a moment after the session exists
     for (let i = 1; ; i++) {
-      const popupP = page.waitForEvent("popup", { timeout: 20_000 });
+      const popupP = page.waitForEvent("popup", { timeout: 30_000 });
       await page.locator("paypal-button").click();
       const popup = await popupP.catch(() => null);
       if (!popup) {
