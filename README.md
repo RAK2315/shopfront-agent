@@ -25,7 +25,7 @@ The same login is shown, with copy buttons, on every order page.
 1. **0:00** Open **[/shop](https://shopfront-agent.onrender.com/shop)** and click *"Find me a handmade blue mug under $40 as a gift"*. In about 10 s the agent finds a mug and creates a checkout; the timeline on the right shows each MCP call and PayPal request.
 2. **0:15** Click **Review and pay with PayPal**. The order page opens in a new tab with the server's total.
 3. **0:20** Click the **PayPal** button. In the PayPal window, log in with the test buyer above and click **Complete Purchase**.
-4. **0:50** Back on the order page: **Payment complete**, the PayPal order and capture ids, then "PayPal webhook received and signature verified" a few seconds later.
+4. **0:50** Back on the order page: **Payment complete**, the PayPal order and capture ids, then "PayPal webhook received and signature verified", usually within about 20 seconds (PayPal sends it; the page updates by itself).
 
 If the first page load takes about a minute, the free server is waking up; after that it is fast.
 

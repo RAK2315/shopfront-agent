@@ -317,5 +317,19 @@ export function ShopTimeline({ after }: { after: number }) {
     return () => es.close();
   }, [after]);
   const items = useMemo(() => events.map(toTimelineItem), [events]);
-  return <Timeline items={items} state={wire} title="Live: agent → MCP → PayPal → webhook" emptyText="Ask the agent for something. Every step shows up here." className="h-full" listClassName="overflow-y-auto" />;
+  return (
+    <Timeline
+      items={items}
+      state={wire}
+      title="Live: agent → MCP → PayPal → webhook"
+      emptyText="Ask the agent for something. Every step shows up here."
+      className="h-full"
+      listClassName="overflow-y-auto"
+      footer={
+        <p data-testid="answered-before-legend">
+          <Badge tone="panel">Answered before</Badge> = the same question was answered earlier and its words reused. Prices, totals and every PayPal call are always live.
+        </p>
+      }
+    />
+  );
 }

@@ -116,6 +116,7 @@ export function Timeline({
   title = "Live timeline",
   emptyText = "Waiting for the first agent call. Try the buyer chat on the left.",
   toolbar,
+  footer,
   className,
   listClassName,
 }: {
@@ -125,6 +126,7 @@ export function Timeline({
   title?: string;
   emptyText?: string;
   toolbar?: ReactNode;
+  footer?: ReactNode;
   className?: string;
   listClassName?: string;
 }) {
@@ -170,6 +172,7 @@ export function Timeline({
         </AnimatePresence>
         {items.length === 0 && <li className="py-6 text-center text-sm text-ink-panel-muted">{emptyText}</li>}
       </ol>
+      {footer && <footer className="border-t border-ink-panel-line px-4 py-2.5 text-xs text-ink-panel-muted">{footer}</footer>}
     </section>
   );
 }
