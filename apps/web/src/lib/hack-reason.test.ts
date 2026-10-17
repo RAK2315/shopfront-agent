@@ -11,7 +11,7 @@ describe("hack-demo rejection wording (REVIEW-1 #7)", () => {
   });
 
   it("names the bound a quantity broke", () => {
-    expect(hackReason(`${PREFIX}Too small: expected number to be >=1 at items[0].quantity`)).toEqual({ text: "must be at least 1", fields: ["quantity"] });
+    expect(hackReason(`${PREFIX}Too small: expected number to be >=1 at items[0].quantity`)).toEqual({ text: "must be at least 1", fields: ["quantity"], fieldFirst: true });
   });
 
   it("falls back to a generic reason, never an invented one", () => {

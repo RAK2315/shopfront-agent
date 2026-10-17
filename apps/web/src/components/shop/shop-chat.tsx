@@ -303,13 +303,14 @@ function ChatItem({ item }: { item: Item }) {
                     {a.blocked && (
                       <>
                         {" · "}
-                        {why.text}
+                        {!why.fieldFirst && `${why.text} `}
                         {why.fields.map((f, i) => (
                           <span key={f}>
-                            {i ? ", " : " "}
+                            {i ? ", " : ""}
                             <code className="font-mono text-ink">{f}</code>
                           </span>
                         ))}
+                        {why.fieldFirst && ` ${why.text}`}
                       </>
                     )}
                   </span>
