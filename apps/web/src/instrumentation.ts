@@ -5,9 +5,14 @@ export async function register() {
   // Local dev against the shared database must not race the deployed server's timers.
   if (process.env.SHOPFRONT_DISABLE_TIMERS === "1") return;
   const { rearmOpenCheckouts } = await import("./server/fallback");
+  const { sweepUnprocessedWebhooks } = await import("./server/webhooks");
   setTimeout(() => {
     rearmOpenCheckouts()
       .then((n) => console.log(`[fallback] re-armed checks for ${n} open checkout(s)`))
       .catch((e) => console.error("[fallback] re-arm failed", e));
+    // Verified webhooks stored before a crash or restart but never processed (REVIEW-1 #8).
+    sweepUnprocessedWebhooks("boot")
+      .then((ids) => ids.length && console.log(`[webhook sweep] recovered ${ids.length} event(s)`))
+      .catch((e) => console.error("[webhook sweep] failed", e));
   }, 3_000).unref?.();
 }

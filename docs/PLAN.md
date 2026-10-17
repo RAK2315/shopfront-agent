@@ -274,13 +274,13 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | R2 | ✅ Legend under the `/shop` timeline explaining "Answered before"; README "webhook verified within about 20 seconds" | ✅ Done 2026-10-17 (D-074) | REVIEW-2 |
 | 3 | ✅ Every `/shop` starter returns a match (the "housewarming under $60" starter returned 0; it now names vases or table linens) | ✅ Done 2026-10-17 (D-074; `lane-checks` L1) | Plus a scripted check that runs every starter through `search_products` |
 | 7 | ✅ Hack-demo result in a calm success tone: "Protected: 3 of 3 blocked" | ✅ Done 2026-10-17 (D-074; `lane-checks` L2) | DESIGN.md "Review-fix lane" |
-| 8 | Webhook recovery (5xx on a verify failure, a sweep, the decline retry id) | Phase 9 | AT-9 |
+| 8 | Webhook recovery (5xx on a verify failure, a sweep, the decline retry id) | Oct 18 (D-081) | `recovery-checks` R1–R3 on Render |
 | 4 (rest) | Collapse repeated expiries into one line; scope the `/shop` timeline to the visitor's session (`data.sessionHash`, never the raw `bys_` id, D-068); one labelled timezone | Phase 10 (the wire gets "Seller · Telegram" rows anyway) | AT-10 screenshots |
 | 6 | Dashboard opens in view mode; one `$` sales chart; a skeleton; "What sold this week?" answers **with figures** labelled `[db]`/`[paypal]` (never a widget id; ✅ done early by D-074, AT-5 #4 passes) and scrolls to its chart; no sideways scroll at 1400 px; KPIs read $0.00, not "No data to display"; `[paypal]` figures vs test captures (D-074) | **AG Grid "Best Use" track, Oct 22–24 (D-077)**; the text-answer part was done early (D-074) | The AG Grid prize screen (P9). The same insights agent answers in Telegram. |
 | 11 | Orders grouped "To ship · N" / "Done"; one seller page frame | Phase 10 (the order ping's "Open order" lands there) | |
 | 9 | "Who and why" README section (cited stats, today's payment links and DMs, how each seller becomes PayPal volume) | Phase 10 pitch rewrite | Owner input for any real seller quote |
 | 5 | Real product photos (AT-3) | The day the owner's photos land | Also the Telegram demo photos |
-| — | Found on Oct 17: `checkouts.mcp_client_name` is always null (the stateless `/mcp` never sees `initialize` on a tool call), so `/pay` says "your shopping agent" and the console can't name the agent | Phase 9, 15 min | Read `x-shopfront-client` / the MCP client header in `/mcp` |
+| — | Found on Oct 17: `checkouts.mcp_client_name` is always null (the stateless `/mcp` never sees `initialize` on a tool call), so `/pay` says "your shopping agent" and the console can't name the agent | Oct 18 (D-081) | Named from `x-shopfront-client`, else the User-Agent (`recovery-checks` R4) |
 
 #### Phase 9 — Each seller paid directly, on the Partial path (Spike M passed as Partial, D-075/D-076; build Oct 19–21). Serves J1, J3, G1, R2, R5; retires D-006's "one platform account" caveat. **Protected**
 - **What Spike M proved** (real sandbox calls, D-076):
@@ -301,10 +301,10 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
   - **Tracking:** `PAYMENT.CAPTURE.REFUNDED` (verified) or, as the fallback, a GET of the capture (the existing fallback timers) moves the request to `executed`, records the PayPal refund id, updates the buyer's order page and writes a wire row ("Refunded by the seller in PayPal · $28.00").
   - A partial refund of a different amount is recorded as the amount PayPal reports, never the amount we asked for.
   - **Honest copy:** "Refunds for this shop are made by the seller in their own PayPal; we track them automatically."
-- **Data model** (migration `0010`; `0009` holds the Phase 10 tables, applied early, D-076):
+- **Data model** (migration `0011`; `0009` holds the Phase 10 tables, applied early, D-076; `0010` is the webhook recovery, D-081):
   - `sellers`: `payout_email`, `payout_status`, `payout_verified_at` (`paypal_merchant_id` already exists).
   - `refund_requests.decision` gains `handoff`, plus `handoff_link_sent_at`.
-  - Webhook recovery: an index `(verified, processed_at)` on `webhook_events` and `checkouts.capture_attempt`.
+  - ~~Webhook recovery: an index and `checkouts.capture_attempt`~~: done in `0010` (D-081).
   - **No `platform_fees` table** (no fee, owner).
 - **Screens** (after the owner's UI review):
   - The Studio "Get paid" card: one field and the status steps.
@@ -372,7 +372,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
   - The refund executor, after a GET of the capture (`decideRefundAsSeller`).
   - Transaction Search, for insights.
   - If Phase 9 shipped, a seller who hasn't onboarded gets a "Connect PayPal" link in the chat.
-- **Data model** (migration `0010`):
+- **Data model** (migration `0009`, applied 2026-10-17, D-076; any Phase 10 additions go in the next free number):
   - **`telegram_links`:** `chat_id` (PK), `seller_id`, `linked_at`, `revoked_at`, `is_demo`.
   - **`telegram_link_codes`:** `code_hash`, `seller_id`, `expires_at` (10 min), `used_at`.
   - **`telegram_updates`:** `update_id` (PK; exactly-once processing, the webhook pattern of D-045), `received_at`, `processed_at`.
@@ -521,7 +521,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
   - `/v3/vault/payment-tokens` (POST, GET, DELETE).
   - `/v2/checkout/orders` with `vault_id`, then `/capture`.
   - Webhooks `VAULT.PAYMENT-TOKEN.CREATED`, `VAULT.PAYMENT-TOKEN.DELETED`, `PAYMENT.CAPTURE.COMPLETED`.
-- **Data model** (migration `0011`):
+- **Data model** (migration `0012`, renumbered by D-081):
   - **`buyer_consents`:**
     - Identity and PayPal ids: `id` (`con_…`), `paypal_payment_token_id`, `paypal_customer_id`, `payer_email_hash`, `seller_id`.
     - Caps: `per_order_cap_cents`, `period_cap_cents`, `period_days` (30).

@@ -11,3 +11,4 @@ export * from './shipping';
 export * from './text';
 export * from './price-input';
 export * from './chat-action';
+export * from './recovery';

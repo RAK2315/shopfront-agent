@@ -62,7 +62,7 @@ export interface WebhookVerificationHeaders {
   transmissionTime: string;
 }
 
-type Ctx = Pick<RequestOptions, 'context'>;
+type Ctx = Pick<RequestOptions, 'context' | 'headers'>;
 
 export function approveLink(order: PayPalOrder): string | undefined {
   return order.links?.find((l) => l.rel === 'payer-action' || l.rel === 'approve')?.href;

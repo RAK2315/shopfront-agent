@@ -55,6 +55,8 @@ export interface ServerOptions {
   /** Called for every tool call (timeline: actor "mcp"). */
   onToolCall?: (e: { tool: ToolName; ctx: CallContext; ok: boolean; errorCode?: string; ms: number; args: unknown; result?: unknown }) => void;
   newRequestId?: () => string;
+  /** The agent's name from the request headers (`clientNameFromHeaders`), used when this server never saw `initialize`. */
+  clientName?: string;
 }
 
 export function createShopMcpServer(port: ShopPort, opts: ServerOptions = {}): McpServer {
@@ -67,7 +69,7 @@ export function createShopMcpServer(port: ShopPort, opts: ServerOptions = {}): M
   const wrap =
     <A>(tool: ToolName, fn: (args: A, ctx: CallContext) => Promise<unknown>) =>
     async (args: A, extra: { requestInfo?: unknown; sessionId?: string }): Promise<CallToolResult> => {
-      const ctx: CallContext = { requestId: newRequestId(), clientName: server.server.getClientVersion()?.name };
+      const ctx: CallContext = { requestId: newRequestId(), clientName: server.server.getClientVersion()?.name ?? opts.clientName };
       const t0 = performance.now();
       try {
         const out = await fn(args, ctx);

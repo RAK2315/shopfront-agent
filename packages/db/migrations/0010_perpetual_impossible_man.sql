@@ -1,0 +1,2 @@
+ALTER TABLE "checkouts" ADD COLUMN "capture_attempt" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+CREATE INDEX "webhook_events_unprocessed" ON "webhook_events" USING btree ("last_delivery_at") WHERE "webhook_events"."verified" and "webhook_events"."processed_at" is null;

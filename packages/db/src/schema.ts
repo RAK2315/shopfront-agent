@@ -14,6 +14,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { CHECKOUT_STATUSES, REFUND_REASON_CODES, type ProductExtraction, type RefundPolicy } from '@shopfront/core';
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => 'bytea' });
@@ -148,6 +149,8 @@ export const checkouts = pgTable(
     internalNote: text('internal_note'), // seller-only, edited inline in the ledger
     shipBy: text('ship_by'), // YYYY-MM-DD, edited inline in the ledger
     expiresAt: ts('expires_at').notNull(),
+    /** Bumped once per INSTRUMENT_DECLINED, so the buyer's next approval captures with a new PayPal-Request-Id (REVIEW-1 #8). */
+    captureAttempt: integer('capture_attempt').notNull().default(0),
     createdAt: createdAt(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
   },
@@ -222,7 +225,9 @@ export const messages = pgTable('messages', {
   createdAt: createdAt(),
 });
 
-export const webhookEvents = pgTable('webhook_events', {
+export const webhookEvents = pgTable(
+  'webhook_events',
+  {
   eventId: text('event_id').primaryKey(), // PayPal event id → idempotency key
   eventType: text('event_type').notNull(),
   resourceId: text('resource_id'),
@@ -234,7 +239,10 @@ export const webhookEvents = pgTable('webhook_events', {
   deliveries: integer('deliveries').notNull().default(1), // times PayPal delivered this event id (retries, Dashboard resends)
   lastDeliveryAt: ts('last_delivery_at').notNull().defaultNow(),
   error: text('error'),
-});
+  },
+  // The recovery sweep (REVIEW-1 #8) reads only verified events that were never processed: a tiny partial index.
+  (t) => [index('webhook_events_unprocessed').on(t.lastDeliveryAt).where(sql`${t.verified} and ${t.processedAt} is null`)],
+);
 
 /** Source of truth for the live timeline (Agent → MCP → PayPal → Webhook → Seller agent). */
 export const events = pgTable(

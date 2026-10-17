@@ -5,6 +5,7 @@ import { firstCapture } from "@shopfront/paypal";
 import { recordEvent } from "./events";
 import { applyCheckoutEvent, captureCheckout, settleFromOrder } from "./payments";
 import { services } from "./services";
+import { sweepUnprocessedWebhooks } from "./webhooks";
 
 // Per-checkout fallback timers (D-025). No polling loop: each open checkout gets a few one-shot checks,
 // and a check asks PayPal only if no verified webhook has confirmed the payment yet. Timers live on
@@ -46,6 +47,8 @@ export function pendingChecks(checkoutId: string): number {
 /** One fallback check. Reads our row first; only calls PayPal when the answer could change something. */
 export async function runFallbackCheck(checkoutId: string, reason: ArmReason | "manual" = "manual") {
   const { db, paypal } = services();
+  // Piggyback the webhook recovery sweep on checks that run anyway (throttled; no loop of its own).
+  void sweepUnprocessedWebhooks("fallback").catch((e) => console.error("[webhook sweep] failed", e));
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
   if (!c?.paypalOrderId) return { kind: "skipped" as const };
   const status = c.status as CheckoutStatus;

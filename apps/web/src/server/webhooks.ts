@@ -1,7 +1,7 @@
 import "server-only";
-import { centsToValue, newId, valueToCents } from "@shopfront/core";
-import { and, eq, schema, sql } from "@shopfront/db";
-import { refundCaptureId, type PayPalCapture, type PayPalOrder, type PayPalRefund } from "@shopfront/paypal";
+import { centsToValue, isVerifyOutage, newId, sweepEligible, valueToCents, WEBHOOK_SWEEP } from "@shopfront/core";
+import { and, asc, eq, isNull, lt, schema, sql } from "@shopfront/db";
+import { PayPalApiError, refundCaptureId, type PayPalCapture, type PayPalOrder, type PayPalRefund } from "@shopfront/paypal";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { applyCheckoutEvent, captureCheckout } from "./payments";
@@ -18,10 +18,21 @@ interface WebhookEvent {
 export type IngestResult = { status: "duplicate" | "stored"; verified: boolean; eventId: string; eventType: string };
 
 /**
+ * PayPal's verify endpoint couldn't give a verdict (network, 5xx, 429, our own auth). The route answers 503 so PayPal
+ * redelivers, instead of storing a genuine event as unverified and rejecting it (REVIEW-1 #8). Nothing is stored.
+ */
+export class WebhookVerifyUnavailable extends Error {
+  constructor(readonly status: number | undefined, readonly debugId?: string) {
+    super(`PayPal webhook verification unavailable (${status ?? "network"})`);
+    this.name = "WebhookVerifyUnavailable";
+  }
+}
+
+/**
  * Step 1 (synchronous, before we answer PayPal): verify the signature with PayPal and store the event once,
  * keyed by PayPal's event id. All event types are subscribed; we filter here (owner decision, D-039).
  */
-export async function ingestWebhook(rawBody: string, headers: Headers): Promise<IngestResult> {
+export async function ingestWebhook(rawBody: string, headers: Headers, o: { forceVerifyOutage?: boolean } = {}): Promise<IngestResult> {
   const { db } = services();
   const event = JSON.parse(rawBody) as WebhookEvent;
   if (!event?.id || !event.event_type) throw new Error("Not a PayPal webhook event");
@@ -35,7 +46,7 @@ export async function ingestWebhook(rawBody: string, headers: Headers): Promise<
     .returning();
   if (existing?.verified) return { status: "duplicate", verified: true, ...base };
 
-  const verified = await verifySignature(event.id, rawBody, headers);
+  const verified = await verifySignature(event.id, rawBody, headers, o.forceVerifyOutage);
   if (existing) {
     // A forged copy can claim an event id first. A genuine, verifiable delivery of that id replaces it
     // and is processed; another unverifiable copy changes nothing.
@@ -57,7 +68,7 @@ export async function ingestWebhook(rawBody: string, headers: Headers): Promise<
   return { status: inserted.length ? "stored" : "duplicate", verified, ...base };
 }
 
-async function verifySignature(eventId: string, rawBody: string, headers: Headers): Promise<boolean> {
+async function verifySignature(eventId: string, rawBody: string, headers: Headers, forceOutage = false): Promise<boolean> {
   const e = env();
   const h = {
     authAlgo: headers.get("paypal-auth-algo") ?? "",
@@ -68,19 +79,82 @@ async function verifySignature(eventId: string, rawBody: string, headers: Header
   };
   let verified = false;
   if (e.PAYPAL_WEBHOOK_ID && h.transmissionSig) {
+    if (forceOutage) throw new WebhookVerifyUnavailable(503); // signed test hook (faults.ts); no PayPal call
     try {
       // Request id per transmission: a resend of the same event is a new delivery to verify.
       verified = await services().paypal.verifyWebhookSignature(h, rawBody, e.PAYPAL_WEBHOOK_ID, `verify-${eventId}-${h.transmissionId}`.slice(0, 100));
-    } catch {
-      verified = false;
+    } catch (err) {
+      const status = err instanceof PayPalApiError ? err.status : undefined;
+      if (isVerifyOutage(status)) throw new WebhookVerifyUnavailable(status, err instanceof PayPalApiError ? err.debugId : undefined);
+      verified = false; // PayPal judged the delivery invalid (4xx)
     }
   }
   if (!verified && e.DEV_ALLOW_UNVERIFIED_WEBHOOKS && process.env.NODE_ENV !== "production") verified = true;
   return verified;
 }
 
+// Events being processed in this process (Render free = one instance), so a sweep never overlaps a delivery's after().
+const g = globalThis as unknown as { __webhookInflight?: Set<string>; __webhookSweepAt?: number };
+const inflight = (g.__webhookInflight ??= new Set());
+
 /** Step 2 (after responding 200): act on a stored, verified event exactly once. */
 export async function processWebhook(eventId: string): Promise<void> {
+  if (inflight.has(eventId)) return;
+  inflight.add(eventId);
+  try {
+    await processOnce(eventId);
+  } finally {
+    inflight.delete(eventId);
+  }
+}
+
+/**
+ * Recovery sweep (REVIEW-1 #8): reprocess verified events that were stored but never processed, because the process
+ * died or processing threw after we had answered PayPal 200 (so PayPal won't redeliver). Runs on boot and alongside
+ * the fallback checks (throttled), so it adds no polling loop (D-022). One query on a tiny partial index.
+ */
+export async function sweepUnprocessedWebhooks(reason: "boot" | "fallback"): Promise<string[]> {
+  const now = Date.now();
+  if (reason === "fallback" && now - (g.__webhookSweepAt ?? 0) < WEBHOOK_SWEEP.throttleMs) return [];
+  g.__webhookSweepAt = now;
+  const { db } = services();
+  const rows = await db
+    .select()
+    .from(schema.webhookEvents)
+    .where(
+      and(
+        eq(schema.webhookEvents.verified, true),
+        isNull(schema.webhookEvents.processedAt),
+        lt(schema.webhookEvents.lastDeliveryAt, new Date(now - WEBHOOK_SWEEP.minAgeMs)),
+        lt(schema.webhookEvents.attempts, WEBHOOK_SWEEP.maxAttempts),
+      ),
+    )
+    .orderBy(asc(schema.webhookEvents.lastDeliveryAt))
+    .limit(WEBHOOK_SWEEP.batch);
+  const done: string[] = [];
+  for (const r of rows) {
+    if (!sweepEligible(r, new Date(now))) continue;
+    try {
+      await processWebhook(r.eventId);
+      done.push(r.eventId);
+    } catch (e) {
+      console.error("[webhook sweep] processing failed", r.eventId, e);
+    }
+  }
+  if (done.length) {
+    // Operational, not a shop event: kept off public views like the boot re-arm row (D-076).
+    await recordEvent(db, {
+      actor: "server",
+      kind: "webhook_swept",
+      summary: `Recovered ${done.length} stored webhook${done.length === 1 ? "" : "s"} that had not been processed (${reason})`,
+      data: { eventIds: done, reason },
+      isTest: true,
+    });
+  }
+  return done;
+}
+
+async function processOnce(eventId: string): Promise<void> {
   const { db } = services();
   const claimed = await db
     .update(schema.webhookEvents)

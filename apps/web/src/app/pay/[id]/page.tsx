@@ -5,6 +5,7 @@ import { Bot } from "lucide-react";
 import { centsToValue, optionsLabel, PAY_PAGE_DELAYS_MS, type CheckoutStatus } from "@shopfront/core";
 import { eq, schema } from "@shopfront/db";
 import { Money } from "@/components/ui/money";
+import { agentLabel } from "@/lib/agent-label";
 import { PayPalApprove } from "@/components/pay/paypal-approve";
 import { env } from "@/server/env";
 import { scheduleFallbackChecks } from "@/server/fallback";
@@ -44,7 +45,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
           </h1>
           <p className="inline-flex items-center gap-2 text-base text-ink-2">
             <Bot aria-hidden className="size-4 text-clay" />
-            Prepared by {ck.mcpClientName ? <span className="font-medium text-ink">{ck.mcpClientName}</span> : "your shopping agent"} through
+            Prepared by {agentLabel(ck.mcpClientName) ? <span className="font-medium text-ink">{agentLabel(ck.mcpClientName)}</span> : "your shopping agent"} through
             Shopfront
           </p>
         </div>

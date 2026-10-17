@@ -1,5 +1,5 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { createShopMcpServer, TOOL_DEFINITIONS, type ToolName } from "@shopfront/mcp";
+import { clientNameFromHeaders, createShopMcpServer, TOOL_DEFINITIONS, type ToolName } from "@shopfront/mcp";
 import { recordEvent } from "@/server/events";
 import { rateLimit } from "@/server/rate-limit";
 import { services } from "@/server/services";
@@ -14,6 +14,8 @@ async function handle(req: Request) {
   if (limited) return limited;
   if (req.method === "POST") await recordBlockedCalls(req.clone());
   const server = createShopMcpServer(shop, {
+    // Stateless: this server never sees the client's `initialize`, so name the agent from its headers.
+    clientName: clientNameFromHeaders(req.headers),
     onToolCall: ({ tool, ctx, ok, errorCode, ms, args, result }) => {
       if (tool === "create_checkout" && ok) return; // the shop service records a richer event itself
       void recordEvent(services().db, {

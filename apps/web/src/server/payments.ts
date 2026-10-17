@@ -1,6 +1,6 @@
 import "server-only";
-import { transition, type CheckoutEvent, type CheckoutStatus, valueToCents, newId } from "@shopfront/core";
-import { eq, schema, sql } from "@shopfront/db";
+import { captureRequestId, transition, type CheckoutEvent, type CheckoutStatus, valueToCents, newId } from "@shopfront/core";
+import { and, eq, schema, sql } from "@shopfront/db";
 import { firstCapture, PayPalApiError, type PayPalCapture, type PayPalOrder } from "@shopfront/paypal";
 import { recordEvent } from "./events";
 import { scheduleFallbackChecks } from "./fallback";
@@ -83,8 +83,16 @@ export type CaptureOutcome =
   | { ok: true; status: CheckoutStatus; captureId: string; captureStatus: string }
   | { ok: false; reason: "declined" | "not_approved" | "already_final" | "not_found" | "error"; message: string; debugId?: string };
 
-/** Server-side capture after the buyer approved in PayPal. Idempotent (PayPal-Request-Id = capture-<checkout>). */
-export async function captureCheckout(checkoutId: string, trigger: "pay_page" | "return_url" | "webhook_approved" | "fallback_check"): Promise<CaptureOutcome> {
+/**
+ * Server-side capture after the buyer approved in PayPal. Idempotent per attempt: PayPal-Request-Id is
+ * `capture-<checkout>`, then `capture-<checkout>-<n>` after the nth decline (REVIEW-1 #8).
+ * `mockDecline` is the signed AT hook only (faults.ts): PayPal's own sandbox negative testing answers INSTRUMENT_DECLINED.
+ */
+export async function captureCheckout(
+  checkoutId: string,
+  trigger: "pay_page" | "return_url" | "webhook_approved" | "fallback_check",
+  o: { mockDecline?: boolean } = {},
+): Promise<CaptureOutcome> {
   const { db, paypal } = services();
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
   if (!c?.paypalOrderId) return { ok: false, reason: "not_found", message: "Checkout not found." };
@@ -106,10 +114,12 @@ export async function captureCheckout(checkoutId: string, trigger: "pay_page" | 
     return { ok: false, reason: "declined", message: "Sorry, this item sold out before payment completed. You were not charged." };
   }
 
-  const requestId = `capture-${checkoutId}`;
+  const attempt = c.captureAttempt;
+  const requestId = captureRequestId(checkoutId, attempt);
   const via = trigger === "fallback_check" ? "poll" : "capture_response";
   try {
-    const { data: order, debugId } = await paypal.captureOrder(c.paypalOrderId, requestId, { context: { checkoutId } });
+    const mock = o.mockDecline ? { headers: { "PayPal-Mock-Response": JSON.stringify({ mock_application_codes: "INSTRUMENT_DECLINED" }) } } : {};
+    const { data: order, debugId } = await paypal.captureOrder(c.paypalOrderId, requestId, { context: { checkoutId }, ...mock });
     const out = await settleFromOrder(checkoutId, order, via, { debugId, requestId, trigger });
     // Paid by our own capture call: arm checks that confirm it with PayPal if the webhook never shows up (D-025).
     if (out.ok && via === "capture_response") scheduleFallbackChecks(checkoutId, "paid");
@@ -122,7 +132,20 @@ export async function captureCheckout(checkoutId: string, trigger: "pay_page" | 
         return settleFromOrder(checkoutId, order, via, { requestId, trigger });
       }
       if (/INSTRUMENT_DECLINED/.test(issue)) {
-        await recordEvent(db, { actor: "paypal", kind: "capture_declined", checkoutId, sellerId: c.sellerId, summary: "Instrument declined — buyer asked to choose another method", data: { debugId: e.debugId } });
+        // Never retried automatically (PayPal: ask for another method). The buyer's next approval captures as attempt + 1.
+        // Compare-and-set, so concurrent capture paths that saw the same decline bump the attempt once.
+        await db
+          .update(schema.checkouts)
+          .set({ captureAttempt: attempt + 1, updatedAt: new Date() })
+          .where(and(eq(schema.checkouts.id, checkoutId), eq(schema.checkouts.captureAttempt, attempt)));
+        await recordEvent(db, {
+          actor: "paypal",
+          kind: "capture_declined",
+          checkoutId,
+          sellerId: c.sellerId,
+          summary: "Instrument declined — buyer asked to choose another method",
+          data: { debugId: e.debugId, paypalRequestId: requestId, nextRequestId: captureRequestId(checkoutId, attempt + 1), mock: o.mockDecline || undefined },
+        });
         return { ok: false, reason: "declined", message: "Your payment method was declined. Please try another one in PayPal.", debugId: e.debugId };
       }
       if (/ORDER_NOT_APPROVED/.test(issue)) return { ok: false, reason: "not_approved", message: "The payment has not been approved yet.", debugId: e.debugId };

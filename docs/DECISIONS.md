@@ -89,6 +89,7 @@
 | D-078 | 2026-10-17 | Visual richness fixes (rich chat cards, inline checkout, tighter /shop, a heavier live wire, photos) | PLANNED (build after the UI review) | J2, J5 |
 | D-079 | 2026-10-18 | Owner: cut Phase 12; Phase 13 → half a day on the hack card; freeze end of Nov 5; priority AG Grid = visual > 10 > 9 > 11 > 13; Vault enabled; Enterprise key requested | ACCEPTED (owner) | J1, J4, J5, P9, D1–D3 |
 | D-080 | 2026-10-18 | Spike G: Studio's own widgets are unwatermarked under the Studio key; master-detail, grid sparklines, integrated charts and the AI Toolkit need an AG Grid + Charts Enterprise (BOTH) key, behind a no-watermark guard | ACCEPTED (go) | P9, J1, J2 |
+| D-081 | 2026-10-18 | Webhook recovery: 503 on a verify outage, a boot and fallback sweep, `capture-<id>-<n>` after a decline; `/mcp` names the agent from headers; migration 0010 (Phase 9 → 0011) | ACCEPTED | G7, G9, J1 |
 
 ---
 
@@ -1053,6 +1054,34 @@
 - **Trial length risk:** if the grid trial is 45 days from about Oct 18, it lapses around Dec 2, before the assumed Dec 10 results (PLAN §5). The guard falls back cleanly. **Owner: request an extension around Nov 25**, alongside the Studio extension (~Nov 20, D-032).
 - **Verdict: go,** with Enterprise behind the guard and the Community fallbacks ready.
 - **Serves:** P9, J1, J2, J5, D-053, D-077.
+
+## D-081: Webhook recovery (REVIEW-1 #8) and the agent's name on stateless `/mcp` (2026-10-18)
+- **A verify outage now gets 5xx.** Before, any failure of PayPal's `verify-webhook-signature` call was swallowed as "not verified": a genuine event got stored as unverified, rejected, and answered 200, so PayPal never redelivered it.
+  - Now a network failure, 5xx, 429 or our own 401/403 (`isVerifyOutage`, core) throws `WebhookVerifyUnavailable`. The route answers **503 and stores nothing**, so PayPal's redelivery gets a fresh check.
+  - A 4xx, or a `FAILURE` verdict, is still PayPal judging the delivery: it's stored unverified and answered 200, as before.
+- **The recovery sweep.** `sweepUnprocessedWebhooks` reprocesses verified events that were stored but never processed: the process died, or processing threw after we had answered 200.
+  - It runs **on boot** (`instrumentation.ts`, next to the timer re-arm) and **alongside the fallback checks** (at most once per 2 min per process).
+  - It adds no polling loop (D-022): one query on a new partial index, `webhook_events_unprocessed`.
+  - An event qualifies when its last delivery is at least 60 s old, so a delivery's own `after()` goes first, and it has had fewer than 5 attempts.
+  - An in-process guard means the sweep never runs an event concurrently with its delivery.
+  - Each sweep writes one test-flagged `webhook_swept` row (operational, off public views, like D-076's boot row).
+- **The decline retry id.** After `INSTRUMENT_DECLINED` we never retry automatically (PayPal's guidance: ask for another method).
+  - We bump `checkouts.capture_attempt` with a compare-and-set, so the buyer's next approval captures as **`capture-<id>-1`** (`captureRequestId`, core).
+  - Before, the retry reused `capture-<id>`, and PayPal's idempotency could replay the declined answer.
+  - Attempt 0 keeps the old id, so existing checkouts are unchanged.
+- **Test hooks, signed with `SESSION_SECRET`** (`faults.ts`, like D-054's failover hook):
+  - `verify-unavailable` throws before any PayPal call.
+  - `capture-declined` sends **PayPal's own sandbox negative-testing header** (`PayPal-Mock-Response: {"mock_application_codes":"INSTRUMENT_DECLINED"}`, developer.paypal.com/tools/sandbox/negative-testing) on the real capture call. PayPal's sandbox answers 422 with a real debug id.
+  - *Owner note:* this is PayPal's documented sandbox feature on a real request. We don't fake any response. It's the only way to get a decline on demand.
+- **`mcp_client_name`.** The stateless `/mcp` builds a server per request, so a tool call never sees `initialize`. The agent is now named from its headers (`clientNameFromHeaders`, packages/mcp):
+  - `x-shopfront-client` first (our hosted agent already sends `shopfront-web-agent`);
+  - otherwise the User-Agent's product token, ignoring generic runtimes and browsers.
+  - The name is used only when `initialize` wasn't seen.
+  - It's a display label only. This also fixes `source`: `/shop` checkouts had been recorded as `mcp_external`.
+  - `/pay` shows a friendly label (`agentLabel`: "our demo shopping agent", "Claude").
+- **Migration numbering (deviation):** these changes are migration **`0010`** (`checkouts.capture_attempt`, the partial index). **Phase 9's migration becomes `0011`.**
+- **Tests:** core `recovery.test.ts` (7), mcp `client-name.test.ts` (5) and web `agent-label.test.ts` (2). On Render: `pnpm --filter web recovery-checks` (R1 to R4).
+- **Serves:** G7, G9 (unhappy path #05), J1, D-045.
 
 ---
 

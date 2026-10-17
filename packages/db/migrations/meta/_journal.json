@@ -71,6 +71,13 @@
       "when": 1792257225549,
       "tag": "0009_same_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792264249142,
+      "tag": "0010_perpetual_impossible_man",
+      "breakpoints": true
     }
   ]
 }

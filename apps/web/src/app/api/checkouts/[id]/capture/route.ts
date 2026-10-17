@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { recordEvent } from "@/server/events";
+import { hasFault } from "@/server/faults";
 import { captureCheckout } from "@/server/payments";
 import { services } from "@/server/services";
 import { verifyOrderToken } from "@/server/tokens";
@@ -19,6 +20,6 @@ export async function POST(req: Request, ctx: RouteContext<"/api/checkouts/[id]/
     checkoutId: id,
     summary: "Buyer approved in the PayPal popup · capturing on the server",
   });
-  const outcome = await captureCheckout(id, "pay_page");
+  const outcome = await captureCheckout(id, "pay_page", { mockDecline: hasFault(req, "capture-declined") });
   return Response.json(outcome, { status: outcome.ok ? 200 : outcome.reason === "declined" ? 422 : 409 });
 }
