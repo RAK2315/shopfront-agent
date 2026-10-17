@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Camera, CircleCheck, Cpu, MessageSquareText, PackageCheck, Truck, Undo2 } from "lucide-react";
@@ -214,7 +215,13 @@ export function OrderList({ orders }: { orders: SellerOrder[] }) {
         )}
       </div>
       {orders.length === 0 ? (
-        <p className="rounded-lg border border-line bg-surface px-5 py-5 text-base text-ink-2">No paid orders yet.</p>
+        <p className="rounded-lg border border-line bg-surface px-5 py-5 text-base text-ink-2">
+          No paid orders yet. Buy something in{" "}
+          <Link href="/shop" className="font-medium text-clay-strong underline underline-offset-2 hover:text-ink">
+            the shop
+          </Link>{" "}
+          and it lands here once PayPal confirms the payment.
+        </p>
       ) : (
         <ul className="grid gap-3">
           {orders.map((o) => (

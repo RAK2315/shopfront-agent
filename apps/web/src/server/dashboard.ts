@@ -3,10 +3,12 @@ import { z } from "zod";
 import { centsToValue, confirmationOf, ShopError, type CheckoutStatus } from "@shopfront/core";
 import { and, eq, gte, inArray, lt, schema, sql } from "@shopfront/db";
 import { recordEvent } from "./events";
+import { isTestRun } from "./run-context";
 import { services } from "./services";
 
 // Seller dashboard (Phase 5, AG Studio). Read-only data for the widgets, plus two seller-only edits
 // (internal note, ship-by) and the saved layout. Models change views and widgets only, never orders or money.
+// Test and script orders (D-070) are left out of every figure unless the request is itself a test run (AT-5).
 
 const PAID: CheckoutStatus[] = ["paid", "shipped", "partially_refunded", "refunded", "reversed"];
 const day = (d: Date) => d.toISOString().slice(0, 10);
@@ -14,10 +16,11 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
 export async function dashboardData(sellerId: string) {
   const { db } = services();
   const since = new Date(Date.now() - 90 * 86_400_000);
+  const includeTest = await isTestRun();
   const checkouts = await db
     .select()
     .from(schema.checkouts)
-    .where(and(eq(schema.checkouts.sellerId, sellerId), inArray(schema.checkouts.status, PAID), gte(schema.checkouts.createdAt, since)));
+    .where(and(eq(schema.checkouts.sellerId, sellerId), includeTest ? undefined : eq(schema.checkouts.isTest, false), inArray(schema.checkouts.status, PAID), gte(schema.checkouts.createdAt, since)));
   const ids = checkouts.map((c) => c.id);
   const [items, caps, refunds, ships, products] = await Promise.all([
     ids.length ? db.select().from(schema.checkoutItems).where(inArray(schema.checkoutItems.checkoutId, ids)) : [],
@@ -94,17 +97,27 @@ export async function dbSalesSummary(sellerId: string, fromIso: string, toIso: s
   const { db } = services();
   const from = new Date(fromIso);
   const to = new Date(toIso);
+  const includeTest = await isTestRun();
   const rows = await db.execute<{ product: string; orders: number; units: number; revenue_cents: number }>(sql`
     select coalesce(p.title, ci.title_snapshot) product, count(distinct c.id)::int orders, sum(ci.quantity)::int units, sum(ci.line_total_cents)::int revenue_cents
     from ${schema.checkouts} c join ${schema.checkoutItems} ci on ci.checkout_id = c.id
     left join ${schema.variants} v on v.id = ci.variant_id left join ${schema.products} p on p.id = v.product_id
     where c.seller_id = ${sellerId} and c.status in ('paid','shipped','partially_refunded','refunded') and c.created_at >= ${from} and c.created_at < ${to}
+      and (${includeTest} or not c.is_test)
     group by 1 order by revenue_cents desc`);
   const refunds = await db
     .select({ n: sql<number>`count(*)::int`, cents: sql<number>`coalesce(sum(${schema.refundRequests.amountCents}),0)::int` })
     .from(schema.refundRequests)
     .innerJoin(schema.checkouts, eq(schema.checkouts.id, schema.refundRequests.checkoutId))
-    .where(and(eq(schema.checkouts.sellerId, sellerId), eq(schema.refundRequests.status, "executed"), gte(schema.refundRequests.createdAt, from), lt(schema.refundRequests.createdAt, to)));
+    .where(
+      and(
+        eq(schema.checkouts.sellerId, sellerId),
+        includeTest ? undefined : eq(schema.checkouts.isTest, false),
+        eq(schema.refundRequests.status, "executed"),
+        gte(schema.refundRequests.createdAt, from),
+        lt(schema.refundRequests.createdAt, to),
+      ),
+    );
   const total = rows.rows.reduce((n, r) => n + Number(r.revenue_cents), 0);
   return {
     source: "db",

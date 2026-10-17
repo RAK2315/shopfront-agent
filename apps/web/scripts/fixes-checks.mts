@@ -7,6 +7,8 @@
 //   I4 events without a request (webhooks, timers) inherit the flag: every event of the newest paid test checkout
 //      is flagged, including the PayPal webhook rows
 //   I5 no public event since the cutover says "mode:replay"; a replayed step is badged "Replayed recording" instead
+//   I6 the demo seller's own views (Orders, dashboard data, insights, the dashboard's event stream) hide test orders
+//      for a normal visitor, and still show them to a test run (AT-4/AT-5 carry the header)
 // Usage: pnpm --filter web fixes-checks -- --base https://shopfront-agent.onrender.com [--cutover <ISO time>]
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -150,6 +152,59 @@ try {
   {
     const rows = await q<{ n: number }>("select count(*)::int n from events where not is_test and summary like '%mode:replay%' and created_at > coalesce($1::timestamptz, now() - interval '1 hour')", [cutover ?? null]);
     record("I5 no public event since the cutover says 'mode:replay'", rows[0]!.n === 0, { publicModeReplayRows: rows[0]!.n, since: cutover ?? "1 hour" });
+  }
+
+  // ── I6 ──
+  {
+    const signIn = await fetch(`${base}/api/seller/session`, { method: "POST", headers: { ...PUBLIC, "content-type": "application/json" }, body: JSON.stringify({ handle: "juniper_clay" }) });
+    const cookie = (signIn.headers.get("set-cookie") ?? "").split(";")[0]!;
+    const as = (test: boolean) => (test ? { cookie } : { ...PUBLIC, cookie });
+    const [newestTestPaid] = await q<{ id: string }>(
+      "select c.id from checkouts c join sellers s on s.id=c.seller_id where s.handle='juniper_clay' and c.is_test and c.status in ('paid','shipped','partially_refunded','refunded') order by c.created_at desc limit 1",
+    );
+    const dashIds = async (test: boolean) => ((await (await fetch(`${base}/api/seller/dashboard/data`, { headers: as(test) })).json()) as { orders: Array<{ order: string }> }).orders.map((o) => o.order);
+    const ordersHtml = async (test: boolean) => (await fetch(`${base}/studio/orders`, { headers: as(test) })).text();
+    const to = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+    const from = new Date(Date.now() - 30 * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "Z");
+    const insightOrders = async (test: boolean) =>
+      ((await (await fetch(`${base}/api/seller/insights`, { method: "POST", headers: { ...as(test), "content-type": "application/json" }, body: JSON.stringify({ tool: "db_sales_summary", args: { from, to } }) })).json()) as { orders: number }).orders;
+    const [pubDash, testDash, pubHtml, testHtml, pubInsight, testInsight, sellerStream] = await Promise.all([
+      dashIds(false),
+      dashIds(true),
+      ordersHtml(false),
+      ordersHtml(true),
+      insightOrders(false),
+      insightOrders(true),
+      streamEvents(`/api/events?after=0&scope=seller`, as(false)),
+    ]);
+    const [{ n: realPaid } = { n: 0 }] = await q<{ n: number }>(
+      "select count(*)::int n from checkouts c join sellers s on s.id=c.seller_id where s.handle='juniper_clay' and not c.is_test and c.status in ('paid','shipped','partially_refunded','refunded') and c.created_at > now() - interval '30 days'",
+    );
+    const detail = {
+      signedIn: signIn.ok && cookie.startsWith("sf_seller="),
+      newestTestPaid: newestTestPaid?.id,
+      dashboardTestIds: (await testIds(pubDash)).length,
+      ordersPageTestIds: (await testIds(idsIn(pubHtml))).length,
+      sellerStreamTestRows: sellerStream.filter((e) => e.isTest).length,
+      insightOrdersPublic: pubInsight,
+      realPaidLast30d: realPaid,
+      testRunSeesDashboard: testDash.includes(newestTestPaid?.id ?? "-"),
+      testRunSeesOrdersPage: testHtml.includes(newestTestPaid?.id ?? "-"),
+      insightOrdersTestRun: testInsight,
+    };
+    record(
+      "I6 the demo seller's Orders, dashboard, insights and event stream hide test orders, except for a test run",
+      detail.signedIn &&
+        Boolean(newestTestPaid) &&
+        detail.dashboardTestIds === 0 &&
+        detail.ordersPageTestIds === 0 &&
+        detail.sellerStreamTestRows === 0 &&
+        pubInsight === realPaid &&
+        detail.testRunSeesDashboard &&
+        detail.testRunSeesOrdersPage &&
+        testInsight >= pubInsight,
+      detail,
+    );
   }
 } catch (err) {
   record("run", false, err instanceof Error ? err.message.split("\n")[0] : String(err));

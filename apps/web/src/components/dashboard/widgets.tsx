@@ -21,7 +21,7 @@ function subscribe(cb: (e: ShopEvent) => void, onWire: (w: WireState) => void) {
   stream.subs.add(cb);
   stream.wire.add(onWire);
   if (!stream.es) {
-    const es = new EventSource("/api/events?after=0&scope=seller");
+    const es = new EventSource("/api/events?after=0");
     es.onopen = () => stream.wire.forEach((f) => f("live"));
     es.onerror = () => stream.wire.forEach((f) => f(es.readyState === EventSource.CLOSED ? "paused" : "reconnecting"));
     es.addEventListener("shop", (m) => {

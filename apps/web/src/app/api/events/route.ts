@@ -1,7 +1,6 @@
 import { and, desc, eq, gt, schema } from "@shopfront/db";
 import { bus, toShopEvent, type ShopEvent } from "@/server/events";
 import { isTestRun } from "@/server/run-context";
-import { currentSeller } from "@/server/seller-session";
 import { services } from "@/server/services";
 
 export const dynamic = "force-dynamic";
@@ -12,14 +11,14 @@ const HEARTBEAT_MS = 20_000;
 // Live timeline feed (Server-Sent Events). On connect it replays recent events from the `events` table
 // (or everything after Last-Event-ID on a reconnect), then streams new ones from the in-process bus.
 // Heartbeats are comments and never touch the database.
-// Test and script runs are hidden (run-context.ts) except for a test run itself and the seller's own dashboard
-// (`scope=seller` with a seller session), which shows every order in the seller's ledger.
+// Test and script runs are hidden (run-context.ts) everywhere, the seller's dashboard included, except for a test
+// run itself (AT-5's dashboard sees its own events).
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const checkoutId = url.searchParams.get("checkout");
   if (checkoutId && !/^chk_[a-z0-9]{12}$/.test(checkoutId)) return new Response("Bad checkout id", { status: 400 });
   const lastId = Number(req.headers.get("last-event-id") ?? url.searchParams.get("after") ?? "") || 0;
-  const includeTest = (await isTestRun()) || (url.searchParams.get("scope") === "seller" && Boolean(await currentSeller()));
+  const includeTest = await isTestRun();
 
   const { db } = services();
   const filter = and(checkoutId ? eq(schema.events.checkoutId, checkoutId) : undefined, includeTest ? undefined : eq(schema.events.isTest, false));

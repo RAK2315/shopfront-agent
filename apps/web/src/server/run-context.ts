@@ -8,7 +8,7 @@ import { env } from "./env";
 // A run is a test when its request carries the signed header (read through Next's request scope, so every route,
 // page and streamed response sees it), or the whole server is started with SHOPFRONT_TEST_RUN=1 (local replay
 // checks). Webhooks and timers have no request: their events inherit the flag from the checkout (events.ts).
-// The seller's own views still show everything.
+// The seller's views (orders, dashboard, insights, its event stream) hide them too, unless the request is a test run.
 
 export const TEST_RUN_HEADER = "x-shopfront-test-run";
 
