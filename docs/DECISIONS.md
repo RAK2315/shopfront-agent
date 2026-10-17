@@ -81,6 +81,7 @@
 | D-070 | 2026-10-16 | Test and replay runs flagged `is_test`, kept off public views; plain AI-source words | ACCEPTED | J2, J4, J5, D-022 |
 | D-071 | 2026-10-17 | Re-plan Phases 9–13 in the owner's order (multi-seller, Telegram, Vault, disputes, arena) | ACCEPTED | J1–J5, P4–P9 |
 | D-072 | 2026-10-17 | Phase 10: seller copilot on Telegram (design; leads the pitch) | PROPOSED (Spike T) | J3, J4, J5, P7, P8, R3 |
+| D-073 | 2026-10-17 | Owner decisions: video deferred (no Telegram UI), Telegram judge mode, seed purchases, UI review pack before Phase 9 | ACCEPTED | J2, J5, S6.4, P8 |
 
 ---
 
@@ -825,6 +826,30 @@
 - **Video (S6.4 risk, for the owner to decide):** the owner wants real phone footage, but Telegram's UI is a third-party brand UI. The plan crops to the conversation, with no app chrome or logo, and narrates "her chat". The zero-risk fallback is a labelled chat strip rebuilt from the real transcript (PLAN risk 21, DEMO-SCRIPT v3).
 - **Spike T fail rule:** if the webhook, file download or buttons don't work on Render, the phase is cut and logged, and the pitch reverts to the web-studio story.
 - **Serves:** J3, J4, J5, P4, P5, P7, P8, R2, R3, D-002, D-011, D-022.
+
+## D-073: Owner decisions after the re-plan (2026-10-17)
+- **Video: deferred.**
+  - No video work or video decisions until the owner has reviewed the whole product and UI style. Then we make a professional, product-style demo.
+  - The Phase 8 tasks (D-062) stay logged and untouched.
+  - **Default when it resumes:** no real Telegram UI (trademark rule, S6.4). The Telegram beats are a rebuilt chat strip from the real bot transcripts, labelled "from a real session". This resolves PLAN risk 21 and supersedes D-072's footage plan.
+  - Phase 10 now saves redacted transcripts instead of the owner recording phone footage.
+- **Telegram judge mode (added to Phase 10 and AT-10):**
+  - Judges message the bot via a README quick-path link (`t.me/<bot>?start=judge`) and run seller ops against an **isolated demo seller**, `judge_demo`.
+  - Isolation:
+    - everything it creates is `is_test` and off the public views (D-070);
+    - its listings are reachable only when an agent names that seller;
+    - every action is checked against the chat's seller, so a demo chat can't reach real seller data;
+    - per-chat rate limits, plus the global LLM caps;
+    - nightly re-seed.
+  - The link goes into the README **when AT-10 passes**: the bot doesn't exist yet, and no dead link is published.
+- **Seeding the public wire:** the owner runs one real public purchase before Nov 8 and again on Nov 11 before judging (PLAN §5, SUBMISSION).
+- **Password rotation:** skipped (the spare sandbox buyer; it was printed in session output, never committed).
+- **Owner setup confirmed:** the Telegram bot and sandbox seller 2 before Oct 18 (SETUP §13–14); Vault enabled before Oct 28.
+- **Photos:** coming. The placeholders stay until then, and AT-3 runs that day.
+- **UI review pack before Phase 9:**
+  - Every public and seller screen at desktop and mobile goes in `docs/review-pack/`, plus one page listing each screen's route, its purpose and its one primary message.
+  - It is scheduled on Oct 18 after the review-fix lane, so the owner can review the style before more UI is built on top of it.
+- **Serves:** J2, J5, S6.4, P8, D-011, D-070.
 
 ---
 

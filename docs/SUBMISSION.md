@@ -27,7 +27,8 @@
     - **Dispute defense agent:** code assembles an evidence pack (tracking, delivery, chat, photos), the agent drafts the words, and the seller approves before it's submitted through the Disputes API. *(Phase 12)*
     - **Adversarial agent arena:** 50 live attacks against our own MCP server, each shown BLOCKED with the guardrail that caught it. *(Phase 13)*
 - [ ] **Tools section**: each model or AI service and how it's used (S4). Add when shipped: the **Telegram Bot API** (Phase 10; the chat interface, with no AI of its own), **Partner Referrals / multiparty** (Phase 9), **PayPal Vault v3 payment tokens and merchant-initiated Orders** (Phase 11), and the **Disputes API** (Phase 12). The arena (Phase 13) uses no new tool: it is our own MCP client. Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
-- [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password (already in the README and on `/pay`, D-069), judge-seller login.
+- [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password (already in the README and on `/pay`, D-069), judge-seller login, and the **Telegram judge-mode link** (D-073, once AT-10 passes).
+- [ ] **One real public purchase before Nov 8, and again on Nov 11 before judging** (owner, D-073), so the public wire isn't empty.
 - [ ] GitHub repo URL (S5).
 - [ ] YouTube video URL (S6.3).
 - [ ] Prize categories selected: main, Agentic Commerce, PayPal + AI, Best Demo, Most Creative, Most Impactful, AG Grid, Render.
@@ -51,7 +52,7 @@
 - [ ] Under 3:00. Target is **2:45** (S6.1, D-057; beat sheet in `DEMO-SCRIPT.md`).
 - [ ] Shows the real build functioning (S6.2).
 - [ ] Public on YouTube (S6.3).
-- [ ] No third-party logos or UIs; music is licensed or absent (S6.4, D-015). **Telegram phone footage is cropped to the conversation, with no Telegram chrome or logo, or replaced by the labelled chat strip (owner decides, PLAN risk 21).**
+- [ ] No third-party logos or UIs; music is licensed or absent (S6.4, D-015). **No real Telegram UI: the Telegram beats are a rebuilt chat strip from real transcripts, labelled (D-073). The video is deferred until the owner's product and UI review.**
 - [ ] Captions, readable at 1080p.
 
 ## Final

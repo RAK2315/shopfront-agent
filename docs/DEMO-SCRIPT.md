@@ -1,5 +1,9 @@
 # Demo script — v3 (target **2:45**, 12 beats; leads with the Telegram copilot)
 
+> **⏸ DEFERRED (owner, D-073, 2026-10-17).** No video work or video decisions until the owner has reviewed the whole product and UI style. Then the owner and Claude make a professional, product-style demo. This v3 is a working draft only.
+>
+> **Default when it resumes: no real Telegram UI** (trademark rule, S6.4). Every "Phone" beat below becomes an on-brand **chat strip rebuilt from the real bot transcripts** (saved in Phase 10), labelled "from a real session". The phone-footage notes below are superseded.
+
 > **What changed from v2** (owner override, re-planned 2026-10-17, D-071/D-072):
 > - The story now **opens on the seller's phone.** She runs her shop from a Telegram chat with the Shopfront copilot (Phase 10): photo to store, order pings, label to tracking, and refund approval.
 > - Multi-seller payouts (Phase 9) get their own beat.
@@ -77,7 +81,7 @@ Cue times are absolute. Each cue is at most 2 lines × 42 characters.
 
 *Cut phases also cut their cues. If Phase 9 failed, beat 5's second cue says "One platform account settles in this demo." "Settled by PayPal" stays true either way.*
 
-## Phone footage (owner, Oct 27; Phase 10 AT)
+## Phone footage (superseded by D-073: the default is the rebuilt chat strip; kept for reference)
 - **Device:** the owner's real phone, in portrait, using its built-in screen recorder.
 - **Before recording:**
   - Turn on Do Not Disturb.

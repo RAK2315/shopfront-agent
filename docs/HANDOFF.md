@@ -44,14 +44,20 @@
 
 | Dates (IST) | Work |
 |---|---|
-| **Oct 18 (Sun)** | Review-fix lane (about 2 h): the **seller views hide `is_test` orders for the demo seller**, then seed 4–6 varied real orders; the "Answered before" legend; README "within about 20 seconds"; #3 starters; #7 hack tone. Then **Spike M** (multi-seller) and **Spike T** (Telegram), each logged as go or no-go in DECISIONS. |
+| **Oct 18 (Sun)** | Review-fix lane (about 2 h): the **seller views hide `is_test` orders for the demo seller**, then seed 4–6 varied real orders; the "Answered before" legend; README "within about 20 seconds"; #3 starters; #7 hack tone. **Then the UI review pack for the owner (D-073, below).** Then **Spike M** (multi-seller) and **Spike T** (Telegram), each logged as go or no-go in DECISIONS. |
 | Oct 19–22 | **Phase 9: real multi-seller payouts** (Partner Referrals, payee, platform fee, Auth-Assertion refunds). Also webhook recovery (#8), the `mcp_client_name` fix, and dashboard #6 on day 1. |
-| Oct 23–27 | **Phase 10: seller copilot on Telegram** (the lead story, D-072). Plus lane items #4, #11 and #9. The owner records phone footage on Oct 27. |
+| Oct 23–27 | **Phase 10: seller copilot on Telegram** (the lead story, D-072), **including judge mode** (isolated `judge_demo` seller, D-073). Plus lane items #4, #11 and #9. Save the redacted bot transcripts (the video's chat-strip source). |
 | Oct 28 | **Spike V** (Vault) |
 | Oct 29–31 | **Phase 11: Vault reorder.** Open the sandbox disputes on **Oct 29 morning**. |
 | Nov 1–2 | **Phase 12: dispute defense** |
 | Nov 3 | **Phase 13: arena.** Freeze at end of day. |
 
+- **Before Phase 9 starts: the UI review pack (owner, D-073).**
+  - Put every public and seller screen, at desktop and mobile, in `docs/review-pack/`. Use `MSYS_NO_PATHCONV=1 pnpm --filter web screens -- --base https://shopfront-agent.onrender.com --out ../../docs/review-pack <paths>`; seller pages need `--seller juniper_clay`.
+  - Add `docs/review-pack/README.md`: one table listing each screen's route, its purpose and its one primary message.
+  - Screens: `/`, `/shop` (empty and with a checkout card), `/pay/[id]` (before and after payment), `/live`, `/s/juniper_clay`, a product page, `/studio`, `/studio/orders`, `/studio/dashboard`, `/design`, `/capture`.
+  - **Phase 9 UI work waits for the owner's style review.** Spikes and backend work may proceed.
+- **Video: DEFERRED (D-073).** No video work or decisions until the owner reviews the product and UI. The default is no real Telegram UI: a labelled chat strip rebuilt from real transcripts. The Phase 8 tasks stay logged and untouched.
 - **Cut rule:** cut 13, then 12, then 11. **Phases 9 and 10 are protected** unless their own spike fails. A failed spike cuts its phase, gets logged, and is never faked.
 - **Exact next step:** the review-fix lane's top item.
   - In `apps/web/src/server/orders.ts` and `dashboard.ts` (the seller queries for orders, the ledger, KPIs and the refund queue), filter `checkouts.is_test = false` unless `await isTestRun()`.
@@ -98,16 +104,15 @@
 - **Replay keys include the MCP tool list,** so changing any tool description invalidates the recorded demo (D-055). Re-record with `record-demo` after such a change.
 - **Older quirks still apply:** Gemini latency, Groq's 8k tokens per minute, Render cold starts, the AG Studio trial ending Nov 29, `next dev` being unusable on this machine, and the repeat-buyer refund rule (2 per buyer since the last reset). Details in DECISIONS D-038, D-048, D-052, D-059 and D-061.
 
-## Open items for the owner
-1. **Before Oct 18:**
-   - Create the Telegram bot (SETUP §13) and put `TELEGRAM_BOT_TOKEN` in `.env`.
-   - Create sandbox seller 2 (SETUP §14).
-2. **Decide on the video before Oct 27:** real Telegram footage vs S6.4 (no third-party UIs). Either crop to the conversation (the plan) or use the labelled chat-strip fallback (PLAN risk 21, DEMO-SCRIPT v3).
-3. **Photos:** 6 product photos and 1 label into `docs/demo-photos/`. REVIEW-2's second finding.
-4. **Before Oct 28:** enable Vault in the sandbox app.
-5. **Oct 27:** record the 4 Telegram phone takes (DEMO-SCRIPT v3, "Phone footage").
-6. **Optional:** rotate the spare buyer's password. Part of it was printed in the part 4 session output; it was never committed.
-7. **Still open:** the Claude Desktop connector check; cron-job.org from Nov 8; the AG Grid trial email around Nov 20.
+## Open items for the owner (decisions of 2026-10-17 in D-073)
+1. **Before Oct 18 (confirmed):** the Telegram bot (SETUP §13) and sandbox seller 2 (SETUP §14).
+2. **Oct 18–19:** review the UI review pack (`docs/review-pack/`) before Phase 9 UI work.
+3. **Before Oct 28 (confirmed):** enable Vault in the sandbox app.
+4. **One real public purchase before Nov 8, and again on Nov 11 before judging.** Use a normal browser with the published buyer, no test header (PLAN §5).
+5. **Photos are coming.** The placeholders stay until then, and AT-3 runs that day.
+6. **Video: deferred** until the owner's product and UI review. Default: the chat strip, no Telegram UI.
+7. **Decided, no action:** skip rotating the spare buyer's password.
+8. **Still open:** the Claude Desktop connector check; cron-job.org from Nov 8; the AG Grid trial email around Nov 20.
 
 ## Standing rules (owner)
 - Commit and push after each step or phase.
@@ -127,7 +132,7 @@
 2. this file
 3. `docs/REVIEW-1.md`, including "After the fixes" and REVIEW-2
 4. `docs/PLAN.md`: Phases 9–13, the review-fix lane, Phase 8 tasks
-5. `docs/DECISIONS.md`: D-068 to D-072
+5. `docs/DECISIONS.md`: D-068 to D-073
 6. `apps/web/PRODUCT.md` and `DESIGN.md`
 7. `docs/DEMO-SCRIPT.md` (v3) and `SUBMISSION.md`
 8. As needed: `REQUIREMENTS.md` (frozen), `ARCHITECTURE.md`, `SETUP.md`
