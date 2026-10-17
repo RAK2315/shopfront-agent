@@ -9,7 +9,7 @@
 - They were told not to read the private working copy. Each scored one judging criterion (J1–J5, each worth 20%) from 1 to 10, with evidence, and gave its top 3 fixes.
 - The deployed commit during the review was `7aa6959`, then `eb76f15`.
 - Evidence screenshots kept from the reviewers are in `docs/review-1/`.
-- Nothing has been fixed yet. This report is for the owner to decide what to do.
+- Nothing had been fixed when this was written. See "After the fixes" at the end for what changed on 2026-10-17.
 
 ## Scores
 
@@ -99,3 +99,42 @@ Details for the longer rows:
 2. **Phase 9 "review fixes":** #4, #6, #8, #11, and #5 as soon as the photos arrive: about 10 h, roughly +3 points.
 3. **Story:** #9 (with owner input).
 4. **Feature phases:** #10 folds into the queued Phase 11 spike. #12 and #13 compete with the queued Phases 9–12 for the time left before the freeze, so decide when planning.
+
+## After the fixes (2026-10-17, owner override Step 1)
+
+### What was fixed (all accepted on Render; proof in `docs/screenshots/fixes-1/FIXES.md`)
+
+| REVIEW-1 # | Fix | Decision | Acceptance |
+|---|---|---|---|
+| **2** Token leak (HIGH) | Order tokens are bound to the checkout's creator and can never be minted from an id. `/pay/return` needs the creator's token plus PayPal's order id, and never issues one. The audit also found and closed shared idempotency keys. Old tokens were retired. | D-068 | AT-6 #8: 10/10 attacks blocked; the real redirect return captures once |
+| **1** Buyer credentials | Published in the README with a 60-second path, and on `/pay` with copy buttons | D-069 | AT-6 #1: paid in 27 s; exact login shown |
+| **4** (part) Replay and test noise | Test, replay and script runs are flagged `is_test` and hidden from `/`, `/live` and the public feeds. Old test data purged (flagged, not deleted). "fallback after mode:replay" removed; plain source badges; README frames replay as resilience | D-070 | Isolation checks I1–I5 pass |
+| D-062 video issues | Logged as Phase 8 tasks, each with an automated check | PLAN Phase 8 | — |
+
+Not done yet, and now in the review-fix lane (PLAN): #3, #7, the rest of #4, #5 (owner photos), #6, #8 (Phase 9), #9, #11. #10 is now Phase 9. #12 and #13 are not planned.
+
+### REVIEW-2: the cold 5-minute judge, re-run (J5 only)
+- **Method:** a fresh-context agent, with the brief rebuilt from this review's Method section (saved in `docs/review-2/BRIEF.md`). It used only the public repo and the hosted URL, against commit `cff5076`.
+- **Evidence:** 12 screenshots in `docs/review-2/`.
+- Its purchase (`chk_f1xyz34fgmxl`) and its 18 events were archived as test afterwards (D-070).
+
+| Criterion | REVIEW-1 | REVIEW-2 |
+|---|---|---|
+| **J5** Presentation | 6 | **7** |
+
+- **Payment completed: yes.** About 68 s from opening the site, and about 2 min from opening the README. The README path was accurate, and the login with copy buttons was where expected.
+- **What convinced it:**
+  - The same real PayPal ids appear on the order page, in Orders and on `/live`.
+  - The hack demo: each attack shows the exact rejected field and "Checkouts created: 0", and the injected prompt is refused.
+  - The honest README, with a proof per phase.
+- **New or remaining findings, and where each goes:**
+
+| Finding | Severity | Slot |
+|---|---|---|
+| **The seller's Orders and Dashboard look like a test log.** 28 orders, 25 of them an identical "1 × Cobalt drip mug $37.00", and repeated $37 automatic refunds. D-070 hid test runs from public pages but kept them in the seller views. | High (J2, J3, J5) | **Oct 18, review-fix lane:** for the shared demo seller, the seller views hide `is_test` orders unless the request is a test run (AT-4 and AT-5 send the header). Then seed 4–6 varied real-looking orders through the real flow (real sessions, varied items and buyers). |
+| **No product photos**, and no sample photo to try photo → listing | High (J2, J3, J5) | #5: owner photos (AT-3), plus 3 sample photos linked in the README. Also the Telegram demo photos. |
+| **"Answered before" on every step of the headline flow** reads as canned. The same starter prompt is cached, which is honest but alarming. | Medium (J4, J5) | **Oct 18:** a one-line legend under the `/shop` timeline: "Answered before = the same question was answered earlier and reused; prices, totals and every PayPal call are always live". Consider not caching the first `/shop` step. |
+| **The dashboard answer has no figures and leaks a widget id** ("column‑chart‑grouped"). The chart has no `$` axis, and the page scrolls sideways at 1400 px. | Medium (J2, P9) | #6, moved up to **Phase 9, day 1** (it is the AG Grid prize screen) |
+| "Webhook verified" took about 17 s; the README says "a few seconds" | Low (J5) | **Oct 18:** README wording "within about 20 seconds" |
+| Times disagree: 19:10 on `/shop`, 13:41 on `/live` (local time vs UTC) | Low (J2) | #4 (one labelled timezone) |
+| No screenshot, GIF or video link at the top of the README | Medium (J5) | A GIF from the Phase 8 captures; the video link on Nov 10 |
