@@ -23,6 +23,9 @@ const Env = z.object({
   // The published sandbox buyer for judges (owner-approved, supersedes D-034). Sandbox only; shown on /pay when set.
   SANDBOX_BUYER_EMAIL: z.string().optional().default(""),
   SANDBOX_BUYER_PASSWORD: z.string().optional().default(""),
+  // Telegram seller copilot (Phase 10; Spike T first). Server-only; the webhook route is inert while unset.
+  TELEGRAM_BOT_TOKEN: z.string().optional().default(""),
+  TELEGRAM_WEBHOOK_SECRET: z.string().regex(/^[A-Za-z0-9_-]{0,256}$/).optional().default(""),
 });
 
 export type ServerEnv = z.infer<typeof Env>;

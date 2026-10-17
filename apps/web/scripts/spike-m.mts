@@ -66,7 +66,7 @@ const orderView = (d: unknown) => ({ id: (d as { id?: string }).id, status: (d a
 
 await step("B order, payee = partner itself, with platform fee", order({ merchant_id: PARTNER }, true), orderView);
 if (seller2) {
-  const payee = seller2.includes("@") ? { email_address: seller2 } : { merchant_id: seller2 };
+  const payee: Record<string, string> = seller2.includes("@") ? { email_address: seller2 } : { merchant_id: seller2 };
   await step("C1 order, payee = seller 2, no fee", order(payee, false), orderView);
   await step("C2 order, payee = seller 2, with platform fee", order(payee, true), orderView);
 }
