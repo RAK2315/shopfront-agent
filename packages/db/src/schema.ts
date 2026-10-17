@@ -49,6 +49,8 @@ export const sellers = pgTable('sellers', {
   refundPolicy: jsonb('refund_policy').$type<RefundPolicy>().notNull(),
   dashboardState: jsonb('dashboard_state'), // the seller's saved AG Studio layout (Phase 5)
   demoResetAt: ts('demo_reset_at'), // judge mode (D-011): last reset; per-buyer refund counts start here
+  // Telegram judge mode (D-073): every order of this seller is test-flagged, so its own views include test rows (D-074).
+  testOnly: boolean('test_only').notNull().default(false),
   createdAt: createdAt(),
 });
 
@@ -303,3 +305,47 @@ export const demoSnapshots = pgTable('demo_snapshots', {
   data: jsonb('data').notNull(),
   createdAt: createdAt(),
 });
+
+// ---------- Phase 10: seller copilot on Telegram (D-072, D-076). Webhook mode only; no polling. ----------
+
+/** A Telegram chat linked to one seller. `is_demo` links point at the isolated `judge_demo` seller (D-073). */
+export const telegramLinks = pgTable('telegram_links', {
+  chatId: text('chat_id').primaryKey(), // Telegram chat ids exceed 32 bits; stored as text
+  sellerId: text('seller_id').notNull().references(() => sellers.id),
+  isDemo: boolean('is_demo').notNull().default(false),
+  linkedAt: ts('linked_at').notNull().defaultNow(),
+  revokedAt: ts('revoked_at'),
+});
+
+/** One-time link codes from the Studio "Connect Telegram" card (10 minutes). Only the hash is stored. */
+export const telegramLinkCodes = pgTable('telegram_link_codes', {
+  codeHash: text('code_hash').primaryKey(),
+  sellerId: text('seller_id').notNull().references(() => sellers.id),
+  expiresAt: ts('expires_at').notNull(),
+  usedAt: ts('used_at'),
+  createdAt: createdAt(),
+});
+
+/** Exactly-once processing of webhook updates (the D-045 pattern): Telegram re-delivers on any non-2xx. */
+export const telegramUpdates = pgTable('telegram_updates', {
+  updateId: text('update_id').primaryKey(),
+  receivedAt: ts('received_at').notNull().defaultNow(),
+  processedAt: ts('processed_at'),
+});
+
+/** Single-use, seller-scoped, expiring button actions (checkChatAction in core). The payload holds ids only. */
+export const telegramActions = pgTable(
+  'telegram_actions',
+  {
+    id: text('id').primaryKey(), // tga_ + 12 chars, fits the 64-byte callback_data
+    sellerId: text('seller_id').notNull().references(() => sellers.id),
+    chatId: text('chat_id').notNull(),
+    kind: text('kind').notNull(),
+    payload: jsonb('payload').$type<Record<string, string>>().notNull().default({}),
+    expiresAt: ts('expires_at').notNull(),
+    usedAt: ts('used_at'),
+    result: jsonb('result'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('telegram_actions_chat').on(t.chatId, t.createdAt)],
+);

@@ -1,7 +1,7 @@
 import "server-only";
 import { confirmationOf, type CheckoutStatus, type Confirmation } from "@shopfront/core";
 import { and, desc, eq, inArray, schema } from "@shopfront/db";
-import { isTestRun } from "./run-context";
+import { includeTestRowsFor } from "./run-context";
 import { services } from "./services";
 
 export interface SellerOrder {
@@ -45,7 +45,7 @@ const RULE_TEXT: Record<string, string> = {
 /** Test and script orders (D-070) are hidden here too, unless the request is itself a test run (AT-4, AT-5). */
 export async function sellerOrders(sellerId: string) {
   const { db } = services();
-  const includeTest = await isTestRun();
+  const includeTest = await includeTestRowsFor(sellerId);
   const rows = await db
     .select()
     .from(schema.checkouts)

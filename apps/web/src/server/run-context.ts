@@ -1,7 +1,9 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { headers } from "next/headers";
+import { eq, schema } from "@shopfront/db";
 import { env } from "./env";
+import { services } from "./services";
 
 // Test, replay-check and script runs write to the shared production database. They are flagged (`is_test` on
 // checkouts and events) and never shown on public views: /live, the landing hero, /api/events, the console.
@@ -31,6 +33,15 @@ export async function isTestRun(): Promise<boolean> {
   } catch {
     return false; // outside a request (webhook processing after the response, timers, boot)
   }
+}
+
+/** Seller views include test rows for a test run, or for a seller whose every order is a test by design
+ * (`sellers.test_only`: the isolated Telegram judge seller, D-073/D-074). */
+export async function includeTestRowsFor(sellerId: string): Promise<boolean> {
+  if (await isTestRun()) return true;
+  const { db } = services();
+  const [s] = await db.select({ testOnly: schema.sellers.testOnly }).from(schema.sellers).where(eq(schema.sellers.id, sellerId));
+  return Boolean(s?.testOnly);
 }
 
 /** Headers for our own server-to-server calls (the hosted agent and the hack demo call /mcp over HTTP). */

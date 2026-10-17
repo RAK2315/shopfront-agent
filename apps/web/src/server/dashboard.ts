@@ -3,7 +3,7 @@ import { z } from "zod";
 import { centsToValue, confirmationOf, ShopError, type CheckoutStatus } from "@shopfront/core";
 import { and, eq, gte, inArray, lt, schema, sql } from "@shopfront/db";
 import { recordEvent } from "./events";
-import { isTestRun } from "./run-context";
+import { includeTestRowsFor } from "./run-context";
 import { services } from "./services";
 
 // Seller dashboard (Phase 5, AG Studio). Read-only data for the widgets, plus two seller-only edits
@@ -16,7 +16,7 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
 export async function dashboardData(sellerId: string) {
   const { db } = services();
   const since = new Date(Date.now() - 90 * 86_400_000);
-  const includeTest = await isTestRun();
+  const includeTest = await includeTestRowsFor(sellerId);
   const checkouts = await db
     .select()
     .from(schema.checkouts)
@@ -97,7 +97,7 @@ export async function dbSalesSummary(sellerId: string, fromIso: string, toIso: s
   const { db } = services();
   const from = new Date(fromIso);
   const to = new Date(toIso);
-  const includeTest = await isTestRun();
+  const includeTest = await includeTestRowsFor(sellerId);
   const rows = await db.execute<{ product: string; orders: number; units: number; revenue_cents: number }>(sql`
     select coalesce(p.title, ci.title_snapshot) product, count(distinct c.id)::int orders, sum(ci.quantity)::int units, sum(ci.line_total_cents)::int revenue_cents
     from ${schema.checkouts} c join ${schema.checkoutItems} ci on ci.checkout_id = c.id
