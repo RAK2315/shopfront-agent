@@ -83,6 +83,7 @@
 | D-072 | 2026-10-17 | Phase 10: seller copilot on Telegram (design; leads the pitch) | PROPOSED (Spike T) | J3, J4, J5, P7, P8, R3 |
 | D-073 | 2026-10-17 | Owner decisions: video deferred (no Telegram UI), Telegram judge mode, seed purchases, UI review pack before Phase 9 | ACCEPTED | J2, J5, S6.4, P8 |
 | D-074 | 2026-10-17 | Review-fix lane: seller views hide test orders; no scripted seeding; starters, legend, calm hack card; insights prompt fix pulled forward | ACCEPTED | J2, J3, J5, P9 |
+| D-075 | 2026-10-17 | Spike M, part 1: Partner Referrals and platform fees are gated for our sandbox app; payee routing is accepted. Verdict waits for seller 2 | IN PROGRESS | J1, J3, R2 |
 
 ---
 
@@ -868,6 +869,28 @@
 - **AT-4 re-run label:** a newly rendered placeholder USPS label with a fake number (as D-013 allows). The original placeholder wasn't kept in the repo.
 - **Tests:** `fixes-checks` I6 and the new `lane-checks` (L1 every starter through the hosted agent, L2 the hack card at desktop and mobile, L3 the legend), both on Render.
 - **Serves:** J2, J3, J5, P9, D-002, D-070, D-073.
+
+## D-075: Spike M, part 1: what our sandbox app may do (2026-10-17)
+- **Method:** `pnpm --filter web spike-m` (real sandbox calls on our own REST app `shopfront-agent`, through `PayPalClient`: cached OAuth, `PayPal-Request-Id` on every POST). It prints only statuses, issue names and debug ids.
+- **Docs read first:** developer.paypal.com multiparty "seller onboarding before payment" and "standard checkout integrate". Both say **"You must be an approved partner"**; neither says whether a sandbox app is exempt. The `paypal-best-practices` skill lists multiparty as out of scope.
+- **Results:**
+
+| Step | Call | Result | Debug id |
+|---|---|---|---|
+| A | `POST /v2/customer/partner-referrals` (THIRD_PARTY, features PAYMENT, REFUND, PARTNER_FEE; EXPRESS_CHECKOUT) | **403 NOT_AUTHORIZED** "insufficient permissions" | `f203538f123c3`, `f1608227f2802` |
+| B | `POST /v2/checkout/orders` with `payment_instruction.platform_fees` | **422 PLATFORM_FEES_NOT_SUPPORTED** "work with your PayPal Account Manager to enable this option" | `f2345314581a4`, `f160822b447c8` |
+| C1 | `POST /v2/checkout/orders` with `payee` = another sandbox account (the unpublished spare account), no fee | **201 CREATED** (`3P472142PJ921154P`, never paid; it expires) | `f421768d9d402` |
+| C2 | the same with a platform fee | 422 PLATFORM_FEES_NOT_SUPPORTED | `f514766c6d1b8` |
+
+- **What this means so far:**
+  - **Onboarding (Partner Referrals) and platform fees are gated** for this app. Both need PayPal to enable partner features, which a hackathon entry can't get by Nov 3. AT-9's onboarding and fee items can't pass. They are never faked.
+  - **Payee routing is accepted:** an order can name another account as the payee. This is the PLAN's "Partial" path (payee routing without fees).
+  - **Still unknown (needs seller 2, a US Business sandbox account, SETUP §14):**
+    1. whether a capture with `payee` = seller 2 lands in seller 2's balance;
+    2. whether our app can **refund** that capture. Without onboarding, seller 2 never granted us third-party REFUND permission, so a refund with `PayPal-Auth-Assertion` is expected to fail. If it does, refunds for routed orders couldn't run from Shopfront, and our refund policy engine and the Telegram refund approval wouldn't work for that seller;
+    3. whether webhooks for a payee-routed capture reach our webhook (the capture belongs to seller 2's account).
+- **Not yet a verdict.** Phase 9 is "protected unless its own spike fails". Partial means a scope cut to payee-only routing, possibly with seller-side refunds. That is an owner decision once the seller-2 checks run.
+- **Serves:** J1, J3, R2, D-006, PLAN risk 9.1.
 
 ---
 
