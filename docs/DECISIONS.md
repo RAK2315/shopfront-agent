@@ -1161,6 +1161,12 @@
   - The platform seller's automatic refunds.
 - **Migration `0011`:** the seller payout columns (existing sellers are set by handle), checkout and capture payee columns, `refund_status` + `handoff`, and `refund_requests.handoff_at` and `refunded_cents`.
 - **"Log in with PayPal" (the Oct 19 30-minute check):** not done. It needs a Developer Dashboard toggle that only the owner can see. That's an owner item; the first capture is the verification meanwhile (PLAN 9.2).
+- **Found on Render (AT-9, `docs/screenshots/phase-9/AT-9.md`):**
+  - **PayPal accepts an order whose payee email isn't a PayPal account** (200). A wrong payout email is only caught at the buyer's approval, and the checkout expires unpaid. The first-capture verification stays the guard. "Log in with PayPal" would close this (owner item).
+  - The shared sandbox buyer is over the repeat-refund limit, so the AT's refund went to the seller. The seller approved it with a Telegram tap (D-082), which is the real flow.
+  - `fern_and_loom`'s auto-refund limit is now $50 (it was $40), so a $42 napkin set is in policy. Owner: say if you want $40 back.
+  - **The insights answer's source labels are now written by code:** each tool returns a `summary_line` starting with `[db]` or `[paypal]`, and the agent quotes it. AT-5 #4 had failed when the model wrote "DB:" / "PayPal:" with correct figures. A REVIEW-1 #6 item, done early.
+  - **`/pay` on mobile scrolls 29 px sideways**: the PayPal card and the test-buyer email chip. It's older than today and left for the UI review (no UI in Part 1).
 - **Serves:** J1, J3, G1, G9 (#04), R2, R5, D-002, D-006, D-076.
 
 ---

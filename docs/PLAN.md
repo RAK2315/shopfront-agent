@@ -282,7 +282,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | 5 | Real product photos (AT-3) | The day the owner's photos land | Also the Telegram demo photos |
 | — | Found on Oct 17: `checkouts.mcp_client_name` is always null (the stateless `/mcp` never sees `initialize` on a tool call), so `/pay` says "your shopping agent" and the console can't name the agent | Oct 18 (D-081) | Named from `x-shopfront-client`, else the User-Agent (`recovery-checks` R4) |
 
-#### Phase 9 — Each seller paid directly, on the Partial path (Spike M passed as Partial, D-075/D-076; build Oct 19–21). Serves J1, J3, G1, R2, R5; retires D-006's "one platform account" caveat. **Protected**
+#### Phase 9 — ✅ BACKEND DONE 2026-10-18 (AT-9 backend on Render: `docs/screenshots/phase-9/AT-9.md`, D-083; UI after the owner's walkthrough). Each seller paid directly, on the Partial path (Spike M passed as Partial, D-075/D-076; build Oct 19–21). Serves J1, J3, G1, R2, R5; retires D-006's "one platform account" caveat. **Protected**
 - **What Spike M proved** (real sandbox calls, D-076):
   - **Works:** an order with `purchase_units[].payee` = the seller settles **into the seller's own PayPal** ($37.00 gross, $1.78 PayPal fee, $35.22 net to seller 2). Our webhook receives that order's APPROVED, CAPTURE.COMPLETED and CAPTURE.REFUNDED events, signature-verified.
   - **Gated for a non-approved partner:** Partner Referrals onboarding (403), `platform_fees` (422), and refunding another merchant's capture from our app (403 without, 400 with `PayPal-Auth-Assertion`).

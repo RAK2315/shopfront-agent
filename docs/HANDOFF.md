@@ -26,7 +26,16 @@
   - `runChatAction` (refund approve and decline wired; the rest come in the Phase 10 build);
   - `judge_demo` seeded (`seed -- --only judge_demo`), `test_only`, and isolated from search and `llms.txt`.
 - **Signed fault hooks** (`server/faults.ts`): `verify-unavailable`, and `capture-declined` (PayPal's own `PayPal-Mock-Response` negative testing).
-- **Next:** apply the owner's review-pack feedback when it arrives, then Phase 9 on the Partial path (Oct 19–21).
+- **Part 6, Part 1 (owner, after approvals; D-083):**
+  - AT-5 re-run, 6/6, with a demo reset after each run.
+  - `/pay` shots at three sizes (`docs/screenshots/recovery/pay-agent-name/`). Mobile scrolls 29 px sideways (an older issue, logged for the UI review).
+  - **Phase 9 backend done on Render** (`phase9-checks` P1–P5 and AT-4 7/7):
+    - payee routing per seller (`fern_and_loom` → seller 2, verified);
+    - the refund handoff (`refund_status = handoff`, deep link, 0 refund calls);
+    - seller refunds closed by webhook in 9 s, with the GET fallback proven.
+  - Migration `0011`.
+- **Admin actions** on `/api/admin/demo`: `set_payout`, `handoff_check`.
+- **Next:** Part 2, the guided UI walkthrough with the owner (`docs/review-pack/FEEDBACK.md`). It starts when the owner says "start review". Nothing gets built until the owner approves the ranked fix list.
 
 ## Completed state
 

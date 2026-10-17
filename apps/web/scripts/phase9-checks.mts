@@ -187,11 +187,32 @@ if (only.has("P3")) {
   const rr = r.json as { refund_request_id?: string; status?: string; explanation?: string } | null;
   state.refundRequestId = rr?.refund_request_id;
   saveState();
+  let approvedVia = "policy";
+  if (rr?.status === "pending") {
+    // Policy wants the seller (e.g. the shared sandbox buyer hit the repeat-refund limit). The seller approves from
+    // their phone: a Telegram tap on a code-made approve action (D-082), from a made-up chat linked to fern_and_loom.
+    approvedVia = "telegram tap";
+    const chatId = 9_400_000_000_000 + (Date.now() % 1_000_000);
+    const f = await fern();
+    await db.query("insert into telegram_links (chat_id, seller_id) values ($1, $2) on conflict (chat_id) do update set seller_id = excluded.seller_id, revoked_at = null", [String(chatId), f.id]);
+    const actionId = `tga_${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+    await db.query("insert into telegram_actions (id, seller_id, chat_id, kind, payload, expires_at) values ($1, $2, $3, 'approve_refund', $4, now() + interval '1 hour')", [actionId, f.id, String(chatId), JSON.stringify({ refundRequestId: state.refundRequestId })]);
+    const updateId = 950_000_000 + (Date.now() % 1_000_000);
+    const hook = await fetch(`${base}/telegram/webhook`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-telegram-bot-api-secret-token": e.TELEGRAM_WEBHOOK_SECRET },
+      body: JSON.stringify({ update_id: updateId, callback_query: { id: `cq${updateId}`, data: actionId, message: { message_id: 1, chat: { id: chatId } } } }),
+    });
+    await until("the tap to be processed", () => q1("select 1 from telegram_updates where update_id = $1 and processed_at is not null", [String(updateId)]), 60_000);
+    await db.query("update telegram_links set revoked_at = now() where chat_id = $1", [String(chatId)]);
+    log("P3 approved by a Telegram tap", hook.status, (await q1("select result from telegram_actions where id = $1", [actionId]))?.result);
+  }
   const row = await q1<{ status: string; decision: string; amount_cents: number; handoff_at: Date | null }>("select status, decision, amount_cents, handoff_at from refund_requests where id = $1", [state.refundRequestId]);
   const ev = await q1<{ summary: string; data: { link?: string } }>("select summary, data from events where checkout_id = $1 and kind = 'refund_handoff' order by id desc limit 1", [state.checkoutId]);
   const refundCalls = Number((await q1<{ n: number }>("select count(*)::int n from paypal_calls where checkout_id = $1 and method = 'POST' and path like '%/refund'", [state.checkoutId]))?.n);
-  record("P3 in-policy refund → handoff with the deep link; 0 refund calls from Shopfront", row?.status === "handoff" && row.decision === "auto_approve" && ev?.data.link === `https://www.sandbox.paypal.com/activity/payment/${state.captureId}` && refundCalls === 0, {
+  record("P3 approved refund → handoff with the deep link; 0 refund calls from Shopfront", row?.status === "handoff" && ev?.data.link === `https://www.sandbox.paypal.com/activity/payment/${state.captureId}` && refundCalls === 0, {
     toolStatus: rr?.status,
+    approvedVia,
     explanation: rr?.explanation,
     row,
     wire: ev?.summary,

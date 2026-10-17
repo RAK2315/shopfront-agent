@@ -1,0 +1,41 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T20:25:29.053Z",
+  "results": [
+    {
+      "id": "P1a no payout account → refused before any row or PayPal call",
+      "ok": true,
+      "detail": {
+        "error": "{\"error\":{\"code\":\"SELLER_NOT_READY\",\"message\":\"Fern & Loom hasn't connected a PayPal account yet, so this shop can't take payments. Nothing was charged.\"}}",
+        "newCheckouts": 0,
+        "newPayPalCalls": 0
+      }
+    },
+    {
+      "id": "P1b a payee email that isn't a PayPal account → PayPal's answer surfaced; nothing half-created",
+      "ok": true,
+      "detail": {
+        "paypalAccepted": true,
+        "toolError": null,
+        "checkout": {
+          "id": "chk_a97mvu6kchuz",
+          "status": "created",
+          "paypal_order_id": "4M589549YG968033E"
+        },
+        "orderCall": {
+          "status": 200,
+          "debug_id": "f4807070dbf5d"
+        },
+        "note": "PayPal created the order (an unknown payee email fails later, at the buyer's approval); the checkout expires unpaid"
+      }
+    },
+    {
+      "id": "P1c fern_and_loom connected to seller 2's PayPal (unverified until the first payment)",
+      "ok": true,
+      "detail": {
+        "set": 200,
+        "payoutStatus": "unverified"
+      }
+    }
+  ]
+}

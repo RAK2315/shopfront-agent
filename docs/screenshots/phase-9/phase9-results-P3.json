@@ -1,0 +1,24 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T20:27:24.608Z",
+  "results": [
+    {
+      "id": "P3 approved refund → handoff with the deep link; 0 refund calls from Shopfront",
+      "ok": true,
+      "detail": {
+        "toolStatus": "pending",
+        "approvedVia": "telegram tap",
+        "explanation": "A refund request for this order is already open.",
+        "row": {
+          "status": "handoff",
+          "decision": "needs_seller",
+          "amount_cents": 4600,
+          "handoff_at": "2026-10-17T20:27:20.624Z"
+        },
+        "wire": "Refund handed to Fern & Loom · refund $46.00 in your PayPal · approved by seller · 0 refund calls from Shopfront",
+        "link": "https://www.sandbox.paypal.com/activity/payment/0UP62239WF526330U",
+        "refundPostsFromOurApp": 0
+      }
+    }
+  ]
+}

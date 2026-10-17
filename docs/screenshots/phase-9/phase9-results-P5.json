@@ -1,0 +1,23 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T20:29:59.370Z",
+  "results": [
+    {
+      "id": "P5 GET fallback closes the handoff from PayPal's order refunds when no webhook is processed",
+      "ok": true,
+      "detail": {
+        "check": {
+          "kind": "checked",
+          "refunds": 1,
+          "recorded": 1
+        },
+        "row": {
+          "status": "executed",
+          "paypal_refund_id": "33366683D8670423T",
+          "refunded_cents": 4600
+        },
+        "via": "poll"
+      }
+    }
+  ]
+}

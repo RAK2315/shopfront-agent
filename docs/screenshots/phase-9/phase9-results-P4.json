@@ -1,0 +1,23 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T20:29:34.983Z",
+  "results": [
+    {
+      "id": "P4 seller refunds in PayPal → webhook closes the request (PayPal's id and amount); buyer page shows it",
+      "ok": true,
+      "detail": {
+        "sellerFlowSeconds": 82,
+        "closedSecondsAfterSellerRefund": 9,
+        "row": {
+          "status": "executed",
+          "paypal_refund_id": "33366683D8670423T",
+          "refunded_cents": 4600,
+          "amount_cents": 4600
+        },
+        "wire": "Refunded by the seller in PayPal · $46.00 · seen by verified webhook",
+        "via": "webhook",
+        "buyerStatus": "refunded"
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T20:26:31.014Z",
+  "results": [
+    {
+      "id": "P2 routed: capture payee = seller 2, not the platform; seller 2 verified by the capture",
+      "ok": true,
+      "detail": {
+        "checkout": "chk_ef1v7uok63bx",
+        "routedAs": {
+          "payee_email": "<seller2>",
+          "payee_merchant_id": null
+        },
+        "capture": "0UP62239WF526330U",
+        "payeeOnOurRow": "B83JSV9ELHV74",
+        "payeeFromPayPalGet": "B83JSV9ELHV74",
+        "platformPaid": false,
+        "sellerPayout": {
+          "id": "sel_fernandloom0",
+          "payout_status": "verified",
+          "paypal_merchant_id": "B83JSV9ELHV74"
+        }
+      }
+    }
+  ]
+}
