@@ -290,7 +290,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
   - **Tracking:** `PAYMENT.CAPTURE.REFUNDED` (verified) or, as the fallback, a GET of the capture (the existing fallback timers) moves the request to `executed`, records the PayPal refund id, updates the buyer's order page and writes a wire row ("Refunded by the seller in PayPal · $28.00").
   - A partial refund of a different amount is recorded as the amount PayPal reports, never the amount we asked for.
   - **Honest copy:** "Refunds for this shop are made by the seller in their own PayPal; we track them automatically."
-- **Data model** (migration `0009`):
+- **Data model** (migration `0010`; `0009` holds the Phase 10 tables, applied early, D-076):
   - `sellers`: `payout_email`, `payout_status`, `payout_verified_at` (`paypal_merchant_id` already exists).
   - `refund_requests.decision` gains `handoff`, plus `handoff_link_sent_at`.
   - Webhook recovery: an index `(verified, processed_at)` on `webhook_events` and `checkouts.capture_attempt`.
@@ -343,7 +343,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
   - A typed price ("28", "$28.00") is parsed by a regex in `packages/core`, never by the model.
   - No LLM gets a tool that publishes, captures, refunds or adds tracking.
 - **Why it matters (the J3/J4 answer):** PayPal Agent Ready, Store Sync and Shopify's MCP assume a store already exists. Our seller has a phone and a Telegram chat, and that is now enough to be agent-buyable with PayPal checkout. The pitch, the demo and the Devpost text **lead with this** (D-072).
-- **Spike T: ✅ go (2026-10-17, D-076).** Webhook with secret (401 when forged), text reply, phone photo downloaded via `getFile`, inline keyboard and callback with the toast and edit, all on Render. The cold-start delay is in D-076.
+- **Spike T: ✅ go (2026-10-17, D-076).** Webhook with secret (401 when forged), text reply, phone photo downloaded via `getFile`, inline keyboard and callback with the toast and edit, all on Render. Cold start: 73 s, with Telegram retrying once after "Read timeout expired" (D-076). Migration `0009` (Telegram tables, `sellers.test_only`) is applied.
 - **Spike T as planned** (half a day maximum, Oct 18):
   - **Owner first:** create the bot with @BotFather (`/newbot`, name "Shopfront", a username ending in `bot`). Put the token in `.env` and on Render as `TELEGRAM_BOT_TOKEN`.
   - Steps, all on Render:

@@ -936,7 +936,15 @@
   - File links last at least 1 hour, with a 20 MB download cap.
   - Non-2xx deliveries are retried "a reasonable amount of attempts", and updates are kept up to 24 h.
   - New since the PLAN was written: `editMessageText` takes `rich_message` as an alternative to `text`.
-- **Cold start (criterion 5, measured, not a pass gate):** COLD_START_RESULT
+- **Cold start (criterion 5, measured, not a pass gate):** the service was idle for about an hour, then the owner sent "cold".
+  - The reply said **"Delivered 73 s after you sent it"** (update `186128207`).
+  - `getWebhookInfo` showed `last_error_message: "Read timeout expired"` at 18:09:39Z. **Telegram's first delivery timed out while Render woke up, and its automatic retry landed.** It was processed once, and nothing was lost.
+  - Phase 10 consequences:
+    - Answer 200 before any work (already done, `after()`).
+    - Dedupe on `update_id` in the database, not in memory.
+    - The keep-warm ping from Nov 8 (D-030) matters for judges.
+    - The README quick path says the first reply after a quiet spell can take about a minute.
+- **Migration numbering (small deviation):** the Telegram tables and `sellers.test_only` went in first, as migration `0009` (applied 2026-10-17, Phase 10 prep). Phase 9's migration becomes `0010`.
 - **The spike route stays deployed** until Phase 10 replaces it. It stores nothing and touches no seller data. Phase 10 adds the `telegram_updates` dedupe table, links and action rows.
 
 ### Owner answers to the review-pack questions (provisional, 2026-10-17)
