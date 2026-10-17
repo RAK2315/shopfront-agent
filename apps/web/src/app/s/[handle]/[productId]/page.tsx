@@ -51,7 +51,7 @@ export default async function ProductPage({ params }: PageProps<"/s/[handle]/[pr
           )}
         </div>
 
-        <div className="grid content-start gap-6">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6">
           <div className="grid gap-2">
             <h1 className="font-display text-display font-medium tracking-[-0.02em]">{p.title}</h1>
             <p className="text-xl text-ink">
