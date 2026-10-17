@@ -254,13 +254,13 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 
 | REVIEW-1 # | Fix | Slot | Notes |
 |---|---|---|---|
-| R2 | **The demo seller's Orders and Dashboard hide `is_test` orders** (unless the request is a test run), then 4–6 varied real-session orders are seeded through the real flow. REVIEW-2's top finding: the seller views read as a test log. | **Oct 18 morning, 1 h** | Extends D-070 to the seller views of the shared demo seller only. AT-5 and AT-4 carry the test header, so they still see their orders. |
-| R2 | Legend under the `/shop` timeline explaining "Answered before"; README "webhook verified within about 20 seconds" | Oct 18 morning, 15 min | REVIEW-2 |
-| 3 | Every `/shop` starter returns a match (the "housewarming under $60" starter returns 0) | Oct 18 morning, 20 min, before the spikes | Plus a scripted check that runs every starter through `search_products` |
-| 7 | Hack-demo result in a calm success tone: "Protected: 3 of 3 blocked" | Oct 18 morning, 20 min | DESIGN.md "Review-fix lane" |
+| R2 | ✅ **The demo seller's Orders and Dashboard hide `is_test` orders** (unless the request is a test run). ~~Then 4–6 varied real-session orders are seeded~~: dropped, the owner runs the real purchases (D-073, D-074). REVIEW-2's top finding: the seller views read as a test log. | ✅ Done 2026-10-17 (D-074, `docs/screenshots/fixes-2/FIXES-2.md`) | Extends D-070 to the seller views of the shared demo seller only. AT-5 and AT-4 carry the test header, so they still see their orders. |
+| R2 | ✅ Legend under the `/shop` timeline explaining "Answered before"; README "webhook verified within about 20 seconds" | ✅ Done 2026-10-17 (D-074) | REVIEW-2 |
+| 3 | ✅ Every `/shop` starter returns a match (the "housewarming under $60" starter returned 0; it now names vases or table linens) | ✅ Done 2026-10-17 (D-074; `lane-checks` L1) | Plus a scripted check that runs every starter through `search_products` |
+| 7 | ✅ Hack-demo result in a calm success tone: "Protected: 3 of 3 blocked" | ✅ Done 2026-10-17 (D-074; `lane-checks` L2) | DESIGN.md "Review-fix lane" |
 | 8 | Webhook recovery (5xx on a verify failure, a sweep, the decline retry id) | Phase 9 | AT-9 |
 | 4 (rest) | Collapse repeated expiries into one line; scope the `/shop` timeline to the visitor's session (`data.sessionHash`, never the raw `bys_` id, D-068); one labelled timezone | Phase 10 (the wire gets "Seller · Telegram" rows anyway) | AT-10 screenshots |
-| 6 | Dashboard opens in view mode; one `$` sales chart; a skeleton; "What sold this week?" answers **with figures** labelled `[db]`/`[paypal]` (never a widget id) and scrolls to its chart; no sideways scroll at 1400 px | **Phase 9, day 1 (Oct 19)**, moved up by REVIEW-2 | The AG Grid prize screen (P9). The same insights agent answers in Telegram. |
+| 6 | Dashboard opens in view mode; one `$` sales chart; a skeleton; "What sold this week?" answers **with figures** labelled `[db]`/`[paypal]` (never a widget id; ✅ done early by D-074, AT-5 #4 passes) and scrolls to its chart; no sideways scroll at 1400 px; KPIs read $0.00, not "No data to display"; `[paypal]` figures vs test captures (D-074) | **Phase 9, day 1 (Oct 19)**, moved up by REVIEW-2 | The AG Grid prize screen (P9). The same insights agent answers in Telegram. |
 | 11 | Orders grouped "To ship · N" / "Done"; one seller page frame | Phase 10 (the order ping's "Open order" lands there) | |
 | 9 | "Who and why" README section (cited stats, today's payment links and DMs, how each seller becomes PayPal volume) | Phase 10 pitch rewrite | Owner input for any real seller quote |
 | 5 | Real product photos (AT-3) | The day the owner's photos land | Also the Telegram demo photos |

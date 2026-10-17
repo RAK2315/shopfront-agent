@@ -82,6 +82,7 @@
 | D-071 | 2026-10-17 | Re-plan Phases 9–13 in the owner's order (multi-seller, Telegram, Vault, disputes, arena) | ACCEPTED | J1–J5, P4–P9 |
 | D-072 | 2026-10-17 | Phase 10: seller copilot on Telegram (design; leads the pitch) | PROPOSED (Spike T) | J3, J4, J5, P7, P8, R3 |
 | D-073 | 2026-10-17 | Owner decisions: video deferred (no Telegram UI), Telegram judge mode, seed purchases, UI review pack before Phase 9 | ACCEPTED | J2, J5, S6.4, P8 |
+| D-074 | 2026-10-17 | Review-fix lane: seller views hide test orders; no scripted seeding; starters, legend, calm hack card; insights prompt fix pulled forward | ACCEPTED | J2, J3, J5, P9 |
 
 ---
 
@@ -850,6 +851,23 @@
   - Every public and seller screen at desktop and mobile goes in `docs/review-pack/`, plus one page listing each screen's route, its purpose and its one primary message.
   - It is scheduled on Oct 18 after the review-fix lane, so the owner can review the style before more UI is built on top of it.
 - **Serves:** J2, J5, S6.4, P8, D-011, D-070.
+
+## D-074: Review-fix lane, Oct 18 items (owner session "part 5"; done 2026-10-17)
+- **The seller's own views now hide test orders too** (REVIEW-2's top finding; extends D-070).
+  - `sellerOrders` (Orders and the refund queue), `dashboardData` (the dashboard and the ledger), `dbSalesSummary` (the insights agent's `[db]` figures) and the dashboard's event stream all leave out `is_test` rows unless the request is itself a test run.
+  - `scope=seller` on `/api/events` no longer widens the feed; the dashboard stops sending it.
+  - AT-4 and AT-5 still see their own orders: their Node and browser traffic carries the test header (re-run on Render, `docs/screenshots/fixes-2/`).
+  - It applies to every seller session. Today only `juniper_clay` can sign in, so this is the demo seller.
+  - **Phase 10 must add an exception for `judge_demo`:** every one of its orders is test-flagged by design (D-073), and its Telegram flows run without a request header, so they would otherwise see nothing. Planned: treat a seller whose `is_demo`-style flag is set as including test rows.
+- **No scripted seeding (owner, D-073).** PLAN's "then seed 4–6 varied real orders" is dropped: the owner runs the real public purchases. Until then the demo seller's Orders and Dashboard are **empty** (0 real paid orders on 2026-10-17). Judges see the empty states, so the Orders empty state now says where orders come from and links to `/shop`.
+- **Known mismatch, not fixable here:** the insights agent's `[paypal]` figures come from Transaction Search on the one sandbox merchant, which still includes every test capture. Until real purchases land, `[db]` can say 0 while `[paypal]` shows dozens. The answer already labels each source. This is a REVIEW-1 #6 item for Phase 9 day 1 (it may need a note in the answer, or a date floor at the cutover).
+- **Starters (REVIEW-1 #3):** "Something for a housewarming under $60" found nothing (no listing mentions housewarming). It is now "A vase or table linens for a housewarming, under $60" (the bud vases at $28 and the napkins at $42 match). The starters live in `src/lib/shop-starters.ts`. The recorded blue-mug starter is unchanged (D-055).
+- **Legend (REVIEW-2):** under the `/shop` timeline: "Answered before = the same question was answered earlier and its words reused. Prices, totals and every PayPal call are always live." It is desktop only, like the timeline itself (a REVIEW-1 low finding).
+- **Hack card (REVIEW-1 #7):** success tone, "Protected: 3 of 3 blocked", and one row per attack with the server's real reason in plain words ("unknown field `price`", "must be at least 1 `quantity`"), parsed from the MCP validation message (`src/lib/hack-reason.ts`, 3 unit tests). If an attack were ever accepted, the card turns danger and says so.
+- **Pulled forward from Phase 9 day 1 (deviation):** AT-5 #4 ("What sold this week?" answers with `[db]`/`[paypal]` figures) failed on the re-run, with the same answer REVIEW-2 saw ("Added a column-chart-grouped…"). The new filter can't cause it, since a test run sees every order. The owner requires AT-5 to pass, so the insights instructions now say a question gets figures, never only a chart, and a reply never names a widget type id. The rest of #6 stays in Phase 9 (view mode, the `$` chart, the skeleton, sideways scroll).
+- **AT-4 re-run label:** a newly rendered placeholder USPS label with a fake number (as D-013 allows). The original placeholder wasn't kept in the repo.
+- **Tests:** `fixes-checks` I6 and the new `lane-checks` (L1 every starter through the hosted agent, L2 the hack card at desktop and mobile, L3 the legend), both on Render.
+- **Serves:** J2, J3, J5, P9, D-002, D-070, D-073.
 
 ---
 
