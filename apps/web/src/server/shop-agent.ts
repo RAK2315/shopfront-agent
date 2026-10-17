@@ -4,10 +4,12 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { newId } from "@shopfront/core";
 import { eq, schema } from "@shopfront/db";
 import { LlmUnavailableError, type ChatMessage, type ToolSpec } from "@shopfront/llm";
+import { agentStepSummary } from "@/lib/ai-source";
 import { appUrl } from "./env";
 import { recordEvent } from "./events";
 import { llm } from "./llm";
 import { services } from "./services";
+import { runHeaders } from "./run-context";
 import { sessionScopedRequestId } from "./tokens";
 
 // Hosted buyer agent (/shop). It is an MCP client of our own public /mcp endpoint, exactly like an external agent,
@@ -77,7 +79,7 @@ export async function runShopAgent(sessionId: string | null, message: string, cl
   const checkouts = [...session!.checkouts];
   const client = new Client({ name: "shopfront-web-agent", version: "1.0.0" });
   try {
-    await client.connect(new StreamableHTTPClientTransport(new URL(appUrl("/mcp")), { requestInit: { headers: { "x-shopfront-client": "shopfront-web-agent" } } }));
+    await client.connect(new StreamableHTTPClientTransport(new URL(appUrl("/mcp")), { requestInit: { headers: { "x-shopfront-client": "shopfront-web-agent", ...(await runHeaders()) } } }));
     const { tools } = await client.listTools();
     const specs: ToolSpec[] = tools.map((t) => ({ name: t.name, description: t.description ?? "", parameters: t.inputSchema as Record<string, unknown> }));
 
@@ -90,7 +92,7 @@ export async function runShopAgent(sessionId: string | null, message: string, cl
       await recordEvent(db, {
         actor: "buyer_agent",
         kind: "agent_step",
-        summary: `${step.toolCalls.length ? `Decided to call ${step.toolCalls.map((c) => c.name).join(", ")}` : "Replied to the shopper"}${r.fallbackReason ? ` · fallback after ${r.fallbackReason}` : ""}`,
+        summary: agentStepSummary(step.toolCalls.map((c) => c.name), r.fallbackReason),
         data: { source: r.source, model: r.model, ms, fallbackReason: r.fallbackReason },
       });
       messages.push({ role: "assistant", content: step.text, toolCalls: step.toolCalls });

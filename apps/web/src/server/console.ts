@@ -1,6 +1,6 @@
 import "server-only";
 import { confirmationOf, type CheckoutStatus, type Confirmation } from "@shopfront/core";
-import { desc, inArray, schema } from "@shopfront/db";
+import { and, desc, eq, inArray, schema } from "@shopfront/db";
 import { toShopEvent, type ShopEvent } from "./events";
 import { services } from "./services";
 
@@ -20,10 +20,18 @@ export interface ConsoleCheckout {
   updatedAt: string;
 }
 
-/** Recent checkouts for the live console. No buyer email or address: the console is public in the demo. */
-export async function recentCheckouts(limit = 12): Promise<ConsoleCheckout[]> {
+/**
+ * Recent checkouts for the live console. No buyer email or address: the console is public in the demo.
+ * Test and script runs are left out unless the caller is itself a test run (run-context.ts).
+ */
+export async function recentCheckouts(limit = 12, includeTest = false): Promise<ConsoleCheckout[]> {
   const { db } = services();
-  const rows = await db.select().from(schema.checkouts).orderBy(desc(schema.checkouts.createdAt)).limit(limit);
+  const rows = await db
+    .select()
+    .from(schema.checkouts)
+    .where(includeTest ? undefined : eq(schema.checkouts.isTest, false))
+    .orderBy(desc(schema.checkouts.createdAt))
+    .limit(limit);
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
   const [items, caps] = await Promise.all([
@@ -53,8 +61,13 @@ export async function recentCheckouts(limit = 12): Promise<ConsoleCheckout[]> {
   });
 }
 
-export async function recentEvents(limit = 60): Promise<ShopEvent[]> {
+export async function recentEvents(limit = 60, includeTest = false): Promise<ShopEvent[]> {
   const { db } = services();
-  const rows = await db.select().from(schema.events).orderBy(desc(schema.events.id)).limit(limit);
+  const rows = await db
+    .select()
+    .from(schema.events)
+    .where(and(includeTest ? undefined : eq(schema.events.isTest, false)))
+    .orderBy(desc(schema.events.id))
+    .limit(limit);
   return rows.map(toShopEvent);
 }

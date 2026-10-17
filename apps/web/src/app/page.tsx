@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
-import { desc, schema } from "@shopfront/db";
 import { LandingWire } from "@/components/landing/landing-wire";
 import { RequestId } from "@/components/ui/request-id";
 import { appUrl } from "@/server/env";
-import { toShopEvent } from "@/server/events";
-import { services } from "@/server/services";
+import { recentEvents } from "@/server/console";
+import { isTestRun } from "@/server/run-context";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -31,8 +30,7 @@ const ROUTES = [
 ];
 
 export default async function Home() {
-  const rows = await services().db.select().from(schema.events).orderBy(desc(schema.events.id)).limit(7);
-  const initial = rows.map(toShopEvent);
+  const initial = await recentEvents(7, await isTestRun());
 
   return (
     <main className="min-h-dvh bg-canvas">

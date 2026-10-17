@@ -99,7 +99,9 @@ Every POST carries a `PayPal-Request-Id`; every PayPal call's debug id is logged
 | **Google Gemini** `gemini-3.5-flash-lite` | Photo → listing (vision), label → tracking (vision), large AG Studio agent turns, fallback for Groq | Vision and a large context on the free tier |
 | **AG Studio agents** | Studio's page, widget and data agents run on our model adapter; our insights agent delegates layout work to them | Natural-language dashboard building |
 
-All model calls go through one router: cache → per-IP and daily caps → primary → fallback → recorded replay. The demo can run with **zero live AI calls** (`LLM_MODE=replay`) while PayPal stays live. `temperature: 0` and Zod-validated structured output are used throughout. The timeline badges which source answered (Groq, Gemini, cache, replay).
+All model calls go through one router: cache → per-IP and daily caps → primary → fallback → recorded replay. `temperature: 0` and Zod-validated structured output are used throughout. The timeline badges which source answered: "Live · Groq", "Live · Gemini", "Answered before" (the same question, cached), or "Replayed recording".
+
+**Replay is resilience, not staging:** if both free AI providers are down, the agent's recorded words are replayed while every PayPal call, price and total stays live, and only steps actually served that way are badged "Replayed recording". Test and script runs are kept off the public timeline, so `/live` shows real sessions only.
 
 ## Honest limitations
 

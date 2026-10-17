@@ -19,6 +19,7 @@ import { recordEvent } from "./events";
 import { scheduleExpiryCheck, scheduleFallbackChecks } from "./fallback";
 import { requestRefund } from "./refunds";
 import { services } from "./services";
+import { isTestRun } from "./run-context";
 import { hashToken, newOrderToken, tokenMatchesHash, verifyOrderToken } from "./tokens";
 
 const CHECKOUT_TTL_MS = 3 * 60 * 60 * 1000; // PayPal orders that are never approved lapse after ~3h
@@ -198,6 +199,7 @@ export const shop: ShopPort = {
         clientRequestId: input.client_request_id ?? null,
         source: ctx.clientName === "shopfront-web-agent" ? "web_agent" : "mcp_external",
         mcpClientName: ctx.clientName ?? null,
+        isTest: await isTestRun(),
         status: "created",
         itemTotalCents: quote.itemTotalCents,
         shippingCents: quote.shippingCents,

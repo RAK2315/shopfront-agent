@@ -3,6 +3,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { and, asc, eq, gt, schema } from "@shopfront/db";
 import { appUrl } from "@/server/env";
 import { rateLimit } from "@/server/rate-limit";
+import { runHeaders } from "@/server/run-context";
 import { services } from "@/server/services";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
   if (!v) return Response.json({ error: { code: "NOT_FOUND", message: "Nothing listed yet." } }, { status: 404 });
 
   const client = new Client({ name: "price-hacker-demo", version: "1.0.0" });
-  await client.connect(new StreamableHTTPClientTransport(new URL(appUrl("/mcp"))));
+  await client.connect(new StreamableHTTPClientTransport(new URL(appUrl("/mcp")), { requestInit: { headers: await runHeaders() } }));
   const attempt = async (label: string, args: Record<string, unknown>) => {
     try {
       const r = await client.callTool({ name: "create_checkout", arguments: args });

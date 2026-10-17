@@ -738,6 +738,27 @@
 - **The spare buyer** (`SANDBOX_BUYER2_*`) stays unpublished, as the fallback if the public one gets locked.
 - **Serves:** J5, J3, S3.b, D-034.
 
+## D-070: Test and replay runs are flagged and kept off public views (owner override Step 1.3, 2026-10-16)
+- **Problem:** AT scripts, replay checks and local servers write to the shared production database. REVIEW-1 reviewers read their noise on `/` and `/live` ("fallback after mode:replay", piles of expired test checkouts) as staging.
+- **Choice: a flag, not a separate tenant.** `is_test boolean` on `checkouts` and `events` (migration `0008`, index `events_public (is_test, id)`). A separate tenant or database was rejected: a second Neon branch costs compute hours (D-022), and AT-1…AT-6 must exercise the real deployed data path.
+- **What makes a run a test:**
+  - A request carrying `x-shopfront-test-run = HMAC(SESSION_SECRET, "test-run")`. It is read through Next's own request scope (`headers()`), so every route, page and streamed response sees it with no per-route wrapping.
+  - Or a server started with `SHOPFRONT_TEST_RUN=1`, which every local replay check must now use.
+  - Server-to-server calls (the hosted agent and the hack demo calling `/mcp`) forward the header.
+  - Events with no request (webhooks, fallback timers, expiry) **inherit the flag from their checkout**. Only `true` is cached, because a purge can archive a checkout later.
+- **Scripts:** every AT and recording script preloads `scripts/lib/test-run.ts`. It adds the header to Node `fetch` (plain calls and the MCP SDK) and to every Playwright context, but only for our host, never PayPal's. A request opts out with `x-shopfront-public-view: 1` to see or act as the public.
+- **Public views** (`/`, `/live`, `/api/console/checkouts`, `/api/events`) hide test rows unless the request is itself a test run. **The seller's own views keep everything:**
+  - the ledger, orders and dashboard;
+  - the dashboard's event stream, which asks for `scope=seller` and is honoured only with a seller session.
+- **Purge:** every checkout and event that existed before the cutover was dev, AT or reviewer traffic, and is flagged test.
+  - The public `/live` and landing hero start empty and fill with real sessions. The empty states already read "Quiet right now. Start a purchase in the shop…".
+  - Nothing is deleted, and the seller's ledger is unchanged.
+- **Replay wording:**
+  - "fallback after mode:replay" is gone: replay mode is not a fallback. A real provider failure still reads "fallback after groq:429".
+  - Source badges use plain words: "Live · Groq", "Live · Gemini", "Answered before", and "Replayed recording". The last appears only when a recording actually served the step (`source = replay`).
+  - The README frames replay as resilience, not staging.
+- **Serves:** J2, J4, J5, S3.b, D-022, D-029, D-055, REVIEW-1 #4.
+
 ---
 
 ## Requirement updates

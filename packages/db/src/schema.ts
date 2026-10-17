@@ -127,6 +127,8 @@ export const checkouts = pgTable(
     clientRequestId: text('client_request_id'),
     source: text('source').notNull(), // web_agent | mcp_external | storefront
     mcpClientName: text('mcp_client_name'),
+    /** Created by a test, replay check or script run: hidden from public views (/live, landing hero). */
+    isTest: boolean('is_test').notNull().default(false),
     status: checkoutStatus('status').notNull().default('created'),
     itemTotalCents: integer('item_total_cents').notNull(),
     shippingCents: integer('shipping_cents').notNull(),
@@ -243,9 +245,11 @@ export const events = pgTable(
     kind: text('kind').notNull(),
     summary: text('summary').notNull(),
     data: jsonb('data').$type<Record<string, unknown>>().notNull().default({}),
+    /** Written by a test, replay check or script run: hidden from public views (/live, landing hero). */
+    isTest: boolean('is_test').notNull().default(false),
     createdAt: createdAt(),
   },
-  (t) => [index('events_seller_id').on(t.sellerId, t.id), index('events_checkout').on(t.checkoutId)],
+  (t) => [index('events_seller_id').on(t.sellerId, t.id), index('events_checkout').on(t.checkoutId), index('events_public').on(t.isTest, t.id)],
 );
 
 export const paypalCalls = pgTable('paypal_calls', {

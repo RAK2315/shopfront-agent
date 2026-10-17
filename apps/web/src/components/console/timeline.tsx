@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RequestId } from "@/components/ui/request-id";
+import { AI_SOURCE_LABEL, type AiSource } from "@/lib/ai-source";
 import { cn } from "@/lib/cn";
 
 export type TimelineActor =
@@ -29,7 +30,7 @@ export type TimelineActor =
   | "ops_agent"
   | "llm";
 
-export type AiSource = "gemini" | "groq" | "cache" | "replay";
+export type { AiSource } from "@/lib/ai-source";
 
 export interface TimelineItem {
   id: string;
@@ -55,7 +56,6 @@ const ACTOR: Record<TimelineActor, { label: string; icon: LucideIcon; glyph: str
   llm: { label: "Model", icon: Cpu, glyph: "bg-ink-panel-2 text-ink-panel-muted ring-1 ring-ink-panel-line" },
 };
 
-const SOURCE_LABEL: Record<AiSource, string> = { gemini: "Gemini", groq: "Groq", cache: "Cache", replay: "Replay" };
 
 const time = new Intl.DateTimeFormat("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
 
@@ -88,7 +88,7 @@ export function TimelineEvent({ item }: { item: TimelineItem }) {
         {item.detail && <p className="mt-0.5 text-sm text-ink-panel-muted">{item.detail}</p>}
         {(item.ids?.length || item.aiSource) && (
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {item.aiSource && <Badge tone="panel">via {SOURCE_LABEL[item.aiSource]}</Badge>}
+            {item.aiSource && <Badge tone="panel">{AI_SOURCE_LABEL[item.aiSource]}</Badge>}
             {item.ids?.map((x) => (
               <RequestId key={x.label + x.value} label={x.label} value={x.value} tone={x.paypal ? "paypal" : "panel"} />
             ))}
