@@ -42,7 +42,7 @@
 
 **Total:** 8 + 5 + 24 + 22 + 12 + 12 + 12 + 10 + 17 + 18 + 18 + 7 = **165 s = 2:45**.
 
-**If a phase is cut** (decided at the freeze, Nov 3):
+**If a phase is cut** (decided at the freeze, Nov 5, D-079):
 - **Phase 13 (arena) cut:** disputes take all of beat 11 (18 s).
 - **Phase 12 also cut:** beat 11 is dropped. Its 18 s go to beats 6, 7 and 8 (+6 s each).
 - **Phase 11 (Vault) cut:** beat 10 is dropped. Its 18 s go to beats 3 (+6, the "Change price" path), 4 (+6, the hack rows) and 9 (+6, onboarding steps).

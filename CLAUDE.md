@@ -52,4 +52,4 @@ pnpm paypal:toolkit-token     # refresh PayPal AI Toolkit sandbox token in ~/.cl
 
 ## Working style for this repo
 - Planning docs are the memory. When something changes, update PLAN, ARCHITECTURE or SUBMISSION and add a DECISIONS entry in the same change.
-- Prefer the smallest change that passes the phase's acceptance tests. Respect the feature freeze (end of Nov 3) and the cut list.
+- Prefer the smallest change that passes the phase's acceptance tests. Respect the feature freeze (end of Nov 5, D-079) and the cut list.

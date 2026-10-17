@@ -87,6 +87,8 @@
 | D-076 | 2026-10-17 | Spike verdicts: M = Partial, go (direct payee, no fee, seller-side refund handoff); T = go. Owner: hide boot rows, delete /spike/studio, keep two styles | ACCEPTED | J1, J3, J4, R2, P8 |
 | D-077 | 2026-10-17 | AG Grid "Best Use" becomes a protected track: the grid is where the seller runs the business | PLANNED (build after the UI review) | P9, J1, J2 |
 | D-078 | 2026-10-17 | Visual richness fixes (rich chat cards, inline checkout, tighter /shop, a heavier live wire, photos) | PLANNED (build after the UI review) | J2, J5 |
+| D-079 | 2026-10-18 | Owner: cut Phase 12; Phase 13 → half a day on the hack card; freeze end of Nov 5; priority AG Grid = visual > 10 > 9 > 11 > 13; Vault enabled; Enterprise key requested | ACCEPTED (owner) | J1, J4, J5, P9, D1–D3 |
+| D-080 | 2026-10-18 | Spike G: Studio's own widgets are unwatermarked under the Studio key; master-detail, grid sparklines, integrated charts and the AI Toolkit need an AG Grid + Charts Enterprise (BOTH) key, behind a no-watermark guard | ACCEPTED (go) | P9, J1, J2 |
 
 ---
 
@@ -984,6 +986,73 @@
 - **Rules held:** clay stays the single accent and PayPal blue stays for PayPal elements. The per-system colours are muted tints, each with an icon and a label, and status is never shown by colour alone. Motion follows real events, with a reduced-motion fallback.
 - **Schedule:** Oct 30–31, plus the photos the day they land.
 - **Serves:** J2, J5, P8.
+
+## D-079: Owner decisions for part 6: cuts, the freeze moves to Nov 5, a new priority order (owner, 2026-10-18)
+- **Phase 12 (dispute defense) is cut.** Nothing of it was built. No sandbox disputes get opened on Oct 29. Unhappy path #04 stays covered by AT-4's merchant-side refunds, and #05 by AT-2, AT-4 and AT-6 (PLAN §2b). DEMO-SCRIPT and the README never mention disputes.
+- **Phase 13 shrinks to half a day, with no separate arena screen.** The existing hack card on `/shop` (D-074, "Protected: 3 of 3 blocked") grows to **about 12 attacks**, with a pass-rate board inside the card. It keeps the same rules: the attacks are real MCP calls against the deployed server, every row shows the server's real reason, and any ALLOWED turns the card red and is a bug to fix. There's no `/arena` route, no `arena_*` tables and no migration `0013`. DESIGN.md's `/arena` rows are dropped.
+- **The freeze moves to the end of Nov 5.** The video is Nov 6–10 and we submit on Nov 11. The D-003 hard deadline (Nov 13, 01:30 IST) is unchanged.
+- **Priority if anything slips** (most protected first):
+  1. **The visual richness fixes and AG Grid "Best Use"** (equal);
+  2. Phase 10, the Telegram copilot;
+  3. Phase 9, the Partial path;
+  4. Phase 11, Vault reorder;
+  5. Phase 13 lite.
+  - So the cut order is **13 → 11 → 9 → 10**. This replaces D-071's "9 and 10 protected" and its cut rule (13 → 12 → 11).
+- **Vault is enabled in the sandbox app now** (owner). Spike V can run on any day that has a backend-only gap, not just Nov 1.
+- **AG Grid Enterprise trial key:** the owner is requesting one now, whatever Spike G finds. We plan for the Enterprise features. **No watermark ever ships** (D-080 says how that's enforced).
+- **The Claude Desktop connector check:** the owner reports it separately.
+- **Re-dated plan (PLAN "Phases 9–13"):**
+
+| Dates (IST) | Work |
+|---|---|
+| Oct 18 | Backend only: Spike G, webhook recovery, the `mcp_client_name` fix, Phase 10 backend |
+| Oct 19–21 | Phase 9 (Partial path) |
+| Oct 22–24 | AG Grid "Best Use" |
+| Oct 25–29 | Phase 10 (Telegram, including judge mode) |
+| Oct 30–31 | Visual richness fixes |
+| Nov 1 | Spike V (or earlier, in a gap) |
+| Nov 2–4 | Phase 11 (3 days; no longer compressed) |
+| Nov 5 | Phase 13 lite (half a day) and buffer. **Freeze at end of day** |
+| Nov 6–10 | The video (Phase 8) and what's left of Phase 7 (README, Devpost text, AT-7). Keep-warm from Nov 8 (§5, unchanged) |
+| Nov 11 | Submit |
+
+- **Serves:** J1, J4, J5, P6, P7, P9, D1–D3, G9.
+
+## D-080: Spike G verdict: Studio's own widgets are licensed by the Studio key; Enterprise grid features need an AG Grid + AG Charts Enterprise key (2026-10-18)
+- **Method:** I read the installed packages (`ag-studio@3.0.0`, `ag-grid-enterprise@36.2.0` and `ag-charts-enterprise@14.2.0`, all pulled in by `ag-studio`). Then I ran each package's own license validator on our key in Node. The script prints only the verdict fields, never the key.
+- **Our key** is an **AG Studio `STUDIO-PRO-AI` trial (`[v3][03C][TRIAL]`), valid, expiring 29 Nov 2026** (Studio's validator).
+- **(a) Inside Studio: yes, for Studio's own widgets.**
+  - Studio's grid and pivot widgets call `ag-grid-enterprise`'s `createGrid` with a `Studio` module. That module registers a `studio` bean.
+  - `GridLicenseManager.validateLicense()` then skips the grid's own check (`if (beans.studio) → isDisplayWatermark: () => false`).
+  - Studio's charts do the same: they're created with `withinStudio = true` and `ag-charts-enterprise`'s `AllEnterpriseModule`.
+  - **So these are Enterprise-backed and unwatermarked under our key:**
+    - the server-side row model;
+    - the **Pivot grid widget**;
+    - every Studio chart type;
+    - the **sparkline in Studio's value (KPI) widget**;
+    - Studio's own AI (`AgStudioAiModule`; we have PRO-AI).
+- **But Studio's grids load a fixed module list:** server-side rows, Pivot, column API, cell and row style, locale, render API. **That list has no master-detail, no grid-cell sparklines, no integrated charts and no AI Toolkit** (`MasterDetailModule`, `SparklinesModule`, `IntegratedChartsModule` and `AiToolkitModule` exist in `ag-grid-enterprise` but aren't in Studio's list).
+  - Adding them would mean building a grid with Studio's internal `_STUDIO_GRID_MODULES` export, so that the `studio` bean skips the grid licence. **That is a licence bypass. We won't do it.**
+- **Our own grids, including custom Studio widgets, are licensed by `ag-grid-enterprise`'s own check.** Its validator **rejects the Studio key** (`valid: false`; it knows only the types `GRID`, `CHARTS` and `BOTH`). That's the watermark D-053 saw on Render.
+- **(b) The owner's trial key (requested now, D-079) must be the AG Grid Enterprise + AG Charts Enterprise bundle** (licence type `BOTH`, `[0102]`), not Grid alone.
+  - When sparklines or integrated charts are registered, `ag-grid-enterprise` sets `currentLicenseType = "BOTH"`. A Grid-only key then fails as "Incompatible License Key", and the grid shows a watermark.
+  - A Grid-only key would cover master-detail, row grouping, pivot and the AI Toolkit, but not the charts features.
+- **How we plan to build it (Enterprise first, as the owner asked):**
+  - Add `ag-grid-enterprise@36.2.0` and `ag-charts-enterprise@14.2.0` as direct web dependencies, at exactly Studio's versions so there's one copy of each.
+  - The new key lives in a separate env var, **`NEXT_PUBLIC_AG_GRID_LICENSE_KEY`**, set with `ag-grid-enterprise`'s `LicenseManager.setLicenseKey`.
+  - The Studio key keeps its own license manager; the two are separate classes, so they don't clash.
+  - **A no-watermark guard:** before registering any Enterprise module, the client checks the grid key with `LicenseManager.getLicenseDetails()`. It must be `valid`, of type `BOTH`, not expired and not past its trial date.
+    - If the check fails, the grid registers the Community modules only and renders the (c) fallbacks below.
+    - So a missing, wrong or lapsed key gives the Community grid, never a watermark. Note: the grid hides watermarks on `localhost`, so this check is the real gate.
+    - AT-G G6 checks this on Render, with the key unset as well.
+- **(c) The Community fallbacks** (used if the key never arrives, or lapses during judging):
+  - master-detail → full-width detail rows (the D-053 pattern);
+  - grid-cell sparklines → an AG Charts Community mini-chart as a cell renderer;
+  - the AI Toolkit → our own schema-validated filter, sort and group model, sent through `llm.call`;
+  - integrated charts and pivot → Studio's own chart and Pivot widgets, which are already licensed (a).
+- **Trial length risk:** if the grid trial is 45 days from about Oct 18, it lapses around Dec 2, before the assumed Dec 10 results (PLAN §5). The guard falls back cleanly. **Owner: request an extension around Nov 25**, alongside the Studio extension (~Nov 20, D-032).
+- **Verdict: go,** with Enterprise behind the guard and the Community fallbacks ready.
+- **Serves:** P9, J1, J2, J5, D-053, D-077.
 
 ---
 

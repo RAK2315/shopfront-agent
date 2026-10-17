@@ -156,7 +156,7 @@ The chat is a third surface: **the seller's phone.** Telegram draws the chrome; 
 
 **Capture (1080p):** left pane `/shop` ("restock my usual"), right pane `/consent/[token]` with the meter, or `/live` with the rail.
 
-### Phase 12: dispute defense agent
+### Phase 12: dispute defense agent: ✂ CUT (D-079, 2026-10-18; kept for the record only)
 | Screen / state | Register | 3-second message | Layout |
 |---|---|---|---|
 | **`/studio/disputes` list** | Craft retail | **"1 dispute needs your answer by Nov 2"** | Rows: item photo, reason in plain words ("Buyer says it never arrived"), amount, due date and stage pill. Open disputes first. |
@@ -171,7 +171,9 @@ The chat is a third surface: **the seller's phone.** Telegram draws the chrome; 
 
 **Capture (1080p):** full-bleed detail, the pack on the left, the draft on the right.
 
-### Phase 13: adversarial agent arena
+### Phase 13: adversarial agent arena: replaced by Phase 13 lite (D-079)
+> **There's no `/arena` screen.** The `/shop` hack card (DESIGN "Review-fix lane", D-074) grows to about 12 attacks with a pass-rate line ("Protected: 12 of 12 blocked"). Its rows reuse the tile states below: the success tone with a shield for BLOCKED, and the danger tone for ALLOWED, with the guardrail in plain words. The rows reveal in the order their results arrive, with a crossfade under reduced motion. The `/arena` rows below are kept for the record only.
+
 | Screen / state | Register | 3-second message | Layout |
 |---|---|---|---|
 | **`/arena` idle** | Console | **"50 attacks. Run them live."** | Ink panel. The pass-rate figure from the last run ("50 / 50 blocked · Nov 3 14:02"), a **Run the arena** button (primary; disabled during cooldown, with a countdown), and the grid of 50 tiles grouped by category headings (7 groups). |

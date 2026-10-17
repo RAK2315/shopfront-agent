@@ -141,7 +141,7 @@ Goal: **an agent calls our hosted MCP server → a PayPal Orders v2 order is cre
 - [ ] With `LLM_MODE=replay` (and both AI keys removed), the whole demo story runs end to end, PayPal calls stay live, and the timeline badges the AI steps `replay` (D-029).
 - [ ] Forcing a 429 on Gemini (test hook) makes the same request succeed on Groq, and the timeline shows `groq` with `fallback_reason=429`.
 
-### Phase 7 — Polish, docs, deploy hardening (Days 21–25, Nov 4–8)
+### Phase 7 — Polish, docs, deploy hardening (Days 21–25, Nov 4–8; the rest is now Nov 6–10, after the Nov 5 freeze, D-079)
 - Design pass (impeccable skill): typography, empty states, loading skeletons, motion, mobile.
 - README: problem, demo URL, judge credentials, architecture diagram, PayPal APIs used and why, AI tools used and how (S4), local run, honest limitations.
 - Fresh-clone run verified from the README only (D-056; Docker dropped).
@@ -154,7 +154,7 @@ Goal: **an agent calls our hosted MCP server → a PayPal Orders v2 order is cre
 - [ ] The README covers every item in `SUBMISSION.md`.
 - [ ] Zero secrets appear in git history (`gitleaks` run).
 
-### Phase 8 — Video (Days 26–27, Nov 9–10), built programmatically (D-057). **DEFERRED by the owner (D-073)**
+### Phase 8 — Video (Nov 6–10 per D-079; was Nov 9–10), built programmatically (D-057). **DEFERRED by the owner (D-073)**
 > **No video work or video decisions until the owner has reviewed the whole product and UI style.** Then the owner and Claude plan a professional, product-style demo. Everything below, including the D-062 tasks, stays logged but untouched. **Default when it resumes:** no real Telegram UI (trademark rule, S6.4). The Telegram beats use a rebuilt chat strip from the real bot transcripts, labelled "from a real session".
 
 The script and beat sheet are in `DEMO-SCRIPT.md` (**2:45**, 11 beats). Every product beat is real footage of the deployed app; motion graphics are only for the intro, the problem, transitions and the recap.
@@ -220,7 +220,15 @@ video/
 - [ ] `npx remotion render` from a fresh `video/` install reproduces the video from the captured clips.
 - [ ] The D-062 tasks above are fixed: no zoom crops its target, every `/live` pane starts with 0 checkouts, and no caption covers app text (each has its automated check).
 
-### Phases 9–13: re-planned 2026-10-17 in the owner's new order (D-071), all inside the Nov 3 feature freeze
+### Phases 9–13: re-planned 2026-10-17 in the owner's new order (D-071); re-dated 2026-10-18 (D-079): freeze at end of Nov 5, Phase 12 cut, Phase 13 lite
+> **D-079 (owner, 2026-10-18) overrides the notes below where they differ:**
+> - **The freeze is at the end of Nov 5.** The video is Nov 6–10; we submit on Nov 11.
+> - **Phase 12 is cut.**
+> - **Phase 13 is half a day:** the `/shop` hack card grows to about 12 attacks, with a pass-rate board. There's no `/arena`.
+> - **Priority** (most protected first): **AG Grid "Best Use" = visual richness fixes** > Phase 10 > Phase 9 > Phase 11 > Phase 13. **Cut order: 13 → 11 → 9 → 10.**
+> - Vault is enabled now.
+> - Spike G: go, with Enterprise behind a no-watermark guard (D-080).
+>
 > **Order (owner override, 2026-10-16):** 9 multi-seller payouts → 10 seller copilot on Telegram → 11 Vault reorder → 12 dispute defense → 13 adversarial arena. This supersedes D-063's order and its "Phase 9 = review fixes" framing. The review fixes the owner listed were done first (Step 1, Oct 17); the rest run in the review-fix lane below.
 >
 > **Spikes first:** Spike M (multi-seller) and Spike T (Telegram) both run on **Oct 18**, before any feature build. Spike V (Vault) runs on Oct 28, before Phase 11. Each spike has at most its stated time. A failed spike cuts its phase at once, the decision is logged, and nothing is ever faked.
@@ -235,22 +243,25 @@ video/
 |---|---|---|
 | Oct 17 (Sat) ✅ | Owner override Step 1 fixes (D-068 to D-070) and this re-plan | Fixes accepted on Render (`docs/screenshots/fixes-1/FIXES.md`) |
 | Oct 17 (Sat, evening) ✅ | Review-fix lane (D-074), the **UI review pack** (D-073), **Spike M = Partial, go** and **Spike T = go** (D-075, D-076) | Done; logged in DECISIONS |
-| Oct 18 (Sun) | **Owner's UI review.** Meanwhile, backend only (no new screens): Phase 10 prep (migration `0010`, `telegram_updates` dedupe, action rows, the price parser by TDD, the `judge_demo` seed and its test-row exception, D-074), **Spike G** (AG Grid Enterprise licence, 1 h, D-077), webhook recovery (#8), the `mcp_client_name` fix | Spike G go or no-go; unit tests |
+| Oct 18 (Sun) | **Owner's UI review.** Meanwhile, backend only (no new screens): **Spike G** ✅ go (D-080); webhook recovery (#8); the `mcp_client_name` fix; Phase 10 backend (the `telegram_updates` dedupe in the DB, link codes, the action executor on `checkChatAction`, the `judge_demo` seed as a `test_only` seller) | Spike G logged; unit tests; ATs on Render |
 | Oct 19–21 (Mon–Wed) | **Phase 9 on the Partial path:** each seller paid directly (payee), seller connect, the refund handoff, README | AT-9 on Render |
 | Oct 22–24 (Thu–Sat) | **AG Grid "Best Use"** (D-077), absorbing REVIEW-1 #6 | AT-G on Render |
 | Oct 25–29 (Sun–Thu) | **Phase 10: seller copilot on Telegram, including judge mode** (D-073), plus review-fix lane #4, #11 and #9. Save the real bot transcripts for the video's chat strip. | AT-10 on Render |
 | Oct 30–31 (Fri–Sat) | **Visual richness fixes** (D-078) | AT-V screenshots |
-| Nov 1 (Sun) | **Spike V:** Vault (PayPal wallet) plus a merchant-initiated order | Go or no-go for Phase 11 |
-| Nov 2–3 (Mon–Tue) | **Phase 11: agent reorder with Vault**, compressed to 2 days (if Spike V passed; otherwise Phase 12 takes these days). **Freeze at end of Nov 3.** | AT-11 |
-| At risk | **Phase 12 (disputes)** and **Phase 13 (arena)**: no slot. Either one comes back only if a phase above finishes early. Open sandbox disputes on Oct 29 morning only if Phase 12 is still alive then. | — |
+| Nov 1 (Sun) | **Spike V:** Vault (PayPal wallet) plus a merchant-initiated order. Vault is enabled already (D-079), so it may run earlier, in any backend-only gap | Go or no-go for Phase 11 |
+| Nov 2–4 (Mon–Wed) | **Phase 11: agent reorder with Vault**, 3 days (if Spike V passed; otherwise the days go to the buffer and the protected tracks) | AT-11 |
+| Nov 5 (Thu) | **Phase 13 lite** (half a day, D-079): the hack card grows to about 12 attacks with a pass-rate board. Then the buffer. **Freeze at end of Nov 5.** | AT-13 lite |
+| Nov 6–10 | **Video** (Phase 8) and the rest of Phase 7 (README, Devpost text, AT-7). Keep-warm from Nov 8 (§5) | — |
+| Nov 11 | **Submit** | — |
+| ✂ Cut | **Phase 12 (disputes)**, by the owner (D-079) | — |
 | Any day | Phase 3 AT-3, the day the owner's photos land | AT-3 |
 
 **Owner actions with dates (confirmed by the owner, D-073):**
 - ✅ **Done Oct 17:** the Telegram bot (`@juniper_clay_copilot_bot`) and sandbox seller 2 (merchant `B83JSV9ELHV74`).
-- **Oct 18:** if Spike G needs it, request an AG Grid Enterprise trial key (D-077).
+- **Oct 18:** request the AG Grid Enterprise trial key (requested, D-079). It must be the **AG Grid + AG Charts Enterprise bundle** (D-080). It goes in `.env` and on Render as `NEXT_PUBLIC_AG_GRID_LICENSE_KEY`. **Around Nov 25:** ask for an extension, because a 45-day trial lapses before results.
 - **Oct 18–19:** review the UI review pack (`docs/review-pack/`) before Phase 9 UI work.
-- **Before Nov 1:** enable Vault in the sandbox app.
-- **Oct 29 morning:** be available if a sandbox dispute must be opened by hand.
+- ✅ **Done Oct 18:** Vault enabled in the sandbox app.
+- ~~**Oct 29 morning:** be available if a sandbox dispute must be opened by hand.~~ Phase 12 is cut (D-079).
 - **Before Nov 8, and again before judging (Nov 11):** run one real public purchase on the hosted site (§5).
 - **Product photos:** placeholders stay until they arrive; then run AT-3.
 
@@ -449,11 +460,11 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 
 #### AG Grid "Best Use" (D-077; Spike G Oct 18; build Oct 22–24). Serves P9 (the AG Grid prize), J1, J2, J5. **Protected**
 - **Goal:** the grid is where the seller runs the business, not a display. It lives on `/studio/dashboard` (AG Studio) and absorbs REVIEW-1 #6.
-- **Spike G** (1 h, Oct 18). Can we use the Enterprise features without a watermark?
-  - (a) Do AG Studio's grid widgets expose them under the Studio key?
-  - (b) Otherwise, an AG Grid Enterprise trial key (owner).
-  - (c) Otherwise, Community fallbacks (D-077).
-  - Log the result in DECISIONS. A watermark is never shipped.
+- **Spike G: ✅ go (2026-10-18, D-080).**
+  - **Covered by the Studio key, unwatermarked:** Studio's own widgets (its Pivot grid widget, every chart type, the KPI-widget sparkline, Studio AI).
+  - **Need the owner's AG Grid + AG Charts Enterprise (`BOTH`) trial key:** master-detail, grid-cell sparklines, integrated charts and the AI Toolkit. The key goes in `NEXT_PUBLIC_AG_GRID_LICENSE_KEY`.
+  - **A no-watermark guard:** Enterprise modules are registered only if `LicenseManager.getLicenseDetails()` says the key is valid, of type `BOTH`, and neither expired nor past its trial. Otherwise the grid runs the Community fallbacks (full-width detail rows, an AG Charts Community cell sparkline, our own schema-validated grid-state model).
+  - Never use Studio's internal `_STUDIO_GRID_MODULES` to skip the grid licence.
 - **Features:**
   1. **Inline edits with PayPal write-back.**
      - Description, category and image cells PATCH `/v1/catalogs/products/{id}`: the only patchable fields, per PayPal's schema.
@@ -478,7 +489,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 - [ ] **G4 AI Toolkit.** "show unshipped orders over $50 this week" gives the expected filter and grouping (state checked, not pixels). 10 injection prompts never change data, and the output is schema-valid every time.
 - [ ] **G5 Charts.** The sparkline per product matches the DB totals, and the pivot totals equal the ledger sum.
 - [ ] **G6 Polish.**
-  - No watermark and no licence console error.
+  - No watermark and no licence console error, on Render (the grid hides watermarks on `localhost`). With `NEXT_PUBLIC_AG_GRID_LICENSE_KEY` unset or invalid, the guard serves the Community fallbacks and still shows no watermark (D-080).
   - Lighthouse accessibility ≥ 90.
   - No horizontal scroll at 1400 and 390 px.
   - Screenshots at desktop, mobile and 1920×1080.
@@ -562,7 +573,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | 11.5 | PayPal requires risk data (FraudNet/Magnes) for customer-initiated payments with saved tokens | Our reorders are merchant-initiated, so record that. If the spike shows the risk data is needed for merchant-initiated payments too, add the FraudNet snippet to the consent page. |
 | 11.6 | The consent token is a bearer secret, like the order token | Store only its hash. The hosted agent sees an alias (the D-061 pattern). The token never appears in logs, or in any URL except `/consent/[token]`. |
 
-#### Phase 12 — Dispute defense agent (Nov 1–2; disputes opened **Oct 29 morning**). Serves P7, R3, J1, J3, G9 (unhappy paths #04 and #05). Cut second
+#### Phase 12 — Dispute defense agent. ✂ **CUT by the owner (D-079, 2026-10-18).** Nothing below was built; it's kept for the record only. Serves P7, R3, J1, J3, G9 (unhappy paths #04 and #05)
 - **Goal:** a buyer opens a dispute in the sandbox. Then:
   1. Code assembles an **evidence pack**: tracking (our shipment plus the PayPal tracker), delivery status, the order chat transcript, listing photos and the order snapshot.
   2. The seller agent **drafts** a response. It writes words only; code appends every fact (the D-008 pattern).
@@ -605,7 +616,18 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | 12.3 | Moving a sandbox dispute between stages needs the sandbox-only endpoints | Only AT-12 calls `require-evidence` and `adjudicate`. The UI never does, and the README says so. |
 | 12.4 | A submitted dispute can't be reopened, so a bad submission wastes a test dispute | Validate first (the schema plus a pack-completeness check) and keep spare disputes. |
 
-#### Phase 13 — Adversarial agent arena (Nov 3). Serves J1, J4, J5, P6, P7, P8, G9. Cut first
+#### Phase 13 lite — The hack card becomes a pass-rate board (Nov 5, half a day; D-079). Serves J1, J4, J5, P6, P7, P8, G9. Cut first
+> **Owner, D-079:** the hack card on `/shop` (D-074) grows from 3 attacks to **about 12**, with a pass-rate board inside the card ("Protected: 12 of 12 blocked", one row per attack with its guardrail and the server's real reason). The attacks are real MCP calls against the deployed server, as the card's 3 are today.
+> - There's **no `/arena` screen**, no `arena_*` tables and no migration `0013`.
+> - It needs no fixture orders: pick attacks that need no paid order (injected money fields, quantity overflow, tool-call spoofing, forged webhook, wrong-secret Telegram, forged `callback_data`), plus the refund-abuse cases that the MCP schema and policy reject before any PayPal call.
+> - **AT-13 lite:**
+>   - every attack is BLOCKED on Render by its expected guardrail;
+>   - the card shows the pass rate;
+>   - any ALLOWED turns the card red and is a bug to fix;
+>   - `lane-checks` L2 is extended to all the attacks;
+>   - screenshots at desktop, mobile and 1920×1080.
+>
+> The full arena design below is kept for the record only.
 - **Goal:** 50 scripted buyer-agent attacks run **live** against the deployed MCP server and app. A public live board shows, for each attack:
   - the result, BLOCKED or ALLOWED;
   - the guardrail that caught it;
@@ -686,7 +708,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 | 14g | **Neon compute exhausted (100 CU-h/month)** | Health ping never touches the DB; compute fixed at 0.25 CU; no polling loops; monitor CU usage weekly in the Neon console. |
 | 15 | **Vision misreads (material, colour, price)** | Per-field confidence, highlights, mandatory seller confirm, price always "AI guess". |
 | 16 | **Judges can't log into the sandbox buyer** | Put credentials in the README and the Devpost testing notes; keep a second spare buyer account. Never change their passwords after submitting. |
-| 17 | **Scope creep** | Freeze at the end of Nov 3. The cut list (§3) is pre-agreed. |
+| 17 | **Scope creep** | Freeze at the end of Nov 5 (D-079; it was Nov 3). The cut list (§3) is pre-agreed. |
 | 18 | **Running out of LLM budget, or abuse of the hosted demo** | Per-IP rate limits, a daily spend cap, and cached vision for the seed photos. |
 | 19 | **Video runs over 3:00** | Write the script before Phase 3 UI work; 8 beats of about 20 s each; rehearse with a timer. |
 | 20 | **Rules surprise (eligibility, licence, trademark)** | Read the Official Rules on day 1 (SUBMISSION.md); log anything new under DECISIONS "Requirement updates". |
@@ -707,7 +729,7 @@ Done on Oct 17 (owner override Step 1, D-068 to D-070): **#2** token leak, **#1*
 ---
 
 ## 3. Cut list (drop in this order if behind schedule)
-0. **Phases 9–13 (re-planned 2026-10-17, D-071):** if the schedule slips more than 1 day, cut **13 (arena) → 12 (disputes) → 11 (Vault reorder)**. **9 (multi-seller) and 10 (Telegram copilot) are protected** unless their own spike fails. A failed spike cuts its phase immediately. The review-fix lane is cut before any phase work.
+0. **Phases 9–13 (re-ordered by the owner 2026-10-18, D-079; replaces D-071's rule):** Phase 12 is already cut. If the schedule slips more than 1 day, cut **13 lite → 11 (Vault reorder) → 9 (Partial path) → 10 (Telegram)**. **AG Grid "Best Use" and the visual richness fixes are protected first** (equal). A failed spike cuts its phase immediately. The review-fix lane is cut before any phase work.
 1. Storefront JSON-LD and `llms.txt` polish (keep a basic storefront).
 2. Insights via the PayPal Agent Toolkit (keep the DB insights; log the decision).
 3. AI-filled grid cells (keep grouping and the command bar).
