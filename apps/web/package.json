@@ -19,6 +19,7 @@
     "phase6-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/phase6-checks.mts",
     "record-demo": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/record-demo.mts",
     "fixes-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/fixes-checks.mts",
+    "lane-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/lane-checks.mts",
     "screens": "node --import tsx scripts/screens.mts"
   },
   "dependencies": {
