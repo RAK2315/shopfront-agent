@@ -1,4 +1,4 @@
-import { asc, schema, sql } from "@shopfront/db";
+import { asc, eq, schema, sql } from "@shopfront/db";
 import { appUrl } from "@/server/env";
 import { services } from "@/server/services";
 
@@ -11,6 +11,7 @@ export async function GET() {
     .select({ handle: schema.sellers.handle, name: schema.sellers.displayName, bio: schema.sellers.bio, n: sql<number>`count(${schema.products.id})` })
     .from(schema.sellers)
     .leftJoin(schema.products, sql`${schema.products.sellerId} = ${schema.sellers.id} and ${schema.products.status} = 'approved'`)
+    .where(eq(schema.sellers.testOnly, false)) // the judge demo seller is reachable by name only (D-073)
     .groupBy(schema.sellers.handle, schema.sellers.displayName, schema.sellers.bio)
     .orderBy(asc(schema.sellers.displayName));
   const body = [

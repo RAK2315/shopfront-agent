@@ -21,6 +21,7 @@
     "fixes-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/fixes-checks.mts",
     "lane-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/lane-checks.mts",
     "recovery-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/recovery-checks.mts",
+    "telegram-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/telegram-checks.mts",
     "review-pack": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/review-pack.mts",
     "spike-m": "node --env-file-if-exists=../../.env --import tsx scripts/spike-m.mts",
     "spike-m2": "node --env-file-if-exists=../../.env --import tsx scripts/spike-m2.mts",

@@ -13,6 +13,7 @@ export const ID_PREFIXES = {
   agentRun: 'run',
   buyerSession: 'bys',
   extraction: 'ext',
+  telegramAction: 'tga',
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;

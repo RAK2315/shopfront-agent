@@ -22,6 +22,17 @@ const sellers = [
     flatShippingCents: 400,
     shipsTo: ["US"],
   },
+  {
+    // Telegram judge mode (D-073): an isolated demo seller. test_only = every order is a test row, it never shows in
+    // global search or llms.txt, and a judge's chat can only ever act on it.
+    id: id("sel", "judgedemo"),
+    handle: "judge_demo",
+    displayName: "Judge's Demo Studio",
+    bio: "A practice shop for judges trying the Telegram seller copilot. Sandbox only; no real money moves.",
+    flatShippingCents: 500,
+    shipsTo: ["US"],
+    testOnly: true,
+  },
 ];
 
 const products: Array<{
@@ -84,18 +95,42 @@ const products: Array<{
     attributes: { material: "linen", pieces: "4", color: "indigo blue" },
     variants: [{ key: "indigo4", sku: "FNL-NAPKIN-INDIGO", options: { set: "4 napkins" }, priceCents: 4200, stock: 10 }],
   },
+  {
+    id: id("prd", "judgemug"),
+    sellerId: sellers[2]!.id,
+    title: "Practice speckled mug",
+    description: "A demo listing in the judges' practice shop. Buy it from judge mode to see the order ping, tracking and refund flow.",
+    category: "mugs",
+    attributes: { material: "stoneware", capacity: "10 oz" },
+    variants: [{ key: "judgemug1", sku: "JDG-MUG-01", options: { glaze: "Oat speckle" }, priceCents: 3200, stock: 50 }],
+  },
+  {
+    id: id("prd", "judgebowl"),
+    sellerId: sellers[2]!.id,
+    title: "Practice serving bowl",
+    description: "A demo listing in the judges' practice shop, priced for the refund-approval flow.",
+    category: "bowls",
+    attributes: { material: "stoneware", diameter: "11 in" },
+    variants: [{ key: "judgebowl1", sku: "JDG-BOWL-01", options: { size: "11 in" }, priceCents: 9000, stock: 50 }],
+  },
 ];
+
+// `--only judge_demo` seeds just the named sellers and their products (leaves other sellers' live stock alone).
+const onlyArg = process.argv.indexOf("--only");
+const onlyHandles = onlyArg > -1 ? new Set((process.argv[onlyArg + 1] ?? "").split(",")) : null;
 
 async function main() {
   const db = getDb(process.env.DATABASE_URL);
   const policy = RefundPolicy.parse({});
-  for (const s of sellers) {
+  const chosen = sellers.filter((s) => !onlyHandles || onlyHandles.has(s.handle));
+  const chosenIds = new Set(chosen.map((s) => s.id));
+  for (const s of chosen) {
     await db
       .insert(schema.sellers)
       .values({ ...s, refundPolicy: policy })
-      .onConflictDoUpdate({ target: schema.sellers.id, set: { displayName: s.displayName, bio: s.bio, flatShippingCents: s.flatShippingCents } });
+      .onConflictDoUpdate({ target: schema.sellers.id, set: { displayName: s.displayName, bio: s.bio, flatShippingCents: s.flatShippingCents, testOnly: s.testOnly ?? false } });
   }
-  for (const p of products) {
+  for (const p of products.filter((p) => chosenIds.has(p.sellerId))) {
     const { variants, ...prod } = p;
     await db
       .insert(schema.products)
@@ -109,7 +144,7 @@ async function main() {
     }
   }
   const [{ n }] = (await db.execute<{ n: number }>(sql`select count(*)::int n from variants where active`)).rows as [{ n: number }];
-  console.log(`Seeded ${sellers.length} sellers, ${products.length} products, ${n} active variants.`);
+  console.log(`Seeded ${chosen.length} sellers, ${products.filter((p) => chosenIds.has(p.sellerId)).length} products; ${n} active variants in total.`);
   await closeDb();
 }
 

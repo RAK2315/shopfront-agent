@@ -74,7 +74,8 @@ export const shop: ShopPort = {
       .where(
         and(
           eq(schema.products.status, "approved"),
-          input.seller_handle ? eq(schema.sellers.handle, input.seller_handle) : undefined,
+          // The isolated judge seller (test_only, D-073) is reachable only by name, never from global search.
+          input.seller_handle ? eq(schema.sellers.handle, input.seller_handle) : eq(schema.sellers.testOnly, false),
           input.category ? sql`lower(${schema.products.category}) = ${input.category.toLowerCase()}` : undefined,
         ),
       )
@@ -199,7 +200,8 @@ export const shop: ShopPort = {
         clientRequestId: input.client_request_id ?? null,
         source: ctx.clientName === "shopfront-web-agent" ? "web_agent" : "mcp_external",
         mcpClientName: ctx.clientName ?? null,
-        isTest: await isTestRun(),
+        // Every order for a test_only seller (the judge demo, D-073) is a test by design, header or not.
+        isTest: (await isTestRun()) || rows.some(({ s }) => s.id === quote.sellerId && s.testOnly),
         status: "created",
         itemTotalCents: quote.itemTotalCents,
         shippingCents: quote.shippingCents,

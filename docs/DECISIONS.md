@@ -90,6 +90,7 @@
 | D-079 | 2026-10-18 | Owner: cut Phase 12; Phase 13 → half a day on the hack card; freeze end of Nov 5; priority AG Grid = visual > 10 > 9 > 11 > 13; Vault enabled; Enterprise key requested | ACCEPTED (owner) | J1, J4, J5, P9, D1–D3 |
 | D-080 | 2026-10-18 | Spike G: Studio's own widgets are unwatermarked under the Studio key; master-detail, grid sparklines, integrated charts and the AI Toolkit need an AG Grid + Charts Enterprise (BOTH) key, behind a no-watermark guard | ACCEPTED (go) | P9, J1, J2 |
 | D-081 | 2026-10-18 | Webhook recovery: 503 on a verify outage, a boot and fallback sweep, `capture-<id>-<n>` after a decline; `/mcp` names the agent from headers; migration 0010 (Phase 9 → 0011) | ACCEPTED | G7, G9, J1 |
+| D-082 | 2026-10-18 | Phase 10 backend: telegram_updates dedupe, single-use link codes (owner token for the public demo seller), the action executor, judge_demo seeded and isolated | ACCEPTED | J1, J3, J4, P7, P8 |
 
 ---
 
@@ -1092,6 +1093,40 @@
 - **Migration numbering (deviation):** these changes are migration **`0010`** (`checkouts.capture_attempt`, the partial index). **Phase 9's migration becomes `0011`.**
 - **Tests:** core `recovery.test.ts` (7), mcp `client-name.test.ts` (5) and web `agent-label.test.ts` (2). On Render: `pnpm --filter web recovery-checks` (R1 to R4).
 - **Serves:** G7, G9 (unhappy path #05), J1, D-045.
+
+## D-082: Phase 10 backend: update dedupe in the DB, link codes, the action executor, `judge_demo` (2026-10-18; no screens)
+- **Webhook route** (`/telegram/webhook`, which replaces the Spike T route):
+  - The secret-token check is unchanged (401).
+  - **`update_id` is claimed in `telegram_updates`**, replacing the in-memory set, so a re-delivery after a cold start or a restart is processed once.
+  - It answers 200 at once and does the work in `after()`. `processed_at` is set in a `finally`.
+  - Bot replies so far cover linking, button taps and plain acknowledgements. The five seller jobs come in the Phase 10 build.
+- **Linking** (`parseStart`, core):
+  - **`/start <code>`:** the code is 24 base64url characters (Telegram's deep-link alphabet). Only its sha256 is stored, it lasts 10 minutes, and it's claimed with one compare-and-set, so it's single use.
+  - **`/start judge`:** links to `judge_demo`, and only if that seller is `test_only`. A judge is never linked to a real seller.
+  - Any other payload is refused.
+  - The deep link's bot name comes from `getMe` (cached), not from an env var.
+- **Link-code API** (`POST /api/seller/telegram-link`, seller session; the Studio "Connect Telegram" card is Phase 10 UI):
+  - Any visitor can sign in as the public demo seller (judge mode, D-011). So **linking a chat to `juniper_clay` also needs the owner's admin token.** Otherwise a stranger could tie their Telegram to the real demo shop and get its order pings.
+  - Judges use `start=judge`.
+  - A deviation from PLAN's "the Studio card for any seller": the security reason above. It changes nothing judges see yet.
+- **The action executor** (`runChatAction`):
+  1. The tap's chat must be linked.
+  2. `checkChatAction` (core) checks ownership first, then whether the action is used, then whether it has expired.
+  3. A compare-and-set on `used_at` means a double tap runs the handler exactly once, and the money paths keep their own D-014 lock and `PayPal-Request-Id` underneath.
+  4. The result is stored on the row.
+  - Payloads hold ids only. Actions are created by code (`createChatAction`), never by a model (D-002).
+  - **Handlers wired today:** `approve_refund` and `decline_refund`, through `decideRefundAsSeller`.
+  - `confirm_price`, `publish` and `add_tracking` are refused as "unavailable" until the Phase 10 build wires them to the studio's server functions.
+- **`judge_demo`:**
+  - Seeded as "Judge's Demo Studio", `test_only`, with 2 practice listings (`pnpm --filter web seed -- --only judge_demo`; the new `--only` leaves other sellers' live stock alone).
+  - **Isolation in code:**
+    - global `search_products` leaves out `test_only` sellers unless `seller_handle` names one;
+    - `llms.txt` leaves them out;
+    - every checkout for a `test_only` seller is `is_test` even without a test header (D-070 then keeps it off `/`, `/live` and the feeds).
+  - Not done yet: the nightly reset, the per-chat rate limits and the seeded refund order. Those are in the Phase 10 build.
+- **Ids:** `newId("telegramAction")` gives `tga_` + 12 characters (64-byte `callback_data`).
+- **Tests:** core `telegram-link.test.ts` (5). On Render: `pnpm --filter web telegram-checks` (T1 to T6), from made-up chat ids. Telegram itself refuses replies to them ("chat not found"), so the checks read our database.
+- **Serves:** J1, J3, J4, P7, P8, R2, D-002, D-070, D-073.
 
 ---
 
