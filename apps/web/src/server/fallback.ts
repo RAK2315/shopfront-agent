@@ -125,7 +125,7 @@ export async function rearmOpenCheckouts() {
   const { db } = services();
   const recent = sql`${schema.checkouts.createdAt} > now() - interval '3 days'`;
   const rows = await db
-    .select({ id: schema.checkouts.id, status: schema.checkouts.status, expiresAt: schema.checkouts.expiresAt, sellerId: schema.checkouts.sellerId })
+    .select({ id: schema.checkouts.id, status: schema.checkouts.status, expiresAt: schema.checkouts.expiresAt, sellerId: schema.checkouts.sellerId, isTest: schema.checkouts.isTest })
     .from(schema.checkouts)
     .where(
       and(
@@ -148,12 +148,16 @@ export async function rearmOpenCheckouts() {
     scheduleFallbackChecks(r.id, "boot", expired ? [5_000 + stagger] : FALLBACK_DELAYS_MS.map((d) => d + stagger));
     if (!expired && r.status === "created") scheduleExpiryCheck(r.id, r.expiresAt);
   });
-  if (rows.length) {
+  // One event per audience: test checkouts are listed only on a test-flagged event, never on the public wire (D-070).
+  for (const isTest of [false, true]) {
+    const group = rows.filter((r) => r.isTest === isTest);
+    if (!group.length) continue;
     await recordEvent(db, {
       actor: "server",
       kind: "fallback_rearmed",
-      summary: `Restarted · fallback checks re-armed for ${rows.length} open checkout${rows.length === 1 ? "" : "s"}`,
-      data: { checkoutIds: rows.map((r) => r.id) },
+      summary: `Restarted · fallback checks re-armed for ${group.length} open checkout${group.length === 1 ? "" : "s"}`,
+      data: { checkoutIds: group.map((r) => r.id) },
+      isTest,
     });
   }
   return rows.length;

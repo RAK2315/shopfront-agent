@@ -24,9 +24,9 @@ export const bus = (g.__shopBus ??= new EventEmitter().setMaxListeners(100));
 
 export async function recordEvent(
   db: Db,
-  e: { actor: Actor; kind: string; summary: string; sellerId?: string | null; checkoutId?: string | null; data?: Record<string, unknown> },
+  e: { actor: Actor; kind: string; summary: string; sellerId?: string | null; checkoutId?: string | null; data?: Record<string, unknown>; isTest?: boolean },
 ): Promise<ShopEvent> {
-  const isTest = (await isTestRun()) || (e.checkoutId ? await checkoutIsTest(db, e.checkoutId) : false);
+  const isTest = e.isTest || (await isTestRun()) || (e.checkoutId ? await checkoutIsTest(db, e.checkoutId) : false);
   const [row] = await db
     .insert(schema.events)
     .values({

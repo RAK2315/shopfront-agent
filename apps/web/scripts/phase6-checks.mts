@@ -104,13 +104,16 @@ async function judgePath(url: string, shot: string) {
   await page.getByTestId("pay-link").click();
   const pay = await payP;
   await pay.waitForLoadState("load");
+  await pay.locator('[data-phase="ready"]').waitFor({ timeout: 60_000 });
+  const testBuyerBox = await pay.getByTestId("test-buyer").innerText().catch(() => "");
+  await pay.screenshot({ path: join(out, `${shot}-pay-test-buyer-desktop.png`) });
   await approve(pay);
   await pay.getByText("Payment complete").waitFor({ timeout: 120_000 });
   const seconds = Math.round((Date.now() - t0) / 1000);
   await pay.screenshot({ path: join(out, `${shot}-paid-desktop.png`), fullPage: true });
   const checkoutId = new URL(pay.url()).pathname.split("/").pop()!;
   await ctx.close();
-  return { seconds, checkoutId };
+  return { seconds, checkoutId, testBuyerShown: testBuyerBox.split(/\s+/).includes(e.SANDBOX_BUYER_EMAIL) && testBuyerBox.split(/\s+/).includes(e.SANDBOX_BUYER_PASSWORD) };
 }
 
 try {
@@ -119,7 +122,7 @@ try {
     const r = await judgePath(base, "judge");
     const h = await honest(r.checkoutId);
     const [c] = await q<{ status: string; source: string }>("select status, source from checkouts where id=$1", [r.checkoutId]);
-    record("1 judge path: /shop agent → PayPal → paid in under 3 minutes", r.seconds < 180 && c?.status === "paid" && h.ok, { ...r, status: c?.status, source: c?.source, honest: h });
+    record("1 judge path: /shop agent → PayPal → paid in under 3 minutes; the pay page shows the sandbox test buyer", r.seconds < 180 && c?.status === "paid" && h.ok && r.testBuyerShown, { ...r, status: c?.status, source: c?.source, honest: h });
   }
 
   // ── 2 ──
