@@ -9,3 +9,5 @@ export * from './reconcile';
 export * from './catalog';
 export * from './shipping';
 export * from './text';
+export * from './price-input';
+export * from './chat-action';
