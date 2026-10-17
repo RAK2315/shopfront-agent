@@ -243,7 +243,7 @@ video/
 |---|---|---|
 | Oct 17 (Sat) ✅ | Owner override Step 1 fixes (D-068 to D-070) and this re-plan | Fixes accepted on Render (`docs/screenshots/fixes-1/FIXES.md`) |
 | Oct 17 (Sat, evening) ✅ | Review-fix lane (D-074), the **UI review pack** (D-073), **Spike M = Partial, go** and **Spike T = go** (D-075, D-076) | Done; logged in DECISIONS |
-| Oct 18 (Sun) | **Owner's UI review.** Meanwhile, backend only (no new screens): **Spike G** ✅ go (D-080); webhook recovery (#8); the `mcp_client_name` fix; Phase 10 backend (the `telegram_updates` dedupe in the DB, link codes, the action executor on `checkChatAction`, the `judge_demo` seed as a `test_only` seller) | Spike G logged; unit tests; ATs on Render |
+| Oct 18 (Sun) ✅ | **Owner's UI review.** Meanwhile, backend only (no new screens): **Spike G** ✅ go (D-080); ✅ recovery and agent name (D-081, `recovery-checks` R1–R4); ✅ Phase 10 backend (D-082, `telegram-checks` T1–T6). Planned: webhook recovery (#8); the `mcp_client_name` fix; Phase 10 backend (the `telegram_updates` dedupe in the DB, link codes, the action executor on `checkChatAction`, the `judge_demo` seed as a `test_only` seller) | Spike G logged; unit tests; ATs on Render |
 | Oct 19–21 (Mon–Wed) | **Phase 9 on the Partial path:** each seller paid directly (payee), seller connect, the refund handoff, README | AT-9 on Render |
 | Oct 22–24 (Thu–Sat) | **AG Grid "Best Use"** (D-077), absorbing REVIEW-1 #6 | AT-G on Render |
 | Oct 25–29 (Sun–Thu) | **Phase 10: seller copilot on Telegram, including judge mode** (D-073), plus review-fix lane #4, #11 and #9. Save the real bot transcripts for the video's chat strip. | AT-10 on Render |

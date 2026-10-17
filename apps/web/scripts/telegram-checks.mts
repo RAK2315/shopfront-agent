@@ -161,13 +161,21 @@ try {
 
   // ---------- T6 ----------
   {
-    const mcp = new Client({ name: "telegram-checks", version: "1.0.0" });
-    await mcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`), { requestInit: { headers: { "x-shopfront-public-view": "1", "x-shopfront-client": "telegram-checks" } } }));
-    const call = async (name: string, a: Record<string, unknown>) => JSON.parse(((await mcp.callTool({ name, arguments: a })).content as Array<{ text: string }>)[0]!.text);
-    const global = await call("search_products", { query: "practice" });
-    const named = await call("search_products", { query: "practice", seller_handle: "judge_demo" });
-    const ck = await call("create_checkout", { items: [{ variant_id: "var_judgemug1000", quantity: 1 }], client_request_id: randomUUID() });
-    await mcp.close();
+    // Searches run as a test run (off the public wire). Only the checkout goes out as a public visitor, to show that a
+    // test_only seller's checkout is is_test even without the test header.
+    const open = async (publicView: boolean) => {
+      const c = new Client({ name: "telegram-checks", version: "1.0.0" });
+      await c.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`), { requestInit: { headers: { "x-shopfront-client": "telegram-checks", ...(publicView ? { "x-shopfront-public-view": "1" } : {}) } } }));
+      return c;
+    };
+    const call = async (c: Client, name: string, a: Record<string, unknown>) => JSON.parse(((await c.callTool({ name, arguments: a })).content as Array<{ text: string }>)[0]!.text);
+    const test = await open(false);
+    const global = await call(test, "search_products", { query: "practice" });
+    const named = await call(test, "search_products", { query: "practice", seller_handle: "judge_demo" });
+    await test.close();
+    const visitor = await open(true);
+    const ck = await call(visitor, "create_checkout", { items: [{ variant_id: "var_judgemug1000", quantity: 1 }], client_request_id: randomUUID() });
+    await visitor.close();
     const row = await q1<{ is_test: boolean }>("select is_test from checkouts where id = $1", [ck.checkout_id]);
     const llms = await (await fetch(`${base}/llms.txt`, { headers: { "x-shopfront-public-view": "1" } })).text();
     const fromJudge = (r: { results: Array<{ seller: { handle: string } }> }) => r.results.filter((x) => x.seller.handle === "judge_demo").length;

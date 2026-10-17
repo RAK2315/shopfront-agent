@@ -1,4 +1,32 @@
-# HANDOFF: Shopfront Agent (updated 2026-10-17, end of session "part 5"; the next session is "part 6")
+# HANDOFF: Shopfront Agent (updated 2026-10-18 during session "part 6"; part-5 text below is kept where still true)
+
+## Part 6 so far (2026-10-18; D-079 to D-082)
+- **Owner decisions (D-079):**
+  - Phase 12 is cut.
+  - Phase 13 lite is half a day: the hack card grows to about 12 attacks with a pass-rate board.
+  - **The freeze is at the end of Nov 5.** The video is Nov 6–10; we submit on Nov 11.
+  - **Priority:** AG Grid "Best Use" = the visual richness fixes > 10 > 9 > 11 > 13.
+  - Vault is enabled.
+  - The owner is requesting the AG Grid Enterprise key. PLAN is re-dated.
+- **Spike G, go (D-080):**
+  - The Studio key (`STUDIO-PRO-AI` trial, expires Nov 29) covers only Studio's own widgets.
+  - Master-detail, grid sparklines, integrated charts and the AI Toolkit need an **AG Grid + AG Charts Enterprise (`BOTH`) key** in `NEXT_PUBLIC_AG_GRID_LICENSE_KEY`, behind a no-watermark guard with Community fallbacks.
+  - Never use `_STUDIO_GRID_MODULES`.
+- **Webhook recovery and the agent name (D-081), all on Render** (`docs/screenshots/recovery/RECOVERY.md`):
+  - a verify outage gets 503;
+  - a boot and fallback sweep picks up unprocessed events;
+  - a decline makes the next capture `capture-<id>-1`;
+  - `/mcp` names the agent from `x-shopfront-client` or the User-Agent.
+  - Migration **`0010`** is applied, so Phase 9 uses `0011` and Phase 11 uses `0012`.
+- **An older bug, fixed:** `instanceof PayPalApiError` was always false on Render (cross-bundle singleton). **Use `isPayPalApiError`.**
+- **Phase 10 backend (D-082), `telegram-checks` T1–T6 on Render:**
+  - `telegram_updates` dedupe;
+  - one-time link codes (`POST /api/seller/telegram-link`; the public demo seller needs the admin token);
+  - `/start judge`;
+  - `runChatAction` (refund approve and decline wired; the rest come in the Phase 10 build);
+  - `judge_demo` seeded (`seed -- --only judge_demo`), `test_only`, and isolated from search and `llms.txt`.
+- **Signed fault hooks** (`server/faults.ts`): `verify-unavailable`, and `capture-declined` (PayPal's own `PayPal-Mock-Response` negative testing).
+- **Next:** apply the owner's review-pack feedback when it arrives, then Phase 9 on the Partial path (Oct 19–21).
 
 ## Completed state
 

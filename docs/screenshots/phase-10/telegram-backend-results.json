@@ -1,0 +1,71 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-17T19:48:41.576Z",
+  "results": [
+    {
+      "id": "T1 wrong or missing secret → 401",
+      "ok": true,
+      "detail": {
+        "wrong": 401,
+        "none": 401
+      }
+    },
+    {
+      "id": "T2 duplicate update_id → processed once",
+      "ok": true,
+      "detail": {
+        "first": 200,
+        "second": 200,
+        "rows": 1
+      }
+    },
+    {
+      "id": "T3 link codes: owner-only for the demo seller; single use; expiry",
+      "ok": true,
+      "detail": {
+        "noSession": 401,
+        "noAdmin": 403,
+        "withAdmin": 200,
+        "deepLinkShape": "https://t.me/juniper_clay_copilot_bot?start=<code>",
+        "linkedToDemoSeller": true,
+        "reusedCodeLinked": false,
+        "expiredCodeLinked": false
+      }
+    },
+    {
+      "id": "T4 /start judge → judge_demo, is_demo",
+      "ok": true,
+      "detail": {
+        "judgeSellerTestOnly": true,
+        "link": {
+          "isJudge": true,
+          "isDemo": true
+        }
+      }
+    },
+    {
+      "id": "T5 executor: forged and expired taps refused; a valid tap claimed exactly once",
+      "ok": true,
+      "detail": {
+        "ownerActionUsedByJudgeTap": false,
+        "expiredUsed": false,
+        "validClaimed": true,
+        "handlerResult": {
+          "ok": false,
+          "error": "Refund request not found."
+        },
+        "doubleTapChangedNothing": true
+      }
+    },
+    {
+      "id": "T6 judge_demo isolated: not in global search or llms.txt; checkouts is_test without a test header",
+      "ok": true,
+      "detail": {
+        "globalJudgeResults": 0,
+        "namedJudgeResults": 2,
+        "checkoutIsTest": true,
+        "llmsListsJudge": false
+      }
+    }
+  ]
+}
