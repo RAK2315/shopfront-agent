@@ -45,7 +45,9 @@ export function ConfidenceField({
       <div className="flex items-baseline justify-between gap-3">
         <label htmlFor={id} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink">
           {ai && !isPrice && (
-            <span className="inline-flex items-center gap-0.5 rounded-sm bg-clay-soft px-1 text-[10px] font-semibold uppercase tracking-wide text-clay-strong" title="Filled in by the AI from your photo">
+            // aria-hidden: the field's accessible name stays exactly its label ("Tracking number"); the hint line says
+            // how sure the AI was.
+            <span aria-hidden className="inline-flex items-center gap-0.5 rounded-sm bg-clay-soft px-1 text-[10px] font-semibold uppercase tracking-wide text-clay-strong" title="Filled in by the AI from your photo">
               <Sparkle aria-hidden className="size-2.5" /> AI
             </span>
           )}

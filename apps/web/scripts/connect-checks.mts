@@ -15,6 +15,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { chromium, type Page } from "@playwright/test";
 import pg from "pg";
+import { loginAndApprove } from "./lib/paypal-popup.js";
 
 const args = process.argv.slice(2).filter((a) => a !== "--");
 const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
@@ -153,6 +154,41 @@ try {
     await ctx3.close();
     const f = (await db.query("select payout_status, paypal_merchant_id from sellers where handle='fern_and_loom'")).rows[0];
     record("C6 Fern & Loom reconnected (verified again)", f.payout_status === "verified" && f.paypal_merchant_id === SELLER2_MERCHANT, f);
+  }
+
+  // C7: a real paid order lands in seller 2's PayPal (the capture names seller 2 as payee), so Fern & Loom sells again.
+  {
+    await db.query("update variants set stock = greatest(stock, 20) where id = 'var_indigo400000'");
+    const ck7 = await tool("create_checkout", { items: [{ variant_id: "var_indigo400000", quantity: 1 }], client_request_id: randomUUID() });
+    if (ck7.isError) {
+      record("C7 a paid Fern & Loom order lands in seller 2's PayPal", false, { error: ck7.text.slice(0, 160) });
+    } else {
+      const c7 = JSON.parse(ck7.text) as { checkout_id: string; paypal_order_id: string };
+      const tok = await (await fetch(`${e.PAYPAL_BASE_URL}/v1/oauth2/token`, { method: "POST", headers: { authorization: "Basic " + Buffer.from(`${e.PAYPAL_CLIENT_ID}:${e.PAYPAL_CLIENT_SECRET}`).toString("base64"), "content-type": "application/x-www-form-urlencoded" }, body: "grant_type=client_credentials" })).json();
+      const order = await (await fetch(`${e.PAYPAL_BASE_URL}/v2/checkout/orders/${c7.paypal_order_id}`, { headers: { authorization: `Bearer ${tok.access_token}` } })).json();
+      const href = (order.links as Array<{ rel: string; href: string }>).find((l) => l.rel === "payer-action")!.href;
+      const ctx4 = await browser.newContext({ viewport: { width: 1280, height: 860 } });
+      const p4 = await ctx4.newPage();
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await p4.goto(href, { waitUntil: "domcontentloaded" });
+          await loginAndApprove(p4, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
+          await p4.waitForURL(/\/pay\/chk_/, { timeout: 90_000 });
+          break;
+        } catch (err) {
+          if (attempt >= 2) throw err;
+          await sleep(8000);
+        }
+      }
+      await p4.screenshot({ path: join(out, "C7-fern-paid-desktop.png") });
+      await ctx4.close();
+      let cap: { status: string; payee_merchant_id: string | null } | undefined;
+      for (let i = 0; i < 20 && !cap; i++) {
+        cap = (await db.query("select c.status, k.payee_merchant_id from checkouts c join captures k on k.checkout_id = c.id where c.id = $1", [c7.checkout_id])).rows[0];
+        if (!cap) await sleep(2000);
+      }
+      record("C7 a paid Fern & Loom order lands in seller 2's PayPal", cap?.status === "paid" && cap?.payee_merchant_id === SELLER2_MERCHANT, { checkout: c7.checkout_id, capture: cap });
+    }
   }
 } catch (err) {
   for (const [i, p] of browser.contexts().flatMap((c) => c.pages()).entries()) await p.screenshot({ path: join(out, `_error-${i}.png`) }).catch(() => {});

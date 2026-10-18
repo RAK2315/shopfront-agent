@@ -279,6 +279,8 @@ try {
     const goodUrl = hook.url;
     log("E: pointing the PayPal webhook at a wrong URL");
     await paypal.updateWebhookUrl(hook.id, `${base}/webhooks/paypal-wrong`);
+    // PayPal can keep delivering to the old URL for a short while after the change (seen 2026-10-18); let it settle.
+    await sleep(45_000);
     try {
       const x = await newCheckout();
       log("E: checkout", x.checkout_id);
@@ -301,7 +303,7 @@ try {
       const seconds = Math.round((Date.now() - approvedAt) / 1000);
       await pay.unroute("**/api/checkouts/*/capture");
       await pay.reload({ waitUntil: "load" });
-      await pay.locator('[data-testid="webhook-state"][data-confirmation="poll"]').waitFor({ timeout: 30_000 });
+      await pay.locator('[data-testid="webhook-state"][data-confirmation="poll"]').waitFor({ timeout: 90_000 }); // the badge follows the next fallback check
       await pay.screenshot({ path: join(out, "pay-paid-via-poll-desktop.png"), fullPage: true });
       const live = await ctx.newPage();
       await live.goto(`${base}/live`, { waitUntil: "load" });
