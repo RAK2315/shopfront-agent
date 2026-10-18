@@ -82,6 +82,11 @@ const TABLE: Partial<Record<CheckoutStatus, Partial<Record<CheckoutEvent, Checko
     REFUND_FULL: 'refunded',
     CAPTURE_REVERSED: 'reversed',
   },
+  // A capture that landed after the order was cancelled (D-094) is money we must return: once it is refunded in full
+  // the order ends refunded, so our books and PayPal's agree (D-095). Partial refunds and new captures stay conflicts.
+  cancelled: {
+    REFUND_FULL: 'refunded',
+  },
 };
 
 /** Event → the status it leads to in the happy lifecycle, used to classify stale vs duplicate. */

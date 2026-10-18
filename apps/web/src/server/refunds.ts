@@ -153,7 +153,7 @@ export async function requestRefund(input: RequestRefundInput): Promise<RefundRe
  * The only place a refund is sent to PayPal. Row-locked and idempotent: a double tap or a retry finds the request
  * already executed, and PayPal-Request-Id = refund-<id> makes PayPal return the same refund for a repeated POST.
  */
-export async function executeRefund(refundRequestId: string, by: "policy" | "seller"): Promise<RefundRow> {
+export async function executeRefund(refundRequestId: string, by: "policy" | "seller" | "reconciliation"): Promise<RefundRow> {
   const { db, paypal } = services();
   const result = await db.transaction(async (tx) => {
     const [r] = await tx.select().from(schema.refundRequests).where(eq(schema.refundRequests.id, refundRequestId)).for("update");
@@ -215,11 +215,12 @@ export async function executeRefund(refundRequestId: string, by: "policy" | "sel
       kind: "refund_executed",
       checkoutId: r.checkoutId,
       sellerId: result.sellerId,
-      summary: `Refund ${result.refund.status} · $${centsToValue(r.amountCents)} · ${by === "seller" ? "approved by seller" : "automatic under policy"}`,
+      summary: `Refund ${result.refund.status} · $${centsToValue(r.amountCents)} · ${by === "seller" ? "approved by seller" : by === "reconciliation" ? "captured after cancel → refunded (reconciliation, D-095)" : "automatic under policy"}`,
       data: { refundId: result.refund.id, debugId: result.debugId, paypalRequestId: result.requestId, refundRequestId: r.id },
     });
     await publishMessage(r.checkoutId, "refund", { reason: r.reasonCode, amountCents: r.amountCents, outcome: "refunded" });
-    if (result.sellerId) await checkRefundSpike(result.sellerId);
+    // A reconciliation refund returns a stray capture; it says nothing about the shop's refund rate.
+    if (result.sellerId && by !== "reconciliation") await checkRefundSpike(result.sellerId);
   } else if ("handoff" in result && result.handoff) {
     const [s] = await db.select({ name: schema.sellers.displayName }).from(schema.sellers).where(eq(schema.sellers.id, result.sellerId));
     await recordEvent(db, {
@@ -326,4 +327,48 @@ export async function recordSellerRefund(checkoutId: string, refund: { id: strin
   await publishMessage(checkoutId, "refund", { reason: out.row.reasonCode, amountCents: out.r.refundedCents, outcome: "refunded" });
   if (c?.sellerId) await checkRefundSpike(c.sellerId);
   return out.row;
+}
+
+/**
+ * D-095: refund a capture that landed on an order we had already cancelled (the D-094 incident), through
+ * executeRefund like every other refund (GET of the capture first, PayPal-Request-Id = refund-<id>). Operator-only
+ * (admin token); the reconciliation check finds these, it never refunds by itself. Idempotent: a second call returns
+ * the executed request. A shop paid into its own PayPal is refused: only that seller can refund it (D-076).
+ */
+export async function refundStrayCapture(checkoutId: string, note: string) {
+  const { db } = services();
+  const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
+  if (!c) throw new ShopError("NOT_FOUND", "Checkout not found.");
+  const [done] = await db
+    .select()
+    .from(schema.refundRequests)
+    .where(and(eq(schema.refundRequests.checkoutId, c.id), eq(schema.refundRequests.source, "reconciliation"), eq(schema.refundRequests.status, "executed")));
+  if (done) return { checkout: c.id, status: c.status, refund: done, already: true };
+  if (c.status !== "cancelled") throw new ShopError("CONFLICT", `This order is ${c.status}; only a capture on a cancelled order is refunded this way.`);
+  if (c.payeeEmail || c.payeeMerchantId) throw new ShopError("CONFLICT", "This shop is paid into its own PayPal; the seller refunds it there (D-076).");
+  const [cap] = await db.select().from(schema.captures).where(eq(schema.captures.checkoutId, c.id));
+  if (!cap || cap.status !== "COMPLETED" || cap.refundedCents > 0) throw new ShopError("NOT_REFUNDABLE", `No untouched capture on this order (${cap?.status ?? "none"}).`);
+
+  const [row] = await db
+    .insert(schema.refundRequests)
+    .values({
+      id: newId("refundRequest"),
+      checkoutId: c.id,
+      captureId: cap.id,
+      source: "reconciliation",
+      reasonCode: "other",
+      details: note,
+      amountCents: cap.amountCents,
+      decision: "auto_approve",
+      decisionTrace: [{ rule: "captured_after_cancel", passed: true, detail: note }],
+      status: "approved",
+      decidedAt: new Date(),
+    })
+    .returning();
+  const r = await executeRefund(row!.id, "reconciliation");
+  if (r.status === "executed") {
+    await db.update(schema.checkouts).set({ internalNote: note, updatedAt: new Date() }).where(eq(schema.checkouts.id, c.id));
+  }
+  const [after] = await db.select({ status: schema.checkouts.status }).from(schema.checkouts).where(eq(schema.checkouts.id, c.id));
+  return { checkout: c.id, status: after!.status, refund: r, already: false };
 }

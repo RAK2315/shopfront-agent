@@ -234,14 +234,18 @@ async function route(event: WebhookEvent): Promise<boolean> {
       if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
         await db.update(schema.checkouts).set({ webhookConfirmedAt: new Date() }).where(eq(schema.checkouts.id, c.id));
       }
+      // A capture the order can't absorb (e.g. money moved after we cancelled it, D-094) is said out loud, and the
+      // reconciliation runs at once so the dashboard badge shows it (D-095).
+      const conflict = r?.result.kind === "conflict";
       await recordEvent(db, {
         actor: "webhook",
-        kind: "capture_webhook",
+        kind: conflict ? "capture_conflict" : "capture_webhook",
         checkoutId: c.id,
         sellerId: c.sellerId,
-        summary: `${event.event_type} · signature verified · ${r?.result.kind === "changed" ? `status → ${r.result.to}` : "confirms existing state"}`,
-        data: { eventId: event.id, captureId: cap.id, orderId: cap.supplementary_data?.related_ids?.order_id },
+        summary: `${event.event_type} · signature verified · ${r?.result.kind === "changed" ? `status → ${r.result.to}` : conflict ? `⚠ PayPal moved money but the order is ${r.result.status.replace(/_/g, " ")}: flagged for reconciliation` : "confirms existing state"}`,
+        data: { eventId: event.id, captureId: cap.id, orderId: cap.supplementary_data?.related_ids?.order_id, conflict: conflict || undefined },
       });
+      if (conflict) void import("./ledger").then((m) => m.runReconciliation("webhook")).catch((e) => console.error("[reconcile] webhook run failed", e));
       return true;
     }
     case "PAYMENT.CAPTURE.REFUNDED": {

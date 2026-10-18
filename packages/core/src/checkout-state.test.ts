@@ -43,6 +43,9 @@ describe('checkout state machine', () => {
 
   it('money moving on a dead checkout is a conflict, not silently ignored', () => {
     expect(transition('cancelled', 'CAPTURE_COMPLETED').kind).toBe('conflict');
+    // D-095: a stray capture on a cancelled order is refunded in full → refunded; a partial refund stays a conflict.
+    expect(transition('cancelled', 'REFUND_FULL')).toMatchObject({ kind: 'changed', to: 'refunded' });
+    expect(transition('cancelled', 'REFUND_PARTIAL').kind).toBe('conflict');
     expect(transition('capture_denied', 'CAPTURE_COMPLETED').kind).toBe('conflict');
   });
 

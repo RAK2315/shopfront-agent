@@ -370,3 +370,21 @@ export const telegramActions = pgTable(
   },
   (t) => [index('telegram_actions_chat').on(t.chatId, t.createdAt)],
 );
+
+/**
+ * One row per reconciliation of our orders against PayPal (D-095): on boot, daily, from a stale dashboard, or the script.
+ * `mismatches` holds ids and amounts only. The seller dashboard badge reads the latest finished run.
+ */
+export const reconciliationRuns = pgTable('reconciliation_runs', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  trigger: text('trigger').notNull(), // boot | daily | dashboard | script
+  /** False when PayPal or the DB could not be read: the badge then says "not checked", never a false ✓. */
+  ok: boolean('ok').notNull(),
+  matched: integer('matched').notNull().default(0),
+  mismatches: jsonb('mismatches').$type<Array<Record<string, unknown>>>().notNull().default([]),
+  explained: jsonb('explained').$type<Array<Record<string, unknown>>>().notNull().default([]),
+  sources: jsonb('sources').$type<Record<string, unknown>>().notNull().default({}),
+  error: text('error'),
+  durationMs: integer('duration_ms'),
+  createdAt: createdAt(),
+});

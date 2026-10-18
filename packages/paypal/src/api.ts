@@ -134,13 +134,14 @@ export function createPayPalApi(c: PayPalClient) {
       }),
 
     /** Transaction Search (G6; verified against the published v1 spec 2026-10-15). Range at most 31 days; data lags (D-007). */
-    listTransactions: (startIso: string, endIso: string) =>
+    listTransactions: (startIso: string, endIso: string, page = 1) =>
       c.request<{
         transaction_details?: Array<{
           transaction_info: { transaction_id: string; transaction_event_code?: string; transaction_initiation_date?: string; transaction_amount?: { currency_code: string; value: string }; transaction_status?: string };
         }>;
         last_refreshed_datetime?: string;
-      }>('GET', `/v1/reporting/transactions?start_date=${encodeURIComponent(startIso)}&end_date=${encodeURIComponent(endIso)}&fields=transaction_info&page_size=500`),
+        total_pages?: number;
+      }>('GET', `/v1/reporting/transactions?start_date=${encodeURIComponent(startIso)}&end_date=${encodeURIComponent(endIso)}&fields=transaction_info&page_size=500&page=${page}`),
 
     listWebhooks: () => c.request<{ webhooks: PayPalWebhook[] }>('GET', '/v1/notifications/webhooks'),
 

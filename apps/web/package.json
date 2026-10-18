@@ -41,7 +41,8 @@
     "telegram-flow-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/telegram-flow-checks.mts",
     "final-screens": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/final-screens.mts",
     "fixes3-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/fixes3-checks.mts",
-    "lipp-probe": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/lipp-probe.mts"
+    "lipp-probe": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/lipp-probe.mts",
+    "reconcile": "node --env-file-if-exists=../../.env --import tsx scripts/reconcile.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

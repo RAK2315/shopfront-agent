@@ -5,9 +5,11 @@ import { SellerNav } from "@/components/studio/seller-nav";
 import { SiteNav } from "@/components/site/site-nav";
 import { TestOrdersToggle } from "@/components/studio/test-orders-toggle";
 import { DashboardClient, DashboardV2Client } from "@/components/dashboard/dashboard-client";
+import { ReconcileBadge } from "@/components/dashboard/reconcile-badge";
 import { PRESET_VERSION } from "@/components/dashboard/preset";
 import { dashboardData } from "@/server/dashboard";
 import { kpisFrom, listingsGrid, ordersGrid } from "@/server/dashboard-v2";
+import { reconciliationFor } from "@/server/ledger";
 import { testOrdersSwitch } from "@/server/run-context";
 import { currentSeller } from "@/server/seller-session";
 import { cn } from "@/lib/cn";
@@ -22,7 +24,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
   const seller = await currentSeller();
   if (!seller) redirect("/studio");
   const tab = (await searchParams).tab === "builder" ? "builder" : "overview";
-  const testSwitch = await testOrdersSwitch(seller.id);
+  const [testSwitch, reconciled] = await Promise.all([testOrdersSwitch(seller.id), reconciliationFor(seller)]);
   const tabs = (
     <nav aria-label="Dashboard views" className="flex gap-1 rounded-md bg-surface-2 p-1 text-sm font-medium">
       {(["overview", "builder"] as const).map((t) => (
@@ -42,6 +44,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
         {tabs}
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <ReconcileBadge r={reconciled} />
         {testSwitch.available && <TestOrdersToggle on={testSwitch.on} />}
         <SellerNav handle={seller.handle} current="dashboard" />
       </div>

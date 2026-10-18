@@ -6,7 +6,9 @@ import { linkedSeller } from "@/server/telegram";
 import { onPhoto } from "@/server/telegram-bot";
 import { freezeDemoCatalog, isAdmin, resetDemo } from "@/server/demo";
 import { runHandoffCheck } from "@/server/handoff";
+import { runReconciliation } from "@/server/ledger";
 import { setPayoutAccount } from "@/server/payouts";
+import { refundStrayCapture } from "@/server/refunds";
 import { services } from "@/server/services";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +27,10 @@ const Body = z.discriminatedUnion("action", [
   // AT for Phase 10 (D-092): a photo "sent" by a linked test chat, handed to the same onPhoto the webhook uses (a fake
   // chat can't upload a file to Telegram). The chat must already be linked; the seller comes from that link.
   z.strictObject({ action: z.literal("tg_photo"), chat_id: z.number().int(), image_base64: z.string().max(4_000_000), caption: z.string().max(200).optional() }),
+  // D-095: run the reconciliation with PayPal now (the regression suites and `pnpm reconcile`).
+  z.strictObject({ action: z.literal("reconcile") }),
+  // D-095: refund a capture that landed on a cancelled order (the D-094 incident) through the app's refund code.
+  z.strictObject({ action: z.literal("refund_stray"), checkout_id: z.string().regex(/^chk_[a-z0-9]{12}$/), note: z.string().min(10).max(300) }),
 ]);
 
 // Judge mode (D-011): nightly reset (cron-job.org calls this with the bearer token) or freeze the current catalog.
@@ -38,6 +44,8 @@ export async function POST(req: Request) {
     if (b.action === "reset") return Response.json(await resetDemo());
     if (b.action === "freeze") return Response.json(await freezeDemoCatalog());
     if (b.action === "handoff_check") return Response.json(await runHandoffCheck(b.refund_request_id));
+    if (b.action === "reconcile") return Response.json(await runReconciliation("script"));
+    if (b.action === "refund_stray") return Response.json(await refundStrayCapture(b.checkout_id, b.note));
     if (b.action === "tg_photo") {
       const link = await linkedSeller(b.chat_id);
       if (!link) return Response.json({ error: { code: "NOT_FOUND", message: "That chat isn't linked." } }, { status: 404 });

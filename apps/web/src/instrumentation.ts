@@ -7,6 +7,7 @@ export async function register() {
   const { rearmOpenCheckouts } = await import("./server/fallback");
   const { sweepUnprocessedWebhooks } = await import("./server/webhooks");
   const { rearmHandoffs } = await import("./server/handoff");
+  const { scheduleReconciliation } = await import("./server/ledger");
   setTimeout(() => {
     rearmOpenCheckouts()
       .then((n) => console.log(`[fallback] re-armed checks for ${n} open checkout(s)`))
@@ -18,5 +19,7 @@ export async function register() {
     sweepUnprocessedWebhooks("boot")
       .then((ids) => ids.length && console.log(`[webhook sweep] recovered ${ids.length} event(s)`))
       .catch((e) => console.error("[webhook sweep] failed", e));
+    // Reconciliation with PayPal: once on boot (after the sweep settles), then daily while the server is up (D-095).
+    scheduleReconciliation();
   }, 3_000).unref?.();
 }
