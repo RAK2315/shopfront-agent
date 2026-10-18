@@ -1,0 +1,26 @@
+[
+  {
+    "id": "G0 overview with real data, no watermark",
+    "ok": true,
+    "detail": {
+      "kpis": [
+        "$2,465.00",
+        "51",
+        "$48.33",
+        "41.46%"
+      ],
+      "ordersRows": 51,
+      "edition": "community",
+      "testBadges": 16,
+      "chartPoints": 4,
+      "listings": 6,
+      "watermark": false,
+      "licenceErrors": [],
+      "overflow": {
+        "1920": -15,
+        "desktop": -15,
+        "mobile": -15
+      }
+    }
+  }
+]

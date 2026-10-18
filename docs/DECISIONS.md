@@ -97,6 +97,7 @@
 | D-086 | 2026-10-18 | PayPal approval bug: v6 `presentationMode: "auto"` sometimes opened nothing and left the session dead. Now an explicit popup, a redirect fallback and a "Continue in this tab" link | ACCEPTED | R2, J3, G1 |
 | D-087 | 2026-10-18 | CC0 museum photos for every seeded listing (two more Fern & Loom listings); the demo seller's "Include test orders" switch + "Test run" badge; real sandbox demo history; PayPal catalog `image_url` patched with `add` | ACCEPTED | J2, J5, S6.4 |
 | D-088 | 2026-10-18 | `/shop` rebuild: purchase rail, image-led cards, the PayPal button inline in the chat's checkout card, collapsed MCP log, suggestion cards, site nav, mobile live-wire sheet | ACCEPTED | J2, J5, P1 |
+| D-089 | 2026-10-18 | Dashboard v2 (AG Grid Best Use): an Overview tab (Ask bar → schema-checked view state, KPI cards, orders grid with grouping/drill-down/live rows, linked AG Charts chart, listings grid with PayPal catalog write-back) and a Builder tab (AG Studio + its agents); Enterprise only behind the BOTH-key guard | ACCEPTED | P9, J1, J2, J5 |
 
 ---
 
@@ -1290,6 +1291,49 @@
 - **Kept:** the live wire on the right, the "Answered before" legend, all test ids the ATs use (`shop-input`, `checkout-card`, `pay-link`, `hack`, `hack-result`, `tool-chip`).
 - **AT:** `shop-checks` S1–S4 plus overflow at three sizes (results in PROGRESS).
 - **Serves:** J2, J5, P1, D-078 #1–#3.
+
+---
+
+## D-089: Dashboard v2, AG Grid "Best Use" (2026-10-18; walkthrough #3; PLAN AG Grid features 1–6)
+
+- **Owner's step-6 notes:**
+  - Today it looks like "an unfinished dashboard builder".
+  - Wanted: KPI cards, interactive grids, linked charts, filter/sort/group/pivot/drill-down.
+  - "Asking a question should visibly transform the grid, columns, filters, and charts."
+  - Config collapsed, no floating overlays, real data only.
+- **Two tabs on `/studio/dashboard`:**
+  - **Overview** (default; no editor chrome):
+    - An **Ask bar**: one structured `llm.call` (Groq → Gemini, temperature 0, Zod `DashboardIntent`) returns either a view (`GridView`: filters, group, sort, columns, chart preset) or a question.
+      - Deterministic client code applies the view.
+      - A "what changed" banner lists each change in plain words (`describeViewChange`), with **Undo**.
+      - Questions are answered with the code-written `[db]` and `[paypal]` summary lines, never model prose.
+    - **KPI cards**: revenue, orders, average order and refund rate over 7 days vs the prior 7, each labelled `[db] 7d`, with a 14-day sparkline.
+    - **The orders grid** (AG Grid):
+      - photo, status pill, test badge;
+      - grouping by product, status, day or country with subtotal rows;
+      - a click drills into the order's PayPal history (our events plus the raw PayPal calls, with copyable ids);
+      - header sort kept inside groups (`postSortRows`);
+      - new orders flash in live from the SSE wire;
+      - note and ship-by editable in place.
+      - Active filters show as removable chips; Group and Chart selects; search.
+    - **A linked chart** (AG Charts Community) built from the rows in view. Clicking a product bar drills the grid into that product.
+    - **The listings grid** (AG Grid):
+      - description and category edit in place and PATCH PayPal's catalog; the row shows "PayPal synced" with the debug id, or the error;
+      - price and stock change only our catalog and apply to the next checkout (D-002);
+      - an injection-looking description is refused;
+      - a 14-day units-sold mini-bar column.
+  - **Builder · AG Studio:** the existing Studio canvas (Pivot grid widget, charts, our custom widgets) with Studio's own AI assistant and its agents (D-023, D-043). AT-5 now drives this tab (`?tab=builder`).
+- **Licence (D-080 guard, now built):**
+  - `lib/ag-license.ts` decides from `LicenseManager.getLicenseDetails()` (tested), and `components/dashboard/grid-modules.ts` registers modules.
+  - `AllEnterpriseModule` + AG Charts Enterprise go in only for a valid, unexpired `BOTH` key in `NEXT_PUBLIC_AG_GRID_LICENSE_KEY`; otherwise Community.
+  - There is no key yet (OWNER-TODO #1), so everything above ships on Community: grouping and drill-down are our own full-width rows, and the sparklines are SVG. **No watermark either way.**
+  - Pivoting is Studio's Pivot widget on the Builder tab (licensed by the Studio key).
+  - `ag-grid-enterprise` and `ag-charts-community`/`-enterprise` are direct dependencies at the versions AG Studio pins (36.2.0 / 14.2.0).
+- **Deviations from PLAN's AG Grid list:**
+  - Master-detail, set filters and integrated charts are Enterprise-only, so they are replaced by the full-width drill-down, the filter chips and the linked AG Charts chart.
+  - The "AI Toolkit" is our own NL → grid-state route (the same guard and output-only contract as PLAN item 4).
+- **AT:** `dashboard-checks` G0–G6 (results in PROGRESS). AT-5 must still pass on the Builder tab.
+- **Serves:** P9 (the AG Grid prize), J1, J2, J5, D-002, D-016, D-074.
 
 ---
 

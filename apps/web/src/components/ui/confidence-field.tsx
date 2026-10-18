@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleCheck, Sparkle, TriangleAlert } from "lucide-react";
 import { useId } from "react";
 import { LOW_CONFIDENCE_THRESHOLD } from "@shopfront/core";
 import { cn } from "@/lib/cn";
@@ -18,6 +18,7 @@ export function ConfidenceField({
   confirmed = false,
   onConfirm,
   multiline = false,
+  ai = true,
   className,
 }: {
   label: string;
@@ -28,6 +29,8 @@ export function ConfidenceField({
   confirmed?: boolean;
   onConfirm?: () => void;
   multiline?: boolean;
+  /** Filled in by the AI from the photo (walkthrough #9: show what the AI wrote vs what the seller decides). */
+  ai?: boolean;
   className?: string;
 }) {
   const id = useId();
@@ -40,7 +43,12 @@ export function ConfidenceField({
   return (
     <div className={cn("group/field grid gap-1.5", className)}>
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-medium text-ink">
+        <label htmlFor={id} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink">
+          {ai && !isPrice && (
+            <span className="inline-flex items-center gap-0.5 rounded-sm bg-clay-soft px-1 text-[10px] font-semibold uppercase tracking-wide text-clay-strong" title="Filled in by the AI from your photo">
+              <Sparkle aria-hidden className="size-2.5" /> AI
+            </span>
+          )}
           {label}
         </label>
         <span id={hintId} className={cn("inline-flex items-center gap-1 text-xs", low ? "text-warning" : "text-muted")}>

@@ -101,8 +101,8 @@ export function ListingsGrid({ initial }: { initial: ListingRow[] }) {
       },
       { field: "description", headerName: "Description → PayPal", flex: 2, minWidth: 240, editable: true, cellEditor: "agLargeTextCellEditor", cellEditorPopup: true, cellEditorParams: { maxLength: 1000, rows: 6, cols: 60 }, cellClass: "text-ink-2", tooltipField: "description" },
       { field: "category", headerName: "Category → PayPal", width: 150, editable: true, cellEditor: "agSelectCellEditor", cellEditorParams: { values: CATEGORIES } },
-      { field: "price", headerName: "Price", width: 104, editable: true, type: "rightAligned", valueFormatter: (p) => `$${Number(p.value).toFixed(2)}`, cellClass: "tabular font-medium", headerTooltip: "Used on the next checkout; never changes a past order" },
-      { field: "stock", headerName: "Stock", width: 90, editable: true, type: "rightAligned", cellEditor: "agNumberCellEditor", cellEditorParams: { min: 0, max: 100000, precision: 0 }, cellClass: (p) => cn("tabular", Number(p.value) <= 2 && "text-warning font-medium") },
+      { field: "price", headerName: "Price", cellStyle: { display: "flex", alignItems: "center", justifyContent: "flex-end" }, width: 104, editable: true, type: "rightAligned", valueFormatter: (p) => `$${Number(p.value).toFixed(2)}`, cellClass: "tabular font-medium", headerTooltip: "Used on the next checkout; never changes a past order" },
+      { field: "stock", headerName: "Stock", cellStyle: { display: "flex", alignItems: "center", justifyContent: "flex-end" }, width: 90, editable: true, type: "rightAligned", cellEditor: "agNumberCellEditor", cellEditorParams: { min: 0, max: 100000, precision: 0 }, cellClass: (p) => cn("tabular", Number(p.value) <= 2 && "text-warning font-medium") },
       { field: "sold_14d", headerName: "Sold · 14 days", width: 160, cellRenderer: (p: ICellRendererParams<Row>) => <Sold value={p.value as number[]} />, sortable: false },
       { field: "sync", headerName: "PayPal catalog", width: 200, cellRenderer: SyncCell },
     ],
@@ -115,7 +115,7 @@ export function ListingsGrid({ initial }: { initial: ListingRow[] }) {
         theme={theme}
         rowData={rows}
         columnDefs={cols}
-        defaultColDef={{ resizable: true, sortable: true, suppressHeaderMenuButton: true }}
+        defaultColDef={{ resizable: true, sortable: true, suppressHeaderMenuButton: true, cellStyle: { display: "flex", alignItems: "center" } }}
         getRowId={(p) => p.data.variant}
         rowHeight={52}
         onCellValueChanged={onEdit}

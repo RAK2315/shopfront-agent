@@ -202,12 +202,12 @@ export function OrdersGrid({ rows, view, onSortChange }: { rows: OrderRow[]; vie
   const cols = useMemo<ColDef<Row>[]>(() => {
     const show = (id: string) => !view.columns || view.columns.includes(id as never);
     const all: Array<ColDef<Row> & { key: string }> = [
-      { key: "date", colId: "at", field: "at" as never, headerName: "Date", width: 118, valueFormatter: (p) => (p.value ? new Date(p.value).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " + new Date(p.value).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : ""), sort: "desc" },
+      { key: "date", colId: "at", field: "at" as never, headerName: "Date", width: 150, valueFormatter: (p) => (p.value ? new Date(p.value).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " + new Date(p.value).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : ""), sort: "desc" },
       { key: "order", colId: "order", field: "order" as never, headerName: "Order", width: 150, cellRenderer: OrderCell, sortable: false },
       { key: "product", colId: "product", field: "product" as never, headerName: "Product", flex: 2, minWidth: 220, cellRenderer: ProductCell },
       { key: "status", colId: "status", field: "status" as never, headerName: "Status", width: 160, cellRenderer: (p: ICellRendererParams<Row>) => <span className="flex h-full items-center"><StatusPill status={(p.data as Order).status as CheckoutStatus} /></span>, enableCellChangeFlash: true },
-      { key: "total", colId: "total", field: "total" as never, headerName: "Total", width: 104, type: "rightAligned", valueFormatter: (p) => usd(p.value ?? 0), cellClass: "tabular font-medium", enableCellChangeFlash: true },
-      { key: "refunded", colId: "refunded", field: "refunded" as never, headerName: "Refunded", width: 110, type: "rightAligned", valueFormatter: (p) => (p.value ? `−${usd(p.value)}` : "—"), cellClass: (p) => (p.value ? "tabular text-danger" : "tabular text-muted"), enableCellChangeFlash: true },
+      { key: "total", colId: "total", field: "total" as never, headerName: "Total", width: 104, type: "rightAligned", cellStyle: { display: "flex", alignItems: "center", justifyContent: "flex-end" }, valueFormatter: (p) => usd(p.value ?? 0), cellClass: "tabular font-medium", enableCellChangeFlash: true },
+      { key: "refunded", colId: "refunded", field: "refunded" as never, headerName: "Refunded", width: 110, type: "rightAligned", cellStyle: { display: "flex", alignItems: "center", justifyContent: "flex-end" }, valueFormatter: (p) => (p.value ? `−${usd(p.value)}` : "—"), cellClass: (p) => (p.value ? "tabular text-danger" : "tabular text-muted"), enableCellChangeFlash: true },
       { key: "shipped", colId: "shipped", field: "shipped" as never, headerName: "Shipped", width: 150, cellRenderer: (p: ICellRendererParams<Row>) => { const r = p.data as Order; return r.shipped === "yes" ? <span className="flex h-full items-center gap-1 text-sm text-ink-2" title={r.tracking}><Truck aria-hidden className="size-3.5 text-success" />{r.tracking.split(" ")[0]}</span> : <span className="text-sm text-muted">not yet</span>; }, enableCellChangeFlash: true },
       { key: "ship_by", colId: "ship_by", field: "ship_by" as never, headerName: "Ship by", width: 124, editable: true, cellEditor: "agDateStringCellEditor", cellClass: "text-ink-2" },
       { key: "note", colId: "note", field: "note" as never, headerName: "Note (only you)", flex: 1, minWidth: 160, editable: true, cellClass: "text-ink-2", sortable: false },
@@ -250,7 +250,7 @@ export function OrdersGrid({ rows, view, onSortChange }: { rows: OrderRow[]; vie
         theme={theme}
         rowData={data}
         columnDefs={cols}
-        defaultColDef={{ resizable: true, sortable: true, suppressHeaderMenuButton: true }}
+        defaultColDef={{ resizable: true, sortable: true, suppressHeaderMenuButton: true, cellStyle: { display: "flex", alignItems: "center" } }}
         getRowId={(p: GetRowIdParams<Row>) => p.data.id}
         isFullWidthRow={(p) => p.rowNode.data?.kind !== "order"}
         fullWidthCellRenderer={(p: ICellRendererParams<Row>) => (p.data?.kind === "group" ? <GroupHeader data={p.data} onToggle={toggleGroup} /> : p.data?.kind === "detail" ? <DetailPanel order={p.data.order} /> : null)}
