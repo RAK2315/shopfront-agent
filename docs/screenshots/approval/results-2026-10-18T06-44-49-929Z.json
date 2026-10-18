@@ -1,0 +1,66 @@
+[
+  {
+    "id": "AP1a popup approval via /shop",
+    "ok": true,
+    "detail": {
+      "checkoutId": "chk_cazow4rdhzho",
+      "status": "paid",
+      "capture": "8L0365601P206280Y",
+      "popupAttempts": 2
+    }
+  },
+  {
+    "id": "AP1b refund re-walk",
+    "ok": true,
+    "detail": {
+      "refundRequest": "rfr_flcssufw78nk",
+      "decision": "auto_approve",
+      "via": "auto_approve",
+      "paypalRefundId": "1AN57176SK298430G",
+      "paypalStatus": "COMPLETED"
+    }
+  },
+  {
+    "id": "AP2 redirect approval",
+    "ok": true,
+    "detail": {
+      "checkoutId": "chk_qyole9lfe7em",
+      "status": "paid",
+      "capture": "9B667557WP507311X",
+      "returnUrlEvents": 1,
+      "landedOn": "/pay/chk_qyole9lfe7em"
+    }
+  },
+  {
+    "id": "AP3",
+    "ok": false,
+    "detail": "locator.waitFor: Error: strict mode violation: getByRole('alert') resolved to 2 elements:"
+  },
+  {
+    "id": "AP4 dead ends",
+    "ok": true,
+    "detail": {
+      "no token": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "wrong token": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "bad return link": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "unknown route": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "mobileOverflowPx": 0
+    }
+  }
+]

@@ -93,6 +93,8 @@
 | D-082 | 2026-10-18 | Phase 10 backend: telegram_updates dedupe, single-use link codes (owner token for the public demo seller), the action executor, judge_demo seeded and isolated | ACCEPTED | J1, J3, J4, P7, P8 |
 | D-083 | 2026-10-18 | Phase 9 backend (Partial): payee routing per seller (refused when not ready), first-capture verification, refund handoff status with the PayPal deep link, seller refunds reconciled from webhook or GET fallback | ACCEPTED | J1, J3, G1, R2 |
 | D-084 | 2026-10-18 | Log in with PayPal planned for the "Get paid" card (verify at connect, block unverified payees); Fern's $50 auto-refund limit kept; deletions only through `scripts/safe-rm.mjs` | ACCEPTED (plan; LIPP build waits for approval) | J1, J3, G1 |
+| D-085 | 2026-10-18 | Walkthrough fix list approved and scheduled; **Phase 11 (Vault reorder) and Spike V cut**; autonomous run to feature-complete; Render ignores docs-only pushes | ACCEPTED | J2, J5, P8 |
+| D-086 | 2026-10-18 | PayPal approval bug: v6 `presentationMode: "auto"` sometimes opened nothing and left the session dead. Now an explicit popup, a redirect fallback and a "Continue in this tab" link | ACCEPTED | R2, J3, G1 |
 
 ---
 
@@ -1191,6 +1193,52 @@
   - Tested by hand (outside, root, `.git`, a directory without `-r`, a mix of good and bad paths, a missing path, from a subfolder through pnpm, and `-r`).
   - Added to CLAUDE.md's working style.
 - **Serves:** J1, J3, G1, D-076, D-083.
+
+---
+
+## D-085: Fix list approved, Phase 11 cut, autonomous run (2026-10-18; owner)
+
+- **Owner:** "Approved: the fix list and the Phase 11 cut (log it)." The goal for this run is feature-complete: every remaining planned item built, tested on Render and documented, leaving only bug fixes, the video and the submission.
+- **Cut: Phase 11 (agent reorder with Vault) and Spike V.** Their 4 days go to the walkthrough fixes (`docs/review-pack/FEEDBACK.md`).
+  - Vault stays enabled in the sandbox app, unused.
+  - The README must not claim saved-wallet reorders. P8 is answered by the agent checkout + human approval only.
+  - Cut order from here: 13 lite is the only remaining cuttable phase; the owner confirms any further cut.
+- **Build order (owner):** #13 + #12, #1 photos (CC0/free-licence stock now; owner photos later for the live photo-to-store and Telegram demos), #2 demo history, #4 shop, #3 AG Grid dashboard (key-gated; Community fallback; never a watermark), #9 studio editor, #6 landing, #7 live console, #11 mobile, #5 hack card + 12 attacks, #10 Phase 9 screens + Log in with PayPal (D-084), #8 + full Phase 10, README final pass, final regression.
+- **Per item:** ATs on Render including unhappy paths; screenshots in `docs/screenshots/<item>/`; commit and push; DECISIONS for deviations; a 5-line report in `docs/PROGRESS.md`. Waiting on the owner never blocks: take the fallback and log it in `docs/OWNER-TODO.md`.
+- **Render build filter (found during the walkthrough):**
+  - Every push redeployed the service, docs included. My docs commit `eec455c` restarted Render at 06:05:57 UTC, in the middle of the owner's step 2. That drops the SSE wire and the in-memory timers (the boot re-arm recovers them).
+  - The service's build filter now ignores `docs/**` (Render API, `buildFilter.ignoredPaths`), so docs-only commits no longer deploy. Code and README changes still do.
+- **Serves:** J2, J5, P8 (honest scope), D-079.
+
+---
+
+## D-086: The PayPal approval bug from the walkthrough (2026-10-18)
+
+- **Symptom (walkthrough step 2):** the owner's $37 Cobalt drip mug checkout `chk_dfzuximzjhso` stayed `created`. PayPal's order is still `PAYER_ACTION_REQUIRED`, so no buyer ever approved it. Our server did everything right: the order was created, and the fallback GETs ran at +1, +3 and +10 min.
+- **Reproduced on Render:** a probe opened fresh pay pages and clicked the PayPal button once:
+  - 2 of 4, 1 of 3 and 3 of 6 first clicks opened **no PayPal window**;
+  - the button then stayed in "approving" with no message;
+  - **a second click on the same page also opened nothing.** The buyer is stuck until they reload, which is what the owner saw.
+- **Cause:** `session.start({ presentationMode: "auto" })` in the v6 SDK.
+  - In a minimal page outside our app (the same SDK, client id and order), "auto" opened nothing 1 time in 5, yet `start()` resolved normally.
+  - Explicit `"popup"` opened 5 of 5.
+  - So it is the SDK's "auto" choice (likely a presentation that never appears in this browser), not our React code.
+  - The PayPal toolkit reference recommends "auto". We stop following it here, on evidence.
+- **Fix:**
+  - `presentationMode: "popup"`, started synchronously inside the click.
+  - If the popup is blocked, it falls back to PayPal's own page (`checkoutnow?token=`), which returns through `/pay/return` and is captured server-side.
+  - While "approving", a "Can't see it? Continue in this tab" link goes to the same page, so the buyer is never stuck.
+  - The rules live in `apps/web/src/lib/paypal-presentation.ts`, with unit tests.
+- **Regression test:**
+  - `approval-checks` AP5: 8 fresh pay pages, each clicked the moment the button is ready, must open PayPal every time, and the escape link must equal the order's own `payer-action` link.
+  - AP1 now fails on any popup that doesn't open (it used to retry).
+  - The older ATs hid this bug: since Phase 2 they retried a popup that "did not open" (`phase2-checks` `payInPopup`).
+- **Also shipped (#12):**
+  - A branded "This payment link is incomplete or expired" page for `/pay` without or with a wrong token, an unknown checkout, or a bad `/pay/return` link. It is the same page whichever check failed, and never shows the order.
+  - A branded site 404.
+  - The redirect flow's cancel now says "nothing was charged".
+- **Refund re-walk (#13):** AP1b on Render. A refund asked in the same `/shop` chat was auto-approved by Juniper Clay's policy, and PayPal refund `1AN57176SK298430G` is `COMPLETED`. The step-7 404 in the walkthrough was my link (no `?t=` token), not the app.
+- **Serves:** R2, J3, G1, D-025.
 
 ---
 

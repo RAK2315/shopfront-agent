@@ -221,6 +221,12 @@ video/
 - [ ] The D-062 tasks above are fixed: no zoom crops its target, every `/live` pane starts with 0 checkouts, and no caption covers app text (each has its automated check).
 
 ### Phases 9–13: re-planned 2026-10-17 in the owner's new order (D-071); re-dated 2026-10-18 (D-079): freeze at end of Nov 5, Phase 12 cut, Phase 13 lite
+> **D-085 (owner, 2026-10-18, after the walkthrough) overrides everything below where they differ:**
+> - **Phase 11 (Vault reorder) and Spike V are cut.** Phase 12 was already cut.
+> - **The work is the walkthrough fix list** (`docs/review-pack/FEEDBACK.md`), built in this order:
+>   #13 + #12 → #1 photos → #2 demo history → #4 shop → #3 AG Grid dashboard → #9 studio editor → #6 landing → #7 live console → #11 mobile → #5 hack card + Phase 13 lite → #10 Phase 9 screens + Log in with PayPal (D-084) → #8 + Phase 10 → README → final regression.
+> - **Freeze at the end of Nov 5.** Progress is logged in `docs/PROGRESS.md`; owner waits go in `docs/OWNER-TODO.md`.
+>
 > **D-079 (owner, 2026-10-18) overrides the notes below where they differ:**
 > - **The freeze is at the end of Nov 5.** The video is Nov 6–10; we submit on Nov 11.
 > - **Phase 12 is cut.**
