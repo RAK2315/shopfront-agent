@@ -1,0 +1,22 @@
+# Keep-warm for the judging window (D-097): the Render free service sleeps after ~15 min idle, and a judge's first
+# request would wait about a minute. Every 10 minutes this pings /api/health/live, which never touches the database,
+# so Neon still autosuspends. Free: the repo is public. Runs until Dec 15, 2026 (the end of judging), then no-ops.
+name: keep-warm
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping the live health route
+        run: |
+          if [ "$(date -u +%Y%m%d)" -gt 20261215 ]; then echo "Judging window over; not pinging."; exit 0; fi
+          for i in 1 2 3; do
+            if curl -fsS -m 90 https://shopfront-agent.onrender.com/api/health/live; then exit 0; fi
+            sleep 20
+          done
+          exit 1
