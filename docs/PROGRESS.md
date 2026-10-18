@@ -166,3 +166,15 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/fixes-3/`.
 - **Risks:** two orphaned sandbox captures from the bug window (owner's call). Visible browsers can't open on this machine right now; headless works.
 - **Next:** Log in with PayPal after 21:20 IST (3 h after the owner's save), then review v2 on "start review v2".
+
+## Orphaned captures refunded + reconciliation with PayPal (2026-10-18 night, D-095)
+- **Done:**
+  - The two D-094 orphaned captures are refunded through the app's refund code. Both orders read "refunded", with a note citing the incident.
+  - A reconciliation check now compares PayPal's captures with our orders (Transaction Search, webhooks, GET). It runs on boot, daily, from the dashboard, and at the end of every AT suite. The dashboard badge shows "Reconciled with PayPal ✓" or "N mismatches".
+  - A capture webhook on a cancelled order is now logged as a conflict, not "confirms existing state".
+- **Tests:**
+  - `reconcile-checks` on Render, 6/6: it found exactly the 2 orphans, the badge showed "2 mismatches" at three sizes, both refunds were confirmed REFUNDED by a PayPal GET, a repeat call did nothing, then the badge showed ✓.
+  - `shop-checks` 4/4, ending with an automatic reconcile PASS. Core unit tests: 9 new.
+- **Screenshots:** `docs/screenshots/reconcile/`.
+- **Risks:** Transaction Search lags (covered by webhooks and GETs). The daily run happens only while Render is awake (start-up and dashboard runs cover it).
+- **Next:** review v2.

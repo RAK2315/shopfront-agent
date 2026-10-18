@@ -1,0 +1,129 @@
+[
+  {
+    "id": "R1 reconciliation run against PayPal",
+    "ok": true,
+    "detail": {
+      "matched": 101,
+      "mismatches": [
+        "Captured, but no paid order: chk_sewtsaj30hts / 4PS80372PS203812S",
+        "Captured, but no paid order: chk_0prkr6zvb6y8 / 93897555YJ175420Y"
+      ],
+      "explained": 1,
+      "error": null,
+      "expect": 2
+    }
+  },
+  {
+    "id": "R2 dashboard badge matches the run",
+    "ok": true,
+    "detail": {
+      "1920": {
+        "state": "mismatch",
+        "n": 2,
+        "text": "2 mismatches with PayPal",
+        "rows": 2,
+        "fits": true,
+        "overflow": 0
+      },
+      "desktop": {
+        "state": "mismatch",
+        "n": 2,
+        "text": "2 mismatches with PayPal",
+        "rows": 2,
+        "fits": true,
+        "overflow": 0
+      },
+      "mobile": {
+        "state": "mismatch",
+        "n": 2,
+        "text": "2 mismatches with PayPal",
+        "rows": 2,
+        "fits": true,
+        "overflow": 0
+      }
+    }
+  },
+  {
+    "id": "R3 stray captures refunded through the app's refund code",
+    "ok": true,
+    "detail": {
+      "calls": [
+        {
+          "status": "refunded",
+          "refund": "executed",
+          "already": false
+        },
+        {
+          "status": "refunded",
+          "refund": "executed",
+          "already": false
+        }
+      ],
+      "db": [
+        {
+          "id": "chk_sewtsaj30hts",
+          "status": "refunded",
+          "capture": "4PS80372PS203812S REFUNDED",
+          "refund": "6W5585679V533933W"
+        },
+        {
+          "id": "chk_0prkr6zvb6y8",
+          "status": "refunded",
+          "capture": "93897555YJ175420Y REFUNDED",
+          "refund": "9LF06474PK812901K"
+        }
+      ],
+      "atPayPal": [
+        "REFUNDED",
+        "REFUNDED"
+      ]
+    }
+  },
+  {
+    "id": "R4 a second refund call is a no-op",
+    "ok": true,
+    "detail": {
+      "already": true,
+      "refundRequests": 1
+    }
+  },
+  {
+    "id": "R5 the next run is clean",
+    "ok": true,
+    "detail": {
+      "matched": 103,
+      "mismatches": 0,
+      "explained": 1
+    }
+  },
+  {
+    "id": "R5b dashboard badge turns ✓",
+    "ok": true,
+    "detail": {
+      "1920": {
+        "state": "ok",
+        "n": 0,
+        "text": "Reconciled with PayPal ✓",
+        "rows": 0,
+        "fits": true,
+        "overflow": 0
+      },
+      "desktop": {
+        "state": "ok",
+        "n": 0,
+        "text": "Reconciled with PayPal ✓",
+        "rows": 0,
+        "fits": true,
+        "overflow": 0
+      },
+      "mobile": {
+        "state": "ok",
+        "n": 0,
+        "text": "Reconciled with PayPal ✓",
+        "rows": 0,
+        "fits": true,
+        "overflow": 0
+      }
+    }
+  }
+]

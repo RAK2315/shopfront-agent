@@ -79,6 +79,22 @@
 3. **Fallback timers** (D-025): when a checkout is created or approved, schedule checks at +60 s, +3 min and +10 min (also re-scheduled on boot). A check runs `GET /v2/checkout/orders/{id}` **only if no webhook has moved the state yet**, reconciles, and marks `confirmed_via='poll'`. The UI shows a "via webhook" or "via poll" badge. There is no global polling loop ("Don't poll. Let PayPal tell you.").
 4. Events handled: `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.PENDING`, `PAYMENT.CAPTURE.DENIED` (and `.DECLINED`, per the webinar slide, D-024), `PAYMENT.CAPTURE.REFUNDED`, `PAYMENT.CAPTURE.REVERSED`, `CUSTOMER.DISPUTE.CREATED` (display only).
 
+### 2.4b Reconciliation with PayPal (D-095)
+- **Compares** every PayPal capture of the last 30 days with our orders:
+  - PayPal's side: Transaction Search on the platform account, verified `PAYMENT.CAPTURE.COMPLETED` webhooks (these also cover directly-paid sellers), and a GET of up to 15 of our captures that neither source confirms yet.
+  - Our side: `captures` joined with `checkouts`.
+- **Flags:**
+  - a capture with no paid order (no order at all, or an order that isn't paid / shipped / refunded);
+  - a paid order with no capture (no row, a capture that isn't money, or a capture PayPal doesn't know);
+  - amounts that differ.
+- **Runs:**
+  - on boot and daily (an unref'd timer, so nothing stays awake, D-022);
+  - from a dashboard whose last run is more than a day old;
+  - at once on a capture webhook that conflicts with the order's state;
+  - at the end of every AT suite.
+- **Results:** stored in `reconciliation_runs`. The dashboard badge reads the latest run, scoped to the seller. A new mismatch goes on the seller's timeline once.
+- **Reports only.** A stray capture on a cancelled order is refunded by an operator action (`refund_stray`) through `executeRefund`; `cancelled + REFUND_FULL → refunded`.
+
 ### 2.5 Post-sale ops (Flow 5)
 1. On `paid`, the ops agent drafts a thank-you message (structured `{subject, body}`). It is shown on the order page and in the buyer's status view. No email is sent (D-008).
 2. **Tracking:** the seller photographs a shipping label or types the number. Vision extracts `{carrier, tracking_number, confidence}`. The seller confirms. Then `POST /v2/checkout/orders/{order_id}/track` with `capture_id`, `tracking_number`, `carrier` (+ `notify_payer`). The tracking number is never invented.

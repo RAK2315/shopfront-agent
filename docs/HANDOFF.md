@@ -213,7 +213,8 @@
 **AT scripts (all under `apps/web/scripts`, run as `pnpm --filter web <name> -- --base https://shopfront-agent.onrender.com`):**
 - `approval-checks`, `shop-checks`, `dashboard-checks`, `studio-checks`, `landing-checks`, `live-checks`, `mobile-checks`, `hack-checks`;
 - `telegram-flow-checks`, `connect-checks`, `final-screens`;
-- plus the older `phase2/4/5/6/9-checks`, `recovery-checks`, `telegram-checks`, `fixes-checks`, `lane-checks`.
+- plus the older `phase2/4/5/6/9-checks`, `recovery-checks`, `telegram-checks`, `fixes-checks`, `lane-checks`;
+- `reconcile-checks` (the badge) and `reconcile` (the bare check). Every suite above also ends with `reconcile --settle` by itself (the preload, D-095); `AT_RECONCILE=0` skips it.
 
 **Habits from this run:**
 - Run `pnpm typecheck 2>&1 | grep "error TS"`, because `pnpm -s typecheck` hides errors and a Render build failed that way. Run `pnpm --filter web build` before pushing.
@@ -228,3 +229,8 @@
 - `/api/health` shows `booted_at`.
 - Don't use `scripts/render-deploy.mjs` as is: its env PUT replaces all of Render's variables. For one key, use the single-key `PUT /services/{id}/env-vars/{key}` call.
 - Next: review v2 on the owner's "start review v2" (`docs/review-pack/REVIEW-V2.md`).
+
+**Reconciliation (D-095, 2026-10-18 night):**
+- `src/server/ledger.ts` compares PayPal's captures with our orders (pure rules in `packages/core/src/ledger-check.ts`). It runs on boot, daily, from a stale dashboard, at once when a capture webhook conflicts with a cancelled order, and at the end of every AT suite.
+- A capture with no order by design goes in `EXPLAINED_CAPTURES` with its decision (today only the D-076 spike), never hidden.
+- Refunding a stray capture: admin action `refund_stray` (`{checkout_id, note}`). It goes through `executeRefund` and is idempotent.

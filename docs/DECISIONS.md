@@ -1495,6 +1495,42 @@
   - `PAYPAL_LIPP_ENABLED=1` is set on Render (single-key API update, then a deploy).
   - `connect-checks` passes 7/7 on Render: C2 real sign-in as seller 2 (userinfo fields `user_id, sub, payer_id, verified_account, email…`); C3 replay refused; C4 an unverified email refused; C5 Fern & Loom verified by Log in with PayPal (payer id `B83JSV9ELHV74` = the merchant PayPal pays); C6 reconnected; C7 a paid order lands in seller 2's PayPal.
   - D-093's open item is closed. The README limitation line was replaced by "live".
+
+---
+
+## D-095: Orphaned captures refunded; reconciliation with PayPal (2026-10-18; owner, OWNER-TODO #5)
+- **Owner's decision:**
+  - Refund both D-094 orphaned captures through the app's own refund code, and mark the orders "captured after cancel → refunded" with a note on the incident.
+  - Add a reconciliation check (half a day at most) so this class of bug can't go unnoticed again.
+- **Root cause it closes:**
+  - In D-094 two orders were cancelled after PayPal had captured them.
+  - The capture webhook arrived and was logged as "confirms existing state". The state machine had correctly reported a conflict, but the webhook handler's summary didn't distinguish it.
+  - Nothing compared our books with PayPal's.
+- **Built:**
+  - **The rules:** `packages/core/src/ledger-check.ts` (pure, 9 unit tests). It flags a capture with no paid order, a paid order with no capture (no row, a capture that isn't money, or one PayPal doesn't know), and amounts that differ.
+  - **The data:** `apps/web/src/server/ledger.ts`.
+    - PayPal's side comes from three sources: Transaction Search for the last 30 days (paged), verified `PAYMENT.CAPTURE.COMPLETED` webhooks, and a GET of up to 15 unconfirmed captures. Our side is the `captures` and `checkouts` tables.
+    - Results go in the new `reconciliation_runs` table (migration 0012). A new mismatch is recorded once on the seller's timeline.
+  - **When it runs:**
+    - on boot, and daily on an unref'd timer, so it never keeps Render or Neon awake (D-022);
+    - from a dashboard whose last run is more than a day old;
+    - at once when a capture webhook conflicts with the order's state;
+    - with `pnpm reconcile`;
+    - at the end of every AT suite. The shared preload's exit hook runs it with `--settle`, which re-checks once after 90 s, and fails the suite on a mismatch. `AT_RECONCILE=0` skips it.
+  - **The dashboard badge** "Reconciled with PayPal ✓ / N mismatches" opens to show what was compared and each mismatch's ids. Items with no order are attributed to the seller named as payee, or else to the platform-paid shops.
+  - **"Explained" captures** are listed, never hidden. There is one today: `3G13556369039540R`, the D-076 payee-routing spike, which created a $37 order directly at PayPal outside the app.
+  - The webhook now logs `capture_conflict` with "⚠ PayPal moved money but the order is cancelled: flagged for reconciliation".
+  - **Repair:**
+    - the admin action `refund_stray` creates a `reconciliation` refund request and calls `executeRefund` (GET of the capture first, `PayPal-Request-Id = refund-<id>`, row lock);
+    - it's idempotent, it refuses directly-paid shops (D-076), and it skips the refund-spike alert;
+    - state machine: `cancelled + REFUND_FULL → refunded` (a partial refund or a new capture on a cancelled order is still a conflict).
+- **Deviation:** the reconciliation only reports. It never refunds by itself: money moves only on an explicit action (D-002).
+- **Results on Render (`reconcile-checks`, 6/6):**
+  - before the repair: 101 matched, exactly the 2 orphans flagged, 1 explained; the badge read "2 mismatches with PayPal" at desktop, 1920×1080 and mobile;
+  - refunds `6W5585679V533933W` (capture `4PS80372PS203812S`) and `9LF06474PK812901K` (capture `93897555YJ175420Y`), both REFUNDED by a PayPal GET; the orders are `refunded`, with the note;
+  - a repeat call did nothing; afterwards 103 matched, 0 mismatches, and the badge read ✓.
+  - `shop-checks` 4/4, ending with an automatic reconcile PASS, where a capture seconds old was confirmed by GET.
+- **Serves:** J1 (technical depth: real PayPal reconciliation), J3 (reliability), D-002, D-007, D-022.
 ---
 
 ## Requirement updates

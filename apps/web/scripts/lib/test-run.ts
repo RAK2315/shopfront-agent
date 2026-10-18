@@ -4,7 +4,9 @@
 // It covers Node's fetch (plain calls and the MCP SDK transport) and every Playwright browser context. Requests to
 // PayPal or anywhere else are left untouched. A request may opt out with `x-shopfront-public-view: 1` (to check what
 // the public sees, or to act as a real visitor).
+import { spawnSync } from "node:child_process";
 import { createHmac } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type BrowserContext } from "@playwright/test";
 
 const secret = process.env.SESSION_SECRET;
@@ -53,3 +55,18 @@ chromium.launch = (async (...a: Parameters<typeof chromium.launch>) => {
   };
   return browser;
 }) as typeof chromium.launch;
+
+// D-095: every suite ends with a reconciliation with PayPal against the same --base, so a capture with no paid order
+// (or a paid order with no capture) fails the run that caused it. Synchronous on purpose: suites end with
+// process.exit(), which skips beforeExit, and an exit listener may only block. A mismatch is re-checked once after
+// 90 s (a payment can still be settling). AT_RECONCILE=0 skips it.
+if (process.env.AT_RECONCILE !== "0") {
+  process.once("exit", (code) => {
+    const argv = process.argv.slice(2).filter((x) => x !== "--");
+    const base = argv.includes("--base") ? argv[argv.indexOf("--base") + 1] : undefined;
+    if (!base?.startsWith("http")) return;
+    const script = fileURLToPath(new URL("../reconcile.mts", import.meta.url));
+    const r = spawnSync(process.execPath, ["--import", "tsx", script, "--base", base, "--settle"], { stdio: "inherit", env: process.env });
+    if (r.status !== 0 && !code) process.exitCode = 1;
+  });
+}
