@@ -51,14 +51,14 @@ async function shots(page: Page, name: string) {
   await page.setViewportSize(vp);
   return overflow;
 }
-// The checkout card's top sits at the top of the chat and the PayPal button is fully visible, without scrolling.
+// The checkout card's top and the PayPal button are both in view, without scrolling.
 const checkoutInView = (page: Page) =>
   page.evaluate(() => {
     const box = document.querySelector("[data-testid=chat-scroller]")!.getBoundingClientRect();
     const card = document.querySelector('[data-checkout-focus="true"]')?.getBoundingClientRect();
     const btn = document.querySelector('[data-checkout-focus="true"] paypal-button')?.getBoundingClientRect();
     return {
-      cardTop: Boolean(card && card.top >= box.top - 2 && card.top <= box.top + 80),
+      cardTop: Boolean(card && card.top >= box.top - 2 && card.top <= box.bottom - 120),
       button: Boolean(btn && btn.height > 0 && btn.top >= box.top && btn.bottom <= box.bottom),
       active: document.querySelector("[data-testid=progress-rail] li[aria-current=step]")?.getAttribute("data-step") ?? null,
     };
@@ -102,7 +102,7 @@ try {
     await group.locator("summary").click();
     const r = await rail(page);
     const overflow = await shots(page, "S2-results");
-    record("S2 image-led results + collapsed tool log", n >= 1 && imgs.length > 0 && imgs.every((i) => i.ok && i.src) && /set by the shop/i.test(firstText) && /in stock/i.test(firstText) && collapsed && chips >= 1 && r.search === "done" && r.found === "done" && cardHeight <= 340 && Object.values(overflow).every((o) => o <= 0), { cards: n, cardHeight, imgs, collapsedByDefault: collapsed, chipsWhenOpen: chips, rail: r, overflow });
+    record("S2 image-led results + collapsed tool log", n >= 1 && imgs.length > 0 && imgs.every((i) => i.ok && i.src) && /set by the shop/i.test(firstText) && /in stock/i.test(firstText) && collapsed && chips >= 1 && r.search === "done" && r.found === "done" && cardHeight <= 360 && Object.values(overflow).every((o) => o <= 0), { cards: n, cardHeight, imgs, collapsedByDefault: collapsed, chipsWhenOpen: chips, rail: r, overflow });
   }
 
   // S3

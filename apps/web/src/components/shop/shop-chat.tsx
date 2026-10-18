@@ -93,8 +93,10 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
       /* storage unavailable: a fresh session each visit */
     }
   }, []);
-  // Review v2 #1: while a checkout waits for the buyer (and they haven't typed since), keep its top in view instead of
-  // the bottom of the chat, so the PayPal button is the next thing they see. Paid: show the confirmation.
+  // Review v2 #1: when the agent ends a turn that set up a checkout or asked the buyer to approve one, the chat scrolls
+  // to that card (its top, so the PayPal button is the next thing they see), again once PayPal is ready, and to the
+  // confirmation once paid. Any other turn (a question, new results) scrolls to the bottom as usual.
+  const turnFocus = useRef(false);
   const focusCheckout = useCallback(
     (where: "top" | "bottom" = "top") => {
       const box = scroller.current;
@@ -110,14 +112,13 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
   const lastCheckoutId = useMemo(() => {
     let i = items.length - 1;
     while (i >= 0 && items[i]!.kind !== "checkout") i--;
-    if (i < 0 || items.slice(i).some((x) => x.kind === "user")) return null;
-    return (items[i] as Extract<Item, { kind: "checkout" }>).checkout.checkout_id;
+    return i < 0 ? null : (items[i] as Extract<Item, { kind: "checkout" }>).checkout.checkout_id;
   }, [items]);
   const focusPhase = lastCheckoutId ? pay[lastCheckoutId] : undefined;
   useEffect(() => {
-    if (lastCheckoutId && focusCheckout(focusPhase === "paid" ? "bottom" : "top")) return;
+    if (!busy && turnFocus.current && lastCheckoutId && focusCheckout(focusPhase === "paid" ? "bottom" : "top")) return;
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: reduce ? "auto" : "smooth" });
-  }, [items, reduce, lastCheckoutId, focusPhase, focusCheckout]);
+  }, [items, busy, reduce, lastCheckoutId, focusPhase, focusCheckout]);
 
   const push = (it: Item) => setItems((all) => [...all, it]);
 
@@ -126,6 +127,7 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
       if (!text.trim() || busy) return;
       setBusy(true);
       setInput("");
+      turnFocus.current = false;
       push({ kind: "user", id: uid(), text });
       let lastSource = "";
       try {
@@ -153,8 +155,11 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
                 /* ignore */
               }
             } else if (e.type === "step") lastSource = e.source;
-            else if (e.type === "text") push({ kind: "agent", id: uid(), text: e.text });
-            else if (e.type === "tool_call") {
+            else if (e.type === "text") {
+              if (/approv|checkout/i.test(e.text)) turnFocus.current = true;
+              push({ kind: "agent", id: uid(), text: e.text });
+            } else if (e.type === "tool_call") {
+              if (e.name === "create_checkout") turnFocus.current = true;
               calls.set(e.id, { name: e.name, args: (e.args ?? {}) as Record<string, unknown> });
               push({ kind: "tool", id: e.id, name: e.name, args: e.args, source: lastSource });
             } else if (e.type === "tool_result") {
