@@ -36,7 +36,7 @@ declare global {
   }
 }
 
-type Phase = "loading" | "ready" | "approving" | "capturing" | "paid" | "error" | "unavailable";
+export type Phase = "loading" | "ready" | "approving" | "capturing" | "paid" | "error" | "unavailable";
 
 interface Status {
   status: CheckoutStatus;
@@ -60,6 +60,8 @@ export function PayPalApprove({
   initialStatus,
   initialMessage = null,
   testBuyer,
+  variant = "page",
+  onPhase,
 }: {
   checkoutId: string;
   token: string;
@@ -70,12 +72,23 @@ export function PayPalApprove({
   /** Shown on arrival, e.g. after the buyer cancelled on PayPal's own page (redirect flow). */
   initialMessage?: string | null;
   testBuyer?: { email: string; password: string };
+  /** "inline": inside the /shop checkout card (walkthrough #4) — no consent line, the test buyer folded away. */
+  variant?: "page" | "inline";
+  /** Lets the /shop progress rail follow the payment (approving → capturing → paid). */
+  onPhase?: (phase: Phase, captureId?: string | null) => void;
 }) {
   const alreadyPaid = ["paid", "shipped", "partially_refunded", "refunded"].includes(initialStatus);
   const [phase, setPhase] = useState<Phase>(alreadyPaid ? "paid" : "loading");
   const [message, setMessage] = useState<string | null>(initialMessage);
   const [status, setStatus] = useState<Status | null>(null);
   const sessionRef = useRef<PayPalSession | null>(null);
+  const onPhaseRef = useRef(onPhase);
+  useEffect(() => {
+    onPhaseRef.current = onPhase;
+  });
+  useEffect(() => {
+    onPhaseRef.current?.(phase, status?.captureId ?? null);
+  }, [phase, status?.captureId]);
   const buttonRef = useRef<HTMLElement | null>(null);
 
   const refreshStatus = useCallback(async () => {
@@ -213,11 +226,24 @@ export function PayPalApprove({
               {message}
             </p>
           )}
-          <p className="inline-flex items-start gap-2 text-sm text-ink-2">
-            <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-            Your agent prepared this order. Nothing is charged until you approve it in PayPal.
-          </p>
-          {testBuyer && (
+          {variant === "page" && (
+            <p className="inline-flex items-start gap-2 text-sm text-ink-2">
+              <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
+              Your agent prepared this order. Nothing is charged until you approve it in PayPal.
+            </p>
+          )}
+          {testBuyer && variant === "inline" && (
+            <details className="group text-sm text-ink-2" data-testid="test-buyer">
+              <summary className="cursor-pointer list-none font-medium text-ink-2 hover:text-ink [&::-webkit-details-marker]:hidden">
+                <span className="underline decoration-line-strong underline-offset-4 group-open:no-underline">Judging? Use the sandbox test buyer</span>
+              </summary>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <RequestId label="Email" value={testBuyer.email} max={44} />
+                <RequestId label="Password" value={testBuyer.password} max={24} />
+              </div>
+            </details>
+          )}
+          {testBuyer && variant === "page" && (
             <div className="grid gap-2 rounded-md border border-line bg-surface-2 px-3 py-2.5" data-testid="test-buyer">
               <p className="text-sm text-ink-2">
                 <span className="font-medium text-ink">Judging?</span> Log in to PayPal with the sandbox test buyer. No real money moves.

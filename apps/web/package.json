@@ -29,7 +29,8 @@
     "spike-t": "node --import tsx scripts/spike-t.mts",
     "screens": "node --import tsx scripts/screens.mts",
     "approval-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/approval-checks.mts",
-    "demo-history": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/demo-history.mts"
+    "demo-history": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/demo-history.mts",
+    "shop-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/shop-checks.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
