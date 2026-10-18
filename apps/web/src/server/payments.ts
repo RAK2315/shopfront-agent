@@ -119,6 +119,15 @@ export async function captureCheckout(
     return { ok: false, reason: "already_final", message: `Checkout is ${c.status}.` };
   }
 
+  // A capture already on record (an earlier attempt captured but failed before the status update) means the money
+  // has moved: settle from PayPal's order, never cancel it as "sold out" (the stock check below would see our own
+  // decrement). Found 2026-10-18 when a failing post-capture step let the webhook path cancel two captured orders.
+  const [captured] = await db.select({ id: schema.captures.id }).from(schema.captures).where(eq(schema.captures.checkoutId, c.id));
+  if (captured) {
+    const { data: order } = await paypal.getOrder(c.paypalOrderId, { context: { checkoutId } });
+    return settleFromOrder(checkoutId, order, trigger === "fallback_check" ? "poll" : "capture_response", { trigger });
+  }
+
   // D-009: stock is checked again before money moves.
   const short = await db.execute<{ variant_id: string }>(sql`
     select ci.variant_id from ${schema.checkoutItems} ci join ${schema.variants} v on v.id = ci.variant_id

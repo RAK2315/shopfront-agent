@@ -68,7 +68,7 @@ async function approve(browser: Browser, paypalOrderId: string) {
   }
 }
 
-const browser = await chromium.launch({ headless: false, channel: "chromium" }); // PayPal's sandbox login fails headless
+const browser = await chromium.launch(process.env.AT_HEADLESS === "1" ? {} : { headless: false, channel: "chromium" }); // headed by default: PayPal's sandbox login has failed headless before
 try {
   if (only.has("X1")) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -139,10 +139,20 @@ try {
       await approve(browser, order.paypal_order_id);
       await until("order ping", () => sent("order_ping", t0), 90_000);
       log("X4: restarting the Render service (as Render free does after idling)");
+      const bootedBefore = ((await (await fetch(`${base}/api/health`)).json()) as { booted_at?: string }).booted_at;
       const rr = await fetch(`https://api.render.com/v1/services/srv-db8e76dg1s2s739vvv0g/restart`, { method: "POST", headers: { Authorization: `Bearer ${e.RENDER_API_KEY}` } });
       if (!rr.ok) throw new Error(`Render restart ${rr.status}`);
-      await sleep(20_000);
-      await until("the service back up", async () => (await fetch(`${base}/api/health`).catch(() => null))?.ok, 240_000, 5000);
+      // Proof of a fresh process: /api/health's booted_at changes (nothing in memory survives).
+      const bootedAfter = await until(
+        "a fresh server process",
+        async () => {
+          const h = (await (await fetch(`${base}/api/health`).catch(() => null))?.json().catch(() => null)) as { booted_at?: string } | null;
+          return h?.booted_at && h.booted_at !== bootedBefore ? h.booted_at : null;
+        },
+        300_000,
+        5000,
+      );
+      log(`X4: fresh process booted at ${bootedAfter} (was ${bootedBefore})`);
       const t1 = new Date();
       await tap(`m:simrefund:${ck}`);
       const decided = await until("a refund decision after the restart", async () => (await sent("refund_auto", t1)) ?? (await sent("refund_request", t1)) ?? (await sent("simulated_refund", t1)), 90_000);

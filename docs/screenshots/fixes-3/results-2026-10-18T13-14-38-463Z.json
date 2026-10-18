@@ -1,0 +1,17 @@
+[
+  {
+    "id": "X3 a demo variant sold down to 0 restocks at once; the demo reset restocks every demo shop",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_tqonhbj56vy3",
+      "stockAfterSale": 20,
+      "availableToAgents": true,
+      "reset": {
+        "products": 4,
+        "variants": 6,
+        "ms": 138
+      },
+      "belowTwentyAfterReset": []
+    }
+  }
+]
