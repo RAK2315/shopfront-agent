@@ -1,0 +1,40 @@
+[
+  {
+    "id": "X1 /privacy and /terms are live and linked from the landing",
+    "ok": true,
+    "detail": {
+      "/privacy": {
+        "status": 200,
+        "h1": "Privacy",
+        "sandbox": true,
+        "ok": true
+      },
+      "/terms": {
+        "status": 200,
+        "h1": "Terms of use",
+        "sandbox": true,
+        "ok": true
+      },
+      "footer": [
+        "/design",
+        "/privacy",
+        "/terms"
+      ]
+    }
+  },
+  {
+    "id": "X2 the site nav is on every Studio page",
+    "ok": true,
+    "detail": {
+      "/studio": 1,
+      "/studio/orders": 1,
+      "/studio/dashboard": 1,
+      "/studio/dashboard?tab=builder": 1
+    }
+  },
+  {
+    "id": "run",
+    "ok": false,
+    "detail": "PayPal's sandbox login page didn't load (after 3 tries)"
+  }
+]

@@ -2,7 +2,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { and, eq, inArray, notInArray, schema, sql } from "@shopfront/db";
 import { mirrorMissingToCatalog } from "./catalog";
-import { DEMO_RESTOCK_TO, DEMO_SHOP_HANDLES } from "./payments";
+import { DEMO_RESTOCK_TO, DEMO_SHOP_SQL } from "./payments";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { services } from "./services";
@@ -82,7 +82,7 @@ export async function resetDemo() {
     await tx.execute(sql`
       update ${schema.variants} v set stock = greatest(v.stock, ${DEMO_RESTOCK_TO})
       from ${schema.products} p, ${schema.sellers} s
-      where p.id = v.product_id and s.id = p.seller_id and v.active and s.handle = any(${DEMO_SHOP_HANDLES as unknown as string[]})`);
+      where p.id = v.product_id and s.id = p.seller_id and v.active and s.handle in (${DEMO_SHOP_SQL})`);
     await tx
       .update(schema.sellers)
       .set({ refundPolicy: data.refundPolicy as never, bio: data.bio, dashboardState: null, demoResetAt: new Date() })

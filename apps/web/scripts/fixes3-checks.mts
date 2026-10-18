@@ -57,6 +57,8 @@ async function approve(browser: Browser, paypalOrderId: string) {
         await page.waitForURL(/\/pay\/chk_/, { timeout: 90_000 });
         return;
       } catch (err) {
+        await page.screenshot({ path: join(out, `_approve-attempt-${attempt}.png`) }).catch(() => {});
+        log(`approve attempt ${attempt} failed at ${page.url().slice(0, 80)}: ${err instanceof Error ? err.message.split(/\r?\n/)[0] : err}`);
         if (attempt >= 2) throw err;
         await sleep(8000);
       }

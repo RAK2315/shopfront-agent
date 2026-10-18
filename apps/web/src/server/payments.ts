@@ -58,6 +58,8 @@ function buyerDetails(order: PayPalOrder) {
 /** The seeded demo shops whose listings restock themselves (they exist so anyone can try a purchase). */
 export const DEMO_SHOP_HANDLES = ["juniper_clay", "fern_and_loom", "judge_demo"] as const;
 export const DEMO_RESTOCK_TO = 20;
+// Constants inlined as a SQL list: drizzle expands a JS array param into "$1, $2, $3", which `= any(…)` rejects.
+export const DEMO_SHOP_SQL = sql.raw(DEMO_SHOP_HANDLES.map((h) => `'${h}'`).join(", "));
 
 /** Insert the capture once (unique paypal_capture_id) and decrement stock exactly once. */
 async function recordCapture(checkoutId: string, cap: PayPalCapture, payeeMerchantId?: string) {
@@ -87,7 +89,7 @@ async function recordCapture(checkoutId: string, cap: PayPalCapture, payeeMercha
       update ${schema.variants} v set stock = ${DEMO_RESTOCK_TO}
       from ${schema.checkoutItems} ci, ${schema.products} p, ${schema.sellers} s
       where ci.checkout_id = ${checkoutId} and ci.variant_id = v.id and p.id = v.product_id and s.id = p.seller_id
-        and v.stock <= 0 and (s.test_only or s.handle = any(${DEMO_SHOP_HANDLES as unknown as string[]}))`);
+        and v.stock <= 0 and (s.test_only or s.handle in (${DEMO_SHOP_SQL}))`);
   }
   return isNew;
 }
