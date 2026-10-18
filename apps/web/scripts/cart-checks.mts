@@ -156,7 +156,7 @@ try {
       lowStock: await cartApi("juniper_clay", "POST", "", tok, { items: [{ variant_id: juniper.id, quantity: 2 }], shipping_address: ADDR }),
       priceInjection: await cartApi("juniper_clay", "POST", "", tok, { items: [{ variant_id: juniper.id, quantity: 1, price: { currency_code: "USD", value: "0.01" } }], shipping_address: ADDR }),
       abroad: await cartApi("juniper_clay", "POST", "", tok, { items: [{ variant_id: juniper.id, quantity: 1 }], shipping_address: { ...ADDR, country_code: "FR" } }),
-      coupon: await cartApi("juniper_clay", "POST", "", tok, { items: [{ variant_id: juniper.id, quantity: 1 }], shipping_address: ADDR, coupons: [{ code: "FREE100" }] }),
+      coupon: await cartApi("juniper_clay", "POST", "", tok, { items: [{ variant_id: juniper.id, quantity: 1 }], shipping_address: ADDR, coupons: [{ code: "FREE100", action: "APPLY" }] }),
     };
     await db.query("update variants set stock = greatest(stock, 20) where id = $1", [juniper.id]);
     const after = Number((await db.query(`select count(*)::int n from checkouts where source = 'cart_api'`)).rows[0].n);
@@ -205,12 +205,29 @@ try {
     const r = await runCartAgent({ base, store: "juniper_clay", query: juniper.title, token: tok, approve: buyerApproves, log: (l) => log(`   ${l}`) });
     const c = await checkoutOf(r.cartId);
     k6Checkout = c?.id;
+    // The /pay page of a held order shows the hold, never a PayPal button (nothing to approve or capture there).
+    const holdShots: Record<string, unknown> = {};
+    if (c) {
+      const ctx = await browser.newContext();
+      const page = await ctx.newPage();
+      const t = createHmac("sha256", e.SESSION_SECRET).update(`order-token:${c.id}:${c.client_request_id}`).digest("base64url");
+      for (const s of [{ tag: "desktop", width: 1440, height: 900 }, { tag: "1920", width: 1920, height: 1080 }, { tag: "mobile", width: 390, height: 844 }]) {
+        await page.setViewportSize({ width: s.width, height: s.height });
+        await page.goto(`${base}/pay/${c.id}?t=${t}`, { waitUntil: "load", timeout: 120_000 });
+        await page.waitForTimeout(1500);
+        holdShots[s.tag] = { panel: await page.getByTestId("cart-hold").count(), button: await page.locator("paypal-button").count(), overflow: await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth) };
+        await page.screenshot({ path: join(out, `pay-hold-${s.tag}.png`), fullPage: s.tag === "mobile" });
+      }
+      await ctx.close();
+    }
+    const holdOk = Object.values(holdShots).length === 3 && Object.values(holdShots).every((h) => (h as { panel: number; button: number; overflow: number }).panel === 1 && (h as { button: number }).button === 0 && (h as { overflow: number }).overflow <= 0);
     const auth = c?.paypal_authorization_id ? await pp(`/v2/payments/authorizations/${c.paypal_authorization_id}`) : null;
     const stockAfter = Number((await db.query("select stock from variants where id = (select variant_id from checkout_items where checkout_id = $1 limit 1)", [c?.id])).rows[0]?.stock);
     const wire = (await db.query(`select kind from events where checkout_id = $1 order by id`, [c?.id])).rows.map((x) => x.kind);
     const steps = r.steps.map((s) => `${s.call} ${s.status}`);
     const schemaOk = r.steps.every((s) => !s.cart || payPalCartSchema.safeParse(s.cart).success);
-    record("K6 PayPal's client completes a real order: authorized, stock reserved, hold at PayPal", r.final?.status === "COMPLETED" && Boolean(r.final.payment_confirmation?.merchant_order_number) && c?.status === "authorized" && c?.intent === "AUTHORIZE" && auth?.json.status === "CREATED" && Boolean(c?.stock_reserved_at) && (stockAfter === stockBefore - 1 || stockAfter >= 20) && wire.includes("authorized") && wire.includes("cart_checkout_opened") && schemaOk, {
+    record("K6 PayPal's client completes a real order: authorized, stock reserved, hold at PayPal", r.final?.status === "COMPLETED" && Boolean(r.final.payment_confirmation?.merchant_order_number) && c?.status === "authorized" && c?.intent === "AUTHORIZE" && auth?.json.status === "CREATED" && Boolean(c?.stock_reserved_at) && (stockAfter === stockBefore - 1 || stockAfter >= 20) && wire.includes("authorized") && wire.includes("cart_checkout_opened") && schemaOk && holdOk, {
+      holdPanel: holdShots,
       steps,
       checkout: c?.id,
       status: c?.status,
@@ -285,11 +302,9 @@ try {
     const shots: Record<string, number> = {};
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
-    const holdId = (await db.query(`select id, client_request_id from checkouts where intent = 'AUTHORIZE' and status = 'authorized' order by created_at desc limit 1`)).rows[0];
     const k6 = k6Checkout ? (await db.query(`select id, client_request_id from checkouts where id = $1`, [k6Checkout])).rows[0] : null;
     const tokenOf = (id: string, crid: string) => createHmac("sha256", e.SESSION_SECRET).update(`order-token:${id}:${crid}`).digest("base64url");
     const routes: Array<[string, string]> = [["approved", "/cart/approved?cart=cart_aaaaaaaaaaaa"], ["live", "/live"]];
-    if (holdId) routes.push(["pay-hold", `/pay/${holdId.id}?t=${tokenOf(holdId.id, holdId.client_request_id)}`]);
     if (k6) routes.push(["pay-shipped", `/pay/${k6.id}?t=${tokenOf(k6.id, k6.client_request_id)}`]);
     for (const [name, path] of routes)
       for (const s of [{ tag: "desktop", width: 1440, height: 900 }, { tag: "1920", width: 1920, height: 1080 }, { tag: "mobile", width: 390, height: 844 }]) {
@@ -299,12 +314,8 @@ try {
         shots[`${name}@${s.tag}`] = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         await page.screenshot({ path: join(out, `${name}-${s.tag}.png`), fullPage: s.tag === "mobile" });
       }
-    const holdPanel = holdId ? await (async () => {
-      await page.goto(`${base}/pay/${holdId.id}?t=${tokenOf(holdId.id, holdId.client_request_id)}`, { waitUntil: "load" });
-      return (await page.getByTestId("cart-hold").count()) === 1 && (await page.locator("paypal-button").count()) === 0;
-    })() : false;
     await ctx.close();
-    record("K12 screens at 3 sizes: /cart/approved, /pay hold panel (no PayPal button), /live", Object.values(shots).every((o) => o <= 0) && holdPanel, { overflow: shots, holdPanel });
+    record("K12 screens at 3 sizes: /cart/approved, /pay after shipping, /live (the hold panel is shot in K6)", Object.values(shots).every((o) => o <= 0), { overflow: shots });
   }
 } catch (err) {
   record("run", false, err instanceof Error ? err.message.split("\n")[0] : String(err));

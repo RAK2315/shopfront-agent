@@ -114,8 +114,10 @@ export async function returnStock(checkoutId: string) {
  * state machine and timeline as every other capture.
  */
 export async function settleAuthorizationCapture(checkoutId: string, cap: PayPalCapture, meta: { debugId?: string; requestId?: string; authorizationId: string }) {
-  const { db } = services();
-  const paidTo = cap.payee?.merchant_id;
+  const { db, paypal } = services();
+  // The capture-an-authorization response carries no payee (AT-C K9), so ask PayPal who was paid: it proves the money
+  // reached a direct-paid seller's own PayPal (Phase 9), never the order we asked for.
+  const paidTo = cap.payee?.merchant_id ?? (await paypal.getCapture(cap.id, { context: { checkoutId } }).then((r) => r.data.payee?.merchant_id).catch(() => undefined));
   await recordCapture(checkoutId, cap, paidTo);
   if (cap.status === "COMPLETED") await verifyPayeeFromCapture(checkoutId, paidTo);
   const ev: CheckoutEvent = cap.status === "COMPLETED" ? "CAPTURE_COMPLETED" : cap.status === "PENDING" ? "CAPTURE_PENDING" : "CAPTURE_DENIED";
