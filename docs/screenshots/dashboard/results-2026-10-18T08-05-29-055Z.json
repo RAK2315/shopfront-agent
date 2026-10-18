@@ -1,0 +1,25 @@
+[
+  {
+    "id": "G1 write-back to PayPal's catalog; injection refused; price applies to the next checkout",
+    "ok": true,
+    "detail": {
+      "product": "prd_ashbowl00000",
+      "paypalDescriptionMatches": true,
+      "syncText": "PayPal synced",
+      "injectionRefused": true,
+      "injectionMessageShown": true,
+      "priceBefore": "95.00",
+      "priceAfter": "41.00",
+      "restored": true
+    }
+  },
+  {
+    "id": "G3 drill-down shows the PayPal refund id the DB holds",
+    "ok": true,
+    "detail": {
+      "order": "chk_50q4ca9fkmba",
+      "refundId": "420695519R3182101",
+      "chips": 19
+    }
+  }
+]

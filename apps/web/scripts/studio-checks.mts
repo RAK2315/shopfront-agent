@@ -32,7 +32,7 @@ await db.connect();
 
 // A photo no one has uploaded before (a new sha256 = a real vision call, not the cache): a seed photo, re-cropped.
 const seed = readFileSync(resolve("seed-photos/juniper-speckled-cup.jpg"));
-const fresh = await sharp(seed).extract({ left: Math.floor(Math.random() * 40), top: Math.floor(Math.random() * 40), width: 900, height: 900 }).jpeg({ quality: 90 }).toBuffer();
+const fresh = await sharp(seed).resize(820).modulate({ brightness: 1 + Math.random() * 0.03 }).jpeg({ quality: 88 }).toBuffer();
 const photo = join(tmpdir(), `shopfront-fresh-${Date.now()}.jpg`);
 writeFileSync(photo, fresh);
 const notImage = join(tmpdir(), "shopfront-not-an-image.txt");

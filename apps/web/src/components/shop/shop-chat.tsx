@@ -8,12 +8,12 @@ import type { ShopEvent } from "@/server/events";
 import { toTimelineItem } from "@/components/console/event-item";
 import { Timeline, type WireState } from "@/components/console/timeline";
 import { PayPalApprove, type Phase } from "@/components/pay/paypal-approve";
+import { HackCard, type HackResult } from "@/components/shop/hack-card";
 import { ProgressRail, type RailStep, type StepState } from "@/components/shop/progress-rail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { aiSourceLabel } from "@/lib/ai-source";
 import { cn } from "@/lib/cn";
-import { hackReason } from "@/lib/hack-reason";
 import { SHOP_STARTERS } from "@/lib/shop-starters";
 
 type Product = { product_id: string; title: string; summary?: string; price_from?: { value: string }; image_url?: string | null; seller?: { display_name: string; handle?: string }; in_stock?: boolean };
@@ -33,7 +33,6 @@ type Item =
   | { kind: "checkout"; id: string; checkout: Checkout }
   | { kind: "hack"; id: string; result: HackResult }
   | { kind: "error"; id: string; text: string };
-type HackResult = { product: string; serverPrice: string; shipping: string; attempts: Array<{ label: string; blocked: boolean; answer: string }>; checkoutsCreated: number };
 type Block = { kind: "tools"; id: string; calls: ToolCall[] } | Exclude<Item, ToolCall>;
 
 const STARTER_ICONS = [Gift, Home, Package, Undo2];
@@ -492,50 +491,8 @@ function ChatItem({ item }: { item: Exclude<Item, ToolCall | { kind: "checkout" 
           <p className="whitespace-pre-line text-md text-ink">{item.text}</p>
         </div>
       );
-    case "hack": {
-      const { attempts } = item.result;
-      const blocked = attempts.filter((a) => a.blocked).length;
-      const safe = blocked === attempts.length && item.result.checkoutsCreated === 0;
-      return (
-        <div className={cn("grid max-w-xl gap-3 rounded-lg border p-4", safe ? "border-success/30 bg-success-soft/60" : "border-danger/30 bg-danger-soft/50")} data-testid="hack-result" data-blocked={blocked}>
-          <p className="inline-flex items-center gap-2 text-base font-semibold text-ink">
-            {safe ? <ShieldCheck aria-hidden className="size-5 text-success" /> : <ShieldAlert aria-hidden className="size-5 text-danger" />}
-            {safe ? `Protected: ${blocked} of ${attempts.length} blocked` : `${attempts.length - blocked} of ${attempts.length} got through`}
-          </p>
-          <ul className="grid gap-2">
-            {attempts.map((a) => {
-              const why = hackReason(a.answer);
-              return (
-                <li key={a.label} className="grid grid-cols-[1rem_1fr] gap-x-2 text-sm">
-                  {a.blocked ? <CircleCheck aria-hidden className="mt-0.5 size-4 text-success" /> : <CircleAlert aria-hidden className="mt-0.5 size-4 text-danger" />}
-                  <span className="text-ink">{a.label}</span>
-                  <span className="col-start-2 text-xs text-ink-2">
-                    {a.blocked ? "Blocked by server" : "Accepted"}
-                    {a.blocked && (
-                      <>
-                        {" · "}
-                        {!why.fieldFirst && `${why.text} `}
-                        {why.fields.map((f, i) => (
-                          <span key={f}>
-                            {i ? ", " : ""}
-                            <code className="font-mono text-ink">{f}</code>
-                          </span>
-                        ))}
-                        {why.fieldFirst && ` ${why.text}`}
-                      </>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="text-sm text-ink-2">
-            Real price of {item.result.product}: <span className="font-medium text-ink tabular">${item.result.serverPrice}</span> + ${item.result.shipping} shipping, read from the seller&apos;s catalog. Checkouts created: {item.result.checkoutsCreated}.
-          </p>
-          <p className="text-xs text-muted">Next: the same trick as a prompt to the agent.</p>
-        </div>
-      );
-    }
+    case "hack":
+      return <HackCard result={item.result} />;
     case "error":
       return (
         <p className="inline-flex items-start gap-2 rounded-md border border-danger/25 bg-danger-soft px-3 py-2 text-sm text-danger" role="alert">

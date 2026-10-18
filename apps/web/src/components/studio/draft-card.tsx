@@ -82,7 +82,7 @@ export function DraftCard({
   return (
     <article
       aria-label={`Draft: ${draft.title}`}
-      className="grid overflow-hidden rounded-lg border border-line bg-surface md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
+      className="grid overflow-clip rounded-lg border border-line bg-surface md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
       data-testid="draft-card"
     >
       <div className="relative bg-surface-2">
@@ -197,7 +197,7 @@ export function DraftCard({
             {error}
           </p>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <div className="sticky bottom-0 z-[1] -mx-5 -mb-5 flex flex-wrap items-center justify-between gap-3 border-t border-line bg-surface/95 px-5 py-3 backdrop-blur-sm md:static md:mx-0 md:mb-0 md:bg-transparent md:px-0 md:pt-4 md:pb-0 md:backdrop-blur-none">
           <Button variant="ghost" size="sm" onClick={discard} loading={busy === "discard"}>
             <Trash2 aria-hidden className="size-4" /> Discard
           </Button>

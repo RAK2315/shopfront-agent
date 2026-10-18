@@ -36,7 +36,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
   if (["created", "approved", "capture_pending"].includes(ck.status)) after(() => scheduleFallbackChecks(id, expired ? "expiry" : "pay_page", expired ? [0] : PAY_PAGE_DELAYS_MS));
 
   return (
-    <main className="mx-auto grid min-h-dvh max-w-[64rem] grid-cols-[minmax(0,1fr)] content-start gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:py-16">
+    <main className="mx-auto grid min-h-dvh max-w-[64rem] grid-cols-[minmax(0,1fr)] content-start gap-8 px-3 py-8 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:py-16">
       <section aria-labelledby="order" className="grid content-start gap-6">
         <p className="font-display text-lg font-semibold">{c.seller.displayName}</p>
         <div className="grid gap-2">
@@ -81,7 +81,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
       </section>
 
       <aside aria-label="Approve payment" className="grid content-start gap-4 lg:sticky lg:top-16">
-        <div className="grid gap-4 rounded-lg border border-line bg-surface p-5">
+        <div className="grid min-w-0 gap-4 rounded-lg border border-line bg-surface p-3.5 sm:p-5">
           <h2 className="text-lg font-semibold">{["created", "approved", "cancelled"].includes(ck.status) ? "Approve in PayPal" : "Your payment"}</h2>
           {expired || ck.status === "cancelled" ? (
             <p className="text-base text-ink-2">This checkout has expired. Ask your agent to create a new one.</p>

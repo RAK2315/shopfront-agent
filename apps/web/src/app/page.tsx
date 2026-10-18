@@ -51,7 +51,7 @@ export default async function Home() {
       </div>
 
       {/* Hero: what it is in one line, the two doors, and the machine working on the right. */}
-      <section className="mx-auto grid max-w-[84rem] gap-12 px-5 pt-12 pb-16 sm:px-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:pt-20 lg:pb-24">
+      <section className="mx-auto grid max-w-[84rem] grid-cols-[minmax(0,1fr)] gap-12 px-5 pt-12 pb-16 sm:px-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:pt-20 lg:pb-24">
         <div className="grid content-start gap-7">
           <p className="w-fit rounded-pill border border-line bg-surface px-3 py-1 text-sm text-ink-2 motion-safe:animate-[rise_520ms_var(--ease-out-expo)_both]">
             PayPal + AI · live on the PayPal sandbox
@@ -163,8 +163,8 @@ export default async function Home() {
       </section>
 
       {/* The guardrail promise, shown with a real rejected call, and the door for developers. */}
-      <section aria-labelledby="guard-h" className="mx-auto grid max-w-[84rem] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start lg:py-20">
-        <div className="grid content-start gap-5">
+      <section aria-labelledby="guard-h" className="mx-auto grid max-w-[84rem] grid-cols-[minmax(0,1fr)] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start lg:py-20">
+        <div className="grid min-w-0 content-start gap-5">
           <h2 id="guard-h" className="max-w-[18ch] font-display text-display font-medium tracking-[-0.02em]">
             The model proposes. Code decides the money.
           </h2>
@@ -188,12 +188,12 @@ export default async function Home() {
             Try to hack the price yourself <ArrowRight aria-hidden className="size-4" />
           </Link>
         </div>
-        <aside className="grid content-start gap-4 rounded-lg border border-line bg-surface p-5" aria-labelledby="dev-h" data-testid="developer-card">
+        <aside className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-4 rounded-lg border border-line bg-surface p-5" aria-labelledby="dev-h" data-testid="developer-card">
           <h2 id="dev-h" className="inline-flex items-center gap-2 text-lg font-semibold">
             <Code2 aria-hidden className="size-5 text-clay" /> Bring your own agent
           </h2>
           <p className="text-base text-ink-2">Add one MCP endpoint as a connector in Claude or any MCP client. It covers every Shopfront seller: search, product details, checkout, order status and refunds.</p>
-          <RequestId label="MCP" value={appUrl("/mcp")} max={52} className="h-9 w-fit text-sm" />
+          <RequestId label="MCP" value={appUrl("/mcp")} max={52} className="h-9 w-fit max-w-full text-sm" />
           <ul className="grid gap-1.5 text-sm">
             <li>
               <Link href="/llms.txt" className="font-medium text-clay-strong underline-offset-4 hover:underline">

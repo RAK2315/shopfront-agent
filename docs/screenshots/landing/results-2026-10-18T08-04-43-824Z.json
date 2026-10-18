@@ -1,0 +1,62 @@
+[
+  {
+    "id": "L1 one-line pitch and two doors",
+    "ok": true,
+    "detail": {
+      "h1": "Your storefront, ready for AI agents.",
+      "buyer": "/shop",
+      "seller": "/studio"
+    }
+  },
+  {
+    "id": "L2 flow strip with real photos",
+    "ok": true,
+    "detail": {
+      "steps": 4,
+      "imgs": [
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  {
+    "id": "L3 developer card + live feed",
+    "ok": true,
+    "detail": {
+      "hasMcp": true,
+      "feed": true
+    }
+  },
+  {
+    "id": "L4 site nav (desktop links, phone menu)",
+    "ok": true,
+    "detail": {
+      "navLinks": [
+        "Try the buyer demo",
+        "Live wire",
+        "Sell with Shopfront",
+        "Developers",
+        "Docs"
+      ],
+      "menu": [
+        "Try the buyer demo",
+        "Live wire",
+        "Sell with Shopfront",
+        "Developers",
+        "Docs"
+      ]
+    }
+  },
+  {
+    "id": "L5 no sideways scroll",
+    "ok": false,
+    "detail": {
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 38
+      }
+    }
+  }
+]
