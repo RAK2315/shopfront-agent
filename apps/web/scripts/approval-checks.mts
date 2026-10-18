@@ -5,6 +5,8 @@
 //        /pay/return → captured → /pay shows paid
 //   AP3  redirect cancel: "Cancel and return" on PayPal → /pay?cancelled=1 says nothing was charged; still `created`
 //   AP4  dead ends: /pay without or with a wrong token, a bad return link and an unknown route → branded pages, 404
+//   AP5  first-click reliability (the walkthrough bug, D-086): 8 fresh pay pages, the PayPal button clicked the moment
+//        it is ready must open PayPal's window every time; "Continue in this tab" points at the order's payer-action
 // Usage: pnpm --filter web approval-checks -- --base https://shopfront-agent.onrender.com [--only AP1,AP4] [--out dir]
 import { randomUUID } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -20,7 +22,7 @@ const args = process.argv.slice(2).filter((a) => a !== "--");
 const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const base = (arg("--base") ?? "").replace(/\/$/, "");
 const out = resolve(arg("--out", "../../docs/screenshots/approval")!);
-const only = new Set((arg("--only", "AP1,AP2,AP3,AP4") ?? "").split(","));
+const only = new Set((arg("--only", "AP1,AP2,AP3,AP4,AP5") ?? "").split(","));
 const e = process.env as Record<string, string>;
 const COBALT = "var_cobalt120000";
 if (!base.startsWith("http")) throw new Error("Pass --base https://<deployed app>");
@@ -81,21 +83,21 @@ async function isolated(id: string, fn: (ctx: BrowserContext) => Promise<void>) 
   }
 }
 
-/** Click the v6 PayPal button and approve in the popup; the sandbox sometimes errors after login, so retry once. */
+/** Click the v6 PayPal button the moment it is ready and approve in the popup. A popup that does not open is a
+ * failure (D-086), never retried; only PayPal's sandbox login error ("Things don't appear to be working") is. */
 async function payInPopup(page: Page, shots: { review?: string } = {}) {
   await page.locator('[data-phase="ready"]').waitFor({ timeout: 90_000 });
-  await sleep(2500);
   for (let attempt = 1; ; attempt++) {
-    const popupP = page.waitForEvent("popup", { timeout: 30_000 });
+    const popupP = page.waitForEvent("popup", { timeout: 20_000 });
     await page.locator("paypal-button").click();
     const popup = await popupP.catch(() => null);
+    if (!popup) throw new Error(`the PayPal popup did not open on click ${attempt} (D-086 regression)`);
     try {
-      if (!popup) throw new Error("the PayPal popup did not open");
       await loginAndApprove(popup, buyer, shots);
       await popup.waitForEvent("close", { timeout: 60_000 }).catch(() => {});
       return attempt;
     } catch (err) {
-      await popup?.close().catch(() => {});
+      await popup.close().catch(() => {});
       if (attempt >= 2) throw err;
       log(`popup attempt ${attempt} failed (${err instanceof Error ? err.message.split("\n")[0] : err}); retrying`);
       await sleep(8000);
@@ -189,8 +191,9 @@ try {
     }
     await cancel.click();
     await page.waitForURL(/cancelled=1/, { timeout: 60_000 });
-    await page.getByRole("alert").waitFor({ timeout: 30_000 });
-    const msg = await page.getByRole("alert").innerText();
+    const alert = page.locator('p[role="alert"]'); // Next's route announcer is also role=alert
+    await alert.waitFor({ timeout: 30_000 });
+    const msg = await alert.innerText();
     const s = await status(ck.checkout_id);
     await page.screenshot({ path: join(out, "AP3-pay-cancelled.png"), fullPage: true });
     record("AP3 redirect cancel", s?.status === "created" && /nothing was charged/i.test(msg), { status: s?.status, message: msg });
@@ -225,6 +228,25 @@ try {
     await page.goto(`${base}/no-such-page`, { waitUntil: "load" });
     await page.screenshot({ path: join(out, "AP4-404-mobile.png"), fullPage: true });
     record("AP4 dead ends", ok && overflow <= 0, { ...got, mobileOverflowPx: overflow });
+  });
+  // ───────────────────────── AP5: first-click reliability ─────────────────────────
+  if (only.has("AP5")) await isolated("AP5", async (ctx) => {
+    const runs: Array<{ opened: boolean; hrefMatches: boolean }> = [];
+    for (let i = 0; i < 8; i++) {
+      const ck = await newCheckout();
+      const page = await ctx.newPage();
+      await page.goto(ck.pay_url, { waitUntil: "load" });
+      await page.locator('[data-phase="ready"]').waitFor({ timeout: 90_000 });
+      const popupP = page.waitForEvent("popup", { timeout: 15_000 }).catch(() => null);
+      await page.locator("paypal-button").click();
+      const popup = await popupP;
+      const href = await page.getByTestId("approve-in-tab").getAttribute("href").catch(() => null);
+      runs.push({ opened: Boolean(popup), hrefMatches: href === (await approveLink(ck.paypal_order_id)) });
+      if (i === 0) await page.screenshot({ path: join(out, "AP5-approving-hint.png") });
+      await popup?.close().catch(() => {});
+      await page.close();
+    }
+    record("AP5 first click opens PayPal (8 fresh pages)", runs.every((r) => r.opened && r.hrefMatches), { opened: runs.filter((r) => r.opened).length, hrefMatches: runs.filter((r) => r.hrefMatches).length, of: runs.length });
   });
 } finally {
   writeFileSync(join(out, `results-${new Date().toISOString().replace(/[:.]/g, "-")}.json`), JSON.stringify(results, null, 2));

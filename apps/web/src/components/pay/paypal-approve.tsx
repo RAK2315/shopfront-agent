@@ -8,10 +8,11 @@ import { ConfirmationBadge } from "@/components/console/confirmation-badge";
 import { StatusPill } from "@/components/ui/status-pill";
 import { RequestId } from "@/components/ui/request-id";
 import { cn } from "@/lib/cn";
+import { approvalPageUrl, fallbackMode, FIRST_MODE, type PresentationMode } from "@/lib/paypal-presentation";
 
 // Minimal typings for the PayPal JS SDK v6 surface we use (verified against PayPal's v6 reference).
 interface PayPalSession {
-  start(options: { presentationMode: "auto" | "popup" | "modal" | "redirect" }, order: Promise<{ orderId: string }>): Promise<void>;
+  start(options: { presentationMode: PresentationMode }, order: Promise<{ orderId: string }>): Promise<void>;
   hasReturned?(): boolean;
   resume?(): Promise<void>;
 }
@@ -152,11 +153,18 @@ export function PayPalApprove({
     if (!sessionRef.current) return;
     setMessage(null);
     setPhase("approving");
+    // v6 expects an invoked Promise of { orderId }: the order was created server-side by the agent's checkout.
+    // start() is called synchronously inside the click so the browser lets the popup open (D-086: never "auto").
     try {
-      // v6 expects an invoked Promise of { orderId } — the order was created server-side by the agent's checkout.
-      await sessionRef.current.start({ presentationMode: "auto" }, Promise.resolve({ orderId }));
-    } catch {
+      await sessionRef.current.start({ presentationMode: FIRST_MODE }, Promise.resolve({ orderId }));
+    } catch (e) {
+      if (fallbackMode(e) === "redirect") {
+        setMessage("Your browser blocked the PayPal window, so PayPal opens in this tab instead.");
+        window.location.assign(approvalPageUrl(orderId, true));
+        return;
+      }
       setPhase("ready");
+      setMessage("PayPal could not open. Try again, or continue in this tab below.");
     }
   };
 
@@ -186,6 +194,14 @@ export function PayPalApprove({
               <paypal-button ref={buttonRef as never} type="pay" class="paypal-gold" aria-disabled={phase === "approving" || undefined} />
             </div>
           </div>
+          {phase === "approving" && (
+            <p className="text-sm text-ink-2" role="status" data-testid="approving-hint">
+              PayPal opened in a new window.{" "}
+              <a href={approvalPageUrl(orderId, true)} className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-clay" data-testid="approve-in-tab">
+                Can&apos;t see it? Continue in this tab
+              </a>
+            </p>
+          )}
           {phase === "capturing" && (
             <p className="inline-flex items-center gap-2 text-sm text-ink-2" role="status">
               <LoaderCircle aria-hidden className="size-4 animate-spin" /> Approved — completing payment with PayPal…
