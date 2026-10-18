@@ -37,6 +37,8 @@ const ROUTES: Array<{ name: string; path: string; seller?: boolean; wait?: numbe
   { name: "13-pay-link-invalid", path: "/pay/link-invalid" },
   { name: "14-not-found", path: "/no-such-page" },
   { name: "15-design-system", path: "/design" },
+  { name: "16-privacy", path: "/privacy" },
+  { name: "17-terms", path: "/terms" },
 ];
 const SIZES = [
   { tag: "desktop", width: 1440, height: 900, full: false },

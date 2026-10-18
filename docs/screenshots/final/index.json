@@ -223,5 +223,35 @@
     "route": "15-design-system",
     "size": "mobile",
     "overflow": 0
+  },
+  {
+    "route": "16-privacy",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "16-privacy",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "16-privacy",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "17-terms",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "17-terms",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "17-terms",
+    "size": "mobile",
+    "overflow": 0
   }
 ]
