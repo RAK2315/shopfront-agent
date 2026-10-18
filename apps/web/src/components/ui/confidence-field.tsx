@@ -43,16 +43,17 @@ export function ConfidenceField({
   return (
     <div className={cn("group/field grid gap-1.5", className)}>
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={id} className="inline-flex items-center gap-1.5 text-sm font-medium text-ink">
+        <span className="inline-flex items-center gap-1.5">
           {ai && !isPrice && (
-            // aria-hidden: the field's accessible name stays exactly its label ("Tracking number"); the hint line says
-            // how sure the AI was.
+            // Outside the <label>, so the field's name stays exactly its label ("Tracking number").
             <span aria-hidden className="inline-flex items-center gap-0.5 rounded-sm bg-clay-soft px-1 text-[10px] font-semibold uppercase tracking-wide text-clay-strong" title="Filled in by the AI from your photo">
               <Sparkle aria-hidden className="size-2.5" /> AI
             </span>
           )}
-          {label}
-        </label>
+          <label htmlFor={id} className="text-sm font-medium text-ink">
+            {label}
+          </label>
+        </span>
         <span id={hintId} className={cn("inline-flex items-center gap-1 text-xs", low ? "text-warning" : "text-muted")}>
           {low ? <TriangleAlert aria-hidden className="size-3.5" /> : <CircleCheck aria-hidden className="size-3.5 text-success" />}
           {isPrice ? (confirmed ? "Confirmed by you" : "AI guess · confirm before publishing") : low ? `Check this · ${pct}% sure` : `${pct}% sure`}
