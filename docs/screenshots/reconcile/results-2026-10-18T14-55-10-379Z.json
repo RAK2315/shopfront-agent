@@ -1,0 +1,46 @@
+[
+  {
+    "id": "R1 reconciliation run against PayPal",
+    "ok": true,
+    "detail": {
+      "matched": 101,
+      "mismatches": [
+        "Captured, but no paid order: chk_sewtsaj30hts / 4PS80372PS203812S",
+        "Captured, but no paid order: chk_0prkr6zvb6y8 / 93897555YJ175420Y"
+      ],
+      "explained": 1,
+      "error": null,
+      "expect": 2
+    }
+  },
+  {
+    "id": "R2 dashboard badge matches the run",
+    "ok": false,
+    "detail": {
+      "1920": {
+        "state": "mismatch",
+        "n": 2,
+        "text": "2 mismatches with PayPal",
+        "rows": 2,
+        "fits": true,
+        "overflow": 0
+      },
+      "desktop": {
+        "state": "mismatch",
+        "n": 2,
+        "text": "2 mismatches with PayPal",
+        "rows": 2,
+        "fits": true,
+        "overflow": 0
+      },
+      "mobile": {
+        "state": "mismatch",
+        "n": 2,
+        "text": "2 mismatches with PayPal",
+        "rows": 2,
+        "fits": false,
+        "overflow": 0
+      }
+    }
+  }
+]

@@ -28,4 +28,4 @@ for (const x of run.explained) console.log(`  explained ${x.captureId}: ${x.reas
 if (run.error) console.log(`  incomplete: ${run.error}`);
 const pass = run.ok && run.mismatches.length === 0;
 console.log(pass ? "PASS reconciled with PayPal" : "FAIL reconciliation");
-process.exit(pass ? 0 : 1);
+process.exitCode = pass ? 0 : 1;

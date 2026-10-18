@@ -33,7 +33,7 @@ export function ReconcileBadge({ r }: { r: SellerReconciliation }) {
         <Icon aria-hidden className="size-4" />
         {label}
       </summary>
-      <div className="absolute right-0 z-30 mt-2 w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-surface p-4 text-sm shadow-float" data-testid="reconcile-details">
+      <div className="absolute left-0 z-30 mt-2 w-[24rem] sm:left-auto sm:right-0 max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-surface p-4 text-sm shadow-float" data-testid="reconcile-details">
         <p className="font-medium text-ink">
           {r.state === "pending" ? "The first check is running." : `Checked ${ago(r.checkedAt)}: ${r.matched} payment${r.matched === 1 ? "" : "s"} match PayPal.`}
         </p>
