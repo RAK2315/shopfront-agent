@@ -1,6 +1,7 @@
 import "server-only";
-import { confirmationOf, type CheckoutStatus, type Confirmation } from "@shopfront/core";
+import { confirmationOf, refundHandoffLink, type CheckoutStatus, type Confirmation } from "@shopfront/core";
 import { and, desc, eq, inArray, schema } from "@shopfront/db";
+import { env } from "./env";
 import { includeTestRowsFor } from "./run-context";
 import { services } from "./services";
 
@@ -33,6 +34,8 @@ export interface QueuedRefund {
   status: string;
   decision: string;
   paypalRefundId: string | null;
+  /** Phase 9 handoff (D-083): the capture's page in the seller's own PayPal, where they press "Refund". */
+  handoffUrl: string | null;
   createdAt: string;
 }
 
@@ -43,6 +46,14 @@ const RULE_TEXT: Record<string, string> = {
   reason_auto_eligible: "Not an automatic refund reason",
   buyer_auto_refund_limit: "Buyer reached the automatic refund limit",
 };
+
+function handoffUrl(captureId: string | undefined) {
+  try {
+    return captureId ? refundHandoffLink(env().PAYPAL_BASE_URL, captureId) : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Test and script orders (D-070) are hidden here too, unless the request is itself a test run (AT-4, AT-5). */
 export async function sellerOrders(sellerId: string) {
@@ -103,6 +114,7 @@ export async function sellerOrders(sellerId: string) {
       status: r.status,
       decision: r.decision,
       paypalRefundId: r.paypalRefundId,
+      handoffUrl: r.status === "handoff" ? handoffUrl(caps.find((k) => k.id === r.captureId)?.paypalCaptureId) : null,
       createdAt: r.createdAt.toISOString(),
     };
   });

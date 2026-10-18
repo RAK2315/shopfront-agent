@@ -45,3 +45,19 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/shop/` (S1–S4 at desktop, 1920 and mobile).
 - **Risks:** the hosted agent sometimes sets up the checkout straight from a search; the AT accepts both paths.
 - **Next:** #3, the dashboard.
+
+## #3: dashboard v2 = AG Grid "Best Use" (2026-10-18)
+- **Done:**
+  - The Overview tab:
+    - an Ask bar (LLM → schema-checked view state; figures written by code), with a what-changed banner and Undo;
+    - KPI cards;
+    - the orders grid (grouping, drill-down PayPal history, live flashes, inline note/ship-by);
+    - a linked AG Charts chart with click-to-drill;
+    - the listings grid with PayPal catalog write-back.
+  - The Builder tab is AG Studio with its agents. Enterprise modules sit behind the BOTH-key guard (D-089).
+- **Tests:**
+  - `dashboard-checks` on Render, 9/9: G0 real data / no watermark; G1 write-back + injection refused + price applies to the next checkout; G2 live row in 128 ms; G3 drill-down refund id; G4a Ask/Undo; G4b `[db]`/`[paypal]`; G4c 10 injection prompts with money unchanged; G5 linked totals; G6 no overflow + Builder loads.
+  - Bug found and fixed on the way: the sync cell never redrew on error.
+- **Screenshots:** `docs/screenshots/dashboard/`.
+- **Risks:** Community until the owner's `BOTH` key arrives (OWNER-TODO #1); with it, the guard switches Enterprise on by itself. AT-5 is re-run on the Builder tab in the final regression.
+- **Next:** #9.

@@ -9,8 +9,8 @@ describe('payeeRoute', () => {
     expect(payeeRoute({ payoutStatus: 'none', payoutEmail: null, paypalMerchantId: null })).toEqual({ kind: 'not_ready' });
     expect(payeeRoute({ payoutStatus: 'unverified', payoutEmail: null, paypalMerchantId: null })).toEqual({ kind: 'not_ready' });
   });
-  it('routes an unverified seller by email and a verified one by merchant id', () => {
-    expect(payeeRoute({ payoutStatus: 'unverified', payoutEmail: 'seller@example.com', paypalMerchantId: null })).toEqual({ kind: 'payee', payee: { email_address: 'seller@example.com' } });
+  it('never routes an unverified email (D-084); routes a verified seller by merchant id', () => {
+    expect(payeeRoute({ payoutStatus: 'unverified', payoutEmail: 'seller@example.com', paypalMerchantId: null })).toEqual({ kind: 'not_ready' });
     expect(payeeRoute({ payoutStatus: 'verified', payoutEmail: 'seller@example.com', paypalMerchantId: 'B83JSV9ELHV74' })).toEqual({ kind: 'payee', payee: { merchant_id: 'B83JSV9ELHV74' } });
   });
   it('treats an unknown status as not ready', () => {

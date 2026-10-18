@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { eq, schema } from "@shopfront/db";
 import { resyncCatalog } from "@/server/catalog";
+import { connectUrl } from "@/server/paypal-connect";
 import { freezeDemoCatalog, isAdmin, resetDemo } from "@/server/demo";
 import { runHandoffCheck } from "@/server/handoff";
 import { setPayoutAccount } from "@/server/payouts";
@@ -17,6 +18,8 @@ const Body = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("handoff_check"), refund_request_id: z.string().regex(/^rfr_[a-z0-9]{12}$/) }),
   // After the seed attaches listing photos (D-087): push description + image_url to PayPal's catalog for one seller.
   z.strictObject({ action: z.literal("sync_catalog"), handle: z.string().regex(/^[a-z0-9_]{2,40}$/) }),
+  // AT for D-084: a Log in with PayPal link for a seller that can't sign in to the demo studio (fern_and_loom).
+  z.strictObject({ action: z.literal("connect_url"), handle: z.string().regex(/^[a-z0-9_]{2,40}$/) }),
 ]);
 
 // Judge mode (D-011): nightly reset (cron-job.org calls this with the bearer token) or freeze the current catalog.
@@ -33,6 +36,7 @@ export async function POST(req: Request) {
     const [s] = await services().db.select().from(schema.sellers).where(eq(schema.sellers.handle, b.handle));
     if (!s) return Response.json({ error: { code: "NOT_FOUND", message: "No such seller." } }, { status: 404 });
     if (b.action === "sync_catalog") return Response.json(await resyncCatalog(s));
+    if (b.action === "connect_url") return Response.json({ url: connectUrl(s.id) });
     return Response.json(await setPayoutAccount(s.id, b.account));
   } catch (e) {
     return Response.json({ error: { code: "ERROR", message: e instanceof Error ? e.message : "failed" } }, { status: 500 });

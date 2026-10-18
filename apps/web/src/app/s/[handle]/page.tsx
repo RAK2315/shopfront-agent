@@ -42,6 +42,9 @@ export default async function Storefront({ params }: PageProps<"/s/[handle]">) {
           <p className="text-sm text-muted">
             Ships to {seller.shipsTo.join(", ")} · ${centsToValue(seller.flatShippingCents)} flat shipping · Refunds within {policy.window_days} days
           </p>
+          <p className="w-fit rounded-pill border border-line bg-surface px-3 py-1 text-sm text-ink-2" data-testid="storefront-paid-to">
+            {seller.payoutStatus === "verified" ? `Pay with PayPal · paid directly to ${seller.displayName}` : seller.payoutStatus === "platform" ? "Pay with PayPal · demo shop, paid to the Shopfront sandbox account" : "Not taking payments yet"}
+          </p>
         </div>
         <AgentNote mcpUrl={appUrl("/mcp")} />
       </header>

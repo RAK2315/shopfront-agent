@@ -77,6 +77,17 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
             <dd><Money cents={ck.totalCents} showCode /></dd>
           </div>
         </dl>
+        <p className="text-sm text-ink-2" data-testid="paid-to">
+          {ck.payeeEmail || ck.payeeMerchantId ? (
+            <>
+              Paid directly to <span className="font-medium text-ink">{c.seller.displayName}</span>&apos;s PayPal account.
+            </>
+          ) : (
+            <>
+              Paid to the Shopfront sandbox account for <span className="font-medium text-ink">{c.seller.displayName}</span>.
+            </>
+          )}
+        </p>
         <p className="text-sm text-muted">Totals are set by the shop, not by the agent. Sandbox demo: no real money moves.</p>
       </section>
 

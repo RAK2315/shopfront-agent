@@ -4,6 +4,8 @@ import { SellerNav } from "@/components/studio/seller-nav";
 import { eq, schema } from "@shopfront/db";
 import { SellerSignIn } from "@/components/studio/sign-in";
 import { Studio } from "@/components/studio/studio";
+import { GetPaidCard } from "@/components/studio/get-paid-card";
+import { payoutCard } from "@/server/paypal-connect";
 import { sellerProducts } from "@/server/catalog";
 import { appUrl } from "@/server/env";
 import { currentSeller, DEMO_SELLER_HANDLES } from "@/server/seller-session";
@@ -13,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Studio", robots: { index: false } };
 
 // Seller studio (craft retail register): photos → AI-drafted listings → seller confirms prices → live + PayPal catalog.
-export default async function StudioPage() {
+export default async function StudioPage({ searchParams }: PageProps<"/studio">) {
   const seller = await currentSeller();
 
   if (!seller) {
@@ -34,7 +36,8 @@ export default async function StudioPage() {
     );
   }
 
-  const [drafts, live] = await Promise.all([sellerProducts(seller.id, ["draft"]), sellerProducts(seller.id, ["approved"])]);
+  const [drafts, live, card] = await Promise.all([sellerProducts(seller.id, ["draft"]), sellerProducts(seller.id, ["approved"]), payoutCard(seller.id)]);
+  const result = (await searchParams).paypal;
   return (
     <main className="mx-auto grid min-h-dvh max-w-[76rem] content-start gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
@@ -47,6 +50,7 @@ export default async function StudioPage() {
         </div>
         <SellerNav handle={seller.handle} current="studio" />
       </header>
+      {card && <GetPaidCard card={card} result={typeof result === "string" ? result : undefined} />}
       <Studio seller={{ handle: seller.handle, displayName: seller.displayName }} initialDrafts={drafts} initialLive={live} mcpUrl={appUrl("/mcp")} />
     </main>
   );

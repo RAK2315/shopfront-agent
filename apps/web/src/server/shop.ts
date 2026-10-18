@@ -250,8 +250,8 @@ export const shop: ShopPort = {
         kind: "order_created",
         checkoutId,
         sellerId: quote.sellerId,
-        summary: `Order created (${order.status})`,
-        data: { orderId: order.id, debugId, paypalRequestId: requestId },
+        summary: `Order created (${order.status}) · ${payee ? `paid directly to ${sellerRow.displayName}'s PayPal` : "paid to the Shopfront sandbox account"}`,
+        data: { orderId: order.id, debugId, paypalRequestId: requestId, paidTo: payee ? "seller" : "platform" },
       });
       scheduleFallbackChecks(checkoutId, "created");
       scheduleExpiryCheck(checkoutId, new Date(Date.now() + CHECKOUT_TTL_MS));

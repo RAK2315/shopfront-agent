@@ -6,11 +6,15 @@ export type PayoutStatus = 'platform' | 'none' | 'unverified' | 'verified';
 
 export type PayeeRoute = { kind: 'platform' } | { kind: 'payee'; payee: { email_address: string } | { merchant_id: string } } | { kind: 'not_ready' };
 
-/** Where a seller's money goes. Unknown or incomplete setups are `not_ready`: never routed to the platform by default. */
+/**
+ * Where a seller's money goes. Only a verified account is paid (D-084: PayPal accepts an order to any email, so a
+ * typed email that isn't a PayPal account would only fail at the buyer's approval). Unknown or incomplete setups are
+ * `not_ready`: never routed to the platform by default.
+ */
 export function payeeRoute(s: { payoutStatus: string; payoutEmail: string | null; paypalMerchantId: string | null }): PayeeRoute {
   if (s.payoutStatus === 'platform') return { kind: 'platform' };
   if (s.payoutStatus === 'verified' && s.paypalMerchantId) return { kind: 'payee', payee: { merchant_id: s.paypalMerchantId } };
-  if ((s.payoutStatus === 'verified' || s.payoutStatus === 'unverified') && s.payoutEmail) return { kind: 'payee', payee: { email_address: s.payoutEmail } };
+  if (s.payoutStatus === 'verified' && s.payoutEmail) return { kind: 'payee', payee: { email_address: s.payoutEmail } };
   return { kind: 'not_ready' };
 }
 
