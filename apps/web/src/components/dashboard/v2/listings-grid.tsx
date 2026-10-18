@@ -104,7 +104,8 @@ export function ListingsGrid({ initial }: { initial: ListingRow[] }) {
       { field: "price", headerName: "Price", cellStyle: { display: "flex", alignItems: "center", justifyContent: "flex-end" }, width: 104, editable: true, type: "rightAligned", valueFormatter: (p) => `$${Number(p.value).toFixed(2)}`, cellClass: "tabular font-medium", headerTooltip: "Used on the next checkout; never changes a past order" },
       { field: "stock", headerName: "Stock", cellStyle: { display: "flex", alignItems: "center", justifyContent: "flex-end" }, width: 90, editable: true, type: "rightAligned", cellEditor: "agNumberCellEditor", cellEditorParams: { min: 0, max: 100000, precision: 0 }, cellClass: (p) => cn("tabular", Number(p.value) <= 2 && "text-warning font-medium") },
       { field: "sold_14d", headerName: "Sold · 14 days", width: 160, cellRenderer: (p: ICellRendererParams<Row>) => <Sold value={p.value as number[]} />, sortable: false },
-      { field: "sync", headerName: "PayPal catalog", width: 200, cellRenderer: SyncCell },
+      // The value includes the saving/error state: AG Grid only redraws a cell whose value changed.
+      { colId: "sync", headerName: "PayPal catalog", width: 220, valueGetter: (p) => `${p.data?.sync}|${p.data?.sync_debug}|${p.data?.saving ? 1 : 0}|${p.data?.error ?? ""}`, cellRenderer: SyncCell },
     ],
     [],
   );

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
-import { ArrowUpRight, CircleCheck, ImagePlus, LoaderCircle, TriangleAlert } from "lucide-react";
+import { ArrowUpRight, Bot, Check, CircleCheck, ImagePlus, LoaderCircle, Store, TriangleAlert, X } from "lucide-react";
 import type { DraftView } from "@/server/catalog";
 import { DraftCard } from "@/components/studio/draft-card";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,34 @@ interface Pending {
   startedAt: number;
 }
 
-interface Toast {
-  id: number;
-  title: string;
-  catalogId?: string;
-  ok: boolean;
+interface Published {
+  product: DraftView;
+  sync: { ok: boolean; catalogId?: string; debugId?: string };
+}
+
+/** Upload → Review → Publish (walkthrough #9): where the seller is, from what happened in this session. */
+function StudioRail({ uploaded, reviewing, published }: { uploaded: boolean; reviewing: boolean; published: boolean }) {
+  const steps = [
+    { label: "Upload a photo", sub: "You", state: uploaded ? "done" : "active" },
+    { label: "Review the AI draft", sub: "AI drafts · you check", state: published && !reviewing ? "done" : reviewing ? "active" : "todo" },
+    { label: "Publish to shop + PayPal", sub: "You confirm the price", state: published ? "done" : "todo" },
+  ] as const;
+  return (
+    <ol className="grid grid-cols-3 gap-2" aria-label="Listing steps" data-testid="studio-rail">
+      {steps.map((st, i) => (
+        <li key={st.label} className="grid min-w-0 gap-1.5" data-state={st.state}>
+          <div className={cn("h-1 rounded-pill transition-colors duration-500", st.state === "done" ? "bg-clay" : st.state === "active" ? "bg-clay/40" : "bg-line")} />
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={cn("grid size-5 shrink-0 place-items-center rounded-pill text-[11px] font-semibold", st.state === "done" ? "bg-ink text-canvas" : st.state === "active" ? "border border-clay text-clay" : "border border-line-strong text-muted")} aria-hidden>
+              {st.state === "done" ? <Check className="size-3" strokeWidth={3} /> : i + 1}
+            </span>
+            <span className={cn("truncate text-sm font-medium", st.state === "todo" ? "text-muted" : "text-ink")}>{st.label}</span>
+          </div>
+          <span className="hidden pl-7 text-xs text-muted sm:block">{st.sub}</span>
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 export function Studio({
@@ -42,7 +65,7 @@ export function Studio({
   const [live, setLive] = useState(initialLive);
   const [pending, setPending] = useState<Pending[]>([]);
   const [dragging, setDragging] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [published, setPublished] = useState<Published[]>([]);
   const [now, setNow] = useState(0);
   const input = useRef<HTMLInputElement>(null);
 
@@ -93,15 +116,46 @@ export function Studio({
     [readPhoto],
   );
 
-  const toast = (t: Omit<Toast, "id">) => {
-    const id = Date.now();
-    setToasts((all) => [...all, { ...t, id }]);
-    setTimeout(() => setToasts((all) => all.filter((x) => x.id !== id)), 6000);
-  };
-
   return (
     <LayoutGroup>
       <div className="grid gap-10">
+        <StudioRail uploaded={pending.length > 0 || drafts.length > 0 || published.length > 0} reviewing={pending.length > 0 || drafts.length > 0} published={published.length > 0} />
+        {published.length > 0 && (
+          <section aria-label="Just published" className="grid gap-3">
+            {published.slice(0, 2).map(({ product, sync }) => (
+              <motion.div key={product.productId} initial={{ opacity: 0, y: reduce ? 0 : 8 }} animate={{ opacity: 1, y: 0 }} className="grid gap-4 rounded-lg border border-success/35 bg-success-soft/50 p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center" role="status" data-testid="published-panel">
+                {product.image && (
+                  // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
+                  <img src={product.image.url} alt="" className="size-20 rounded-md object-cover" />
+                )}
+                <div className="grid gap-1">
+                  <p className="inline-flex items-center gap-2 font-display text-xl font-medium">
+                    <CircleCheck aria-hidden className="size-5 text-success" /> “{product.title}” is live
+                  </p>
+                  <p className="text-sm text-ink-2">
+                    In your storefront now, and AI shopping agents can find it over MCP.{" "}
+                    {sync.ok ? "Mirrored to PayPal's catalog." : "PayPal's catalog sync failed; the listing is live in Shopfront and the sync retries on the next edit."}
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {sync.catalogId && <RequestId label="PayPal catalog" value={sync.catalogId} tone="paypal" />}
+                    {sync.debugId && <RequestId label="Debug" value={sync.debugId} />}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 sm:flex-col">
+                  <a href={"/s/" + seller.handle + "/" + product.productId} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-ink px-3 text-sm font-medium text-canvas hover:bg-ink-2" data-testid="published-storefront">
+                    <Store aria-hidden className="size-4" /> See it in your shop
+                  </a>
+                  <a href="/shop" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink hover:border-clay">
+                    <Bot aria-hidden className="size-4" /> Ask an agent to buy it
+                  </a>
+                  <button type="button" onClick={() => setPublished((all) => all.filter((x) => x.product.productId !== product.productId))} className="inline-flex h-9 items-center gap-1 rounded-md px-3 text-sm text-ink-2 hover:bg-surface" aria-label="Dismiss">
+                    <X aria-hidden className="size-4" /> Done
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </section>
+        )}
         <section
           aria-label="Add product photos"
           onDragOver={(e) => {
@@ -115,13 +169,24 @@ export function Studio({
             void addFiles([...e.dataTransfer.files]);
           }}
           className={cn(
-            "grid place-items-center gap-4 rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors duration-200",
-            dragging ? "border-clay bg-clay-soft" : "border-line-strong bg-surface",
+            "grid place-items-center gap-4 rounded-lg border-2 border-dashed px-6 py-10 text-center transition-[border-color,background-color,transform] duration-200",
+            dragging ? "scale-[1.01] border-clay bg-clay-soft" : "border-line-strong bg-surface",
           )}
+          data-testid="drop-zone"
         >
-          <ImagePlus aria-hidden className={cn("size-8", dragging ? "text-clay" : "text-ink-2")} />
+          <div className="flex -space-x-3" aria-hidden>
+            {live.slice(0, 3).map((p, i) =>
+              p.image ? (
+                // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
+                <img key={p.productId} src={p.image.url} alt="" className={cn("size-14 rounded-md border-2 border-surface object-cover shadow-sm", i === 0 && "-rotate-3", i === 1 && "-translate-y-1.5 rotate-2", i === 2 && "rotate-3")} />
+              ) : null,
+            )}
+            <span className={cn("grid size-14 place-items-center rounded-md border-2 border-surface bg-clay-soft shadow-sm transition-transform", dragging && "-translate-y-2")}>
+              <ImagePlus className={cn("size-6", dragging ? "text-clay" : "text-clay-strong")} />
+            </span>
+          </div>
           <div className="grid gap-1">
-            <p className="font-display text-xl font-medium">Drop photos of your pieces</p>
+            <p className="font-display text-xl font-medium">{dragging ? "Drop to draft a listing from each photo" : "Drop photos of your pieces"}</p>
             <p className="prose-width text-base text-ink-2">
               Shopfront drafts a listing from each photo. You check the details and confirm every price; nothing goes live on an AI guess.
             </p>
@@ -223,7 +288,8 @@ export function Studio({
                       onPublished={({ product, sync }) => {
                         setDrafts((all) => all.filter((x) => x.productId !== product.productId));
                         setLive((all) => [product, ...all.filter((x) => x.productId !== product.productId)]);
-                        toast(sync.ok ? { title: `“${product.title}” is live and mirrored to PayPal`, catalogId: sync.catalogId, ok: true } : { title: `“${product.title}” is live; PayPal catalog sync failed`, ok: false });
+                        setPublished((all) => [{ product, sync }, ...all.filter((x) => x.product.productId !== product.productId)]);
+                        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
                       }}
                     />
                   </motion.div>
@@ -286,26 +352,6 @@ export function Studio({
         </section>
       </div>
 
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-4 bottom-4 z-[var(--z-toast)] grid justify-items-end gap-2">
-        <AnimatePresence>
-          {toasts.map((t) => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, y: reduce ? 0 : 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="pointer-events-auto grid max-w-sm gap-2 rounded-md border border-line bg-surface px-4 py-3 shadow-[var(--shadow-float)]"
-              role="status"
-            >
-              <p className="inline-flex items-start gap-2 text-base font-medium">
-                {t.ok ? <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-success" /> : <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-warning" />}
-                {t.title}
-              </p>
-              {t.catalogId && <RequestId label="PayPal catalog" value={t.catalogId} tone="paypal" />}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
     </LayoutGroup>
   );
 }

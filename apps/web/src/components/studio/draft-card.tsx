@@ -106,11 +106,26 @@ export function DraftCard({
       </div>
 
       <div className="grid content-start gap-4 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Badge tone="clay">
-            <Sparkle aria-hidden /> Drafted from your photo
-          </Badge>
-          <span className="text-xs text-muted">{toCheck ? `${toCheck} field${toCheck === 1 ? "" : "s"} to check` : "Everything looks clear"}</span>
+        <div className="grid gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Badge tone="clay">
+              <Sparkle aria-hidden /> Drafted from your photo
+            </Badge>
+            <span className={cn("text-sm font-medium", toCheck ? "text-warning" : "text-success")} data-testid="fields-to-check">
+              {toCheck ? `${toCheck} field${toCheck === 1 ? "" : "s"} to check` : "Everything looks clear"}
+            </span>
+          </div>
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-2" aria-label="How to read this draft">
+            <li className="inline-flex items-center gap-1">
+              <span className="rounded-sm bg-clay-soft px-1 text-[10px] font-semibold text-clay-strong">AI</span> filled in from the photo
+            </li>
+            <li className="inline-flex items-center gap-1">
+              <span className="size-2 rounded-pill bg-warning" aria-hidden /> unsure: check it
+            </li>
+            <li className="inline-flex items-center gap-1">
+              <span className="size-2 rounded-pill bg-ink" aria-hidden /> only you set the price
+            </li>
+          </ul>
         </div>
 
         {draft.flags.length > 0 && (
@@ -122,8 +137,10 @@ export function DraftCard({
           </p>
         )}
 
+        <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">The basics</h3>
         <ConfidenceField label="Title" value={title} onChange={setTitle} confidence={fc.title ?? 0} />
         <ConfidenceField label="Description" value={description} onChange={setDescription} confidence={fc.description ?? 0} multiline />
+        <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">Details</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <ConfidenceField label="Category" value={category} onChange={setCategory} confidence={fc.category ?? 0} />
           {Object.entries(attrs).map(([k, v]) => (
@@ -137,8 +154,15 @@ export function DraftCard({
           ))}
         </div>
 
-        <fieldset className="grid gap-3 border-t border-line pt-4">
-          <legend className="sr-only">Prices and stock</legend>
+        <fieldset className={cn("grid gap-3 rounded-lg border-2 p-4 transition-colors", allConfirmed ? "border-success/40 bg-success-soft/40" : "border-ink/80 bg-surface")} data-testid="price-block">
+          <legend className="px-1 text-sm font-semibold text-ink">Your price {allConfirmed ? "· confirmed" : "· you decide"}</legend>
+          {draft.priceGuessCents ? (
+            <p className="text-sm text-ink-2">
+              The AI guessed <span className="font-medium tabular text-ink">${(draft.priceGuessCents / 100).toFixed(2)}</span> from the photo. It&apos;s only a starting point: agents always pay the price you confirm here.
+            </p>
+          ) : (
+            <p className="text-sm text-ink-2">Agents always pay the price you confirm here; the AI never sets it.</p>
+          )}
           {draft.variants.map((v) => (
             <div key={v.id} className="grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_6rem]">
               <ConfidenceField
