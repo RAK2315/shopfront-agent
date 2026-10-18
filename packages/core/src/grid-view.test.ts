@@ -15,8 +15,11 @@ describe('GridView (dashboard Ask bar, D-089)', () => {
     expect(describeViewChange(next, next)).toEqual([]);
     expect(describeViewChange(next, EMPTY_VIEW)).toContain('Grouping removed');
   });
-  it('keeps the current columns when the model leaves them out', () => {
-    const cur = { ...EMPTY_VIEW, columns: ['date', 'total'] as GridView['columns'] };
-    expect(mergeView(cur, { ...EMPTY_VIEW, last_days: 1 }).columns).toEqual(['date', 'total']);
+  it('keeps what the seller did not mention, replaces what they did, and resets on an empty view', () => {
+    const cur = { ...EMPTY_VIEW, columns: ['date', 'total'] as GridView['columns'], last_days: 7 };
+    const merged = mergeView(cur, { ...EMPTY_VIEW, group_by: 'product' });
+    expect(merged).toEqual({ ...cur, group_by: 'product' });
+    expect(mergeView(merged, { ...EMPTY_VIEW, last_days: 30 }).last_days).toBe(30);
+    expect(mergeView(merged, EMPTY_VIEW)).toEqual(EMPTY_VIEW);
   });
 });

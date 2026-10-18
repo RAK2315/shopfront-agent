@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { draftFromExtraction, newId, paypalCatalogCategory, ProductExtraction, ShopError } from "@shopfront/core";
+import { draftFromExtraction, injectionFlags, newId, parsePriceInput, paypalCatalogCategory, ProductExtraction, ShopError } from "@shopfront/core";
 import { and, asc, desc, eq, inArray, isNull, ne, schema } from "@shopfront/db";
 import { isPayPalApiError } from "@shopfront/paypal";
 import { appUrl } from "./env";
@@ -256,6 +256,51 @@ export async function mirrorMissingToCatalog(seller: Seller) {
   return { mirrored, missing: missing.length };
 }
 
+/** Inline edits from the dashboard's listings grid (walkthrough #3, PLAN AG Grid feature 1). Seller-only. */
+export const ListingEdit = z.strictObject({
+  description: z.string().trim().min(1).max(1000).optional(),
+  category: z.enum(["mugs", "bowls", "vases", "plates", "linens", "decor", "other"]).optional(),
+  variant_id: z.string().regex(/^var_[a-z0-9]{12}$/).optional(),
+  price: z.string().max(12).optional(),
+  stock: z.number().int().min(0).max(100_000).optional(),
+});
+
+/**
+ * Description and category are mirrored to PayPal's catalog (the only patchable fields we use; PATCH
+ * /v1/catalogs/products/{id}). Price and stock live only in our catalog: deterministic, seller-entered, and used on
+ * the next checkout, never on a past order (D-002, D-016). Returns PayPal's answer so the grid can show it.
+ */
+export async function editListing(seller: Seller, productId: string, input: z.infer<typeof ListingEdit>) {
+  const { db } = services();
+  const [p] = await db.select().from(schema.products).where(and(eq(schema.products.id, productId), eq(schema.products.sellerId, seller.id), eq(schema.products.status, "approved")));
+  if (!p) throw new ShopError("NOT_FOUND", "Listing not found.");
+  if (input.description && injectionFlags(input.description).length) throw new ShopError("VALIDATION_ERROR", "That description reads like instructions to an AI. Describe the item instead.");
+  if (input.price !== undefined || input.stock !== undefined) {
+    if (!input.variant_id) throw new ShopError("VALIDATION_ERROR", "Choose which variant to change.");
+    const [v] = await db.select().from(schema.variants).where(and(eq(schema.variants.id, input.variant_id), eq(schema.variants.productId, p.id)));
+    if (!v) throw new ShopError("NOT_FOUND", "Variant not found.");
+    const set: Partial<typeof schema.variants.$inferInsert> = {};
+    if (input.price !== undefined) {
+      const price = parsePriceInput(input.price);
+      if (!price.ok) throw new ShopError("VALIDATION_ERROR", price.reason === "too_low" ? "The lowest price is $1.00." : price.reason === "too_high" ? "The highest price is $10,000." : "Enter a price like 34 or 34.50.");
+      set.priceCents = price.cents;
+    }
+    if (input.stock !== undefined) set.stock = input.stock;
+    await db.update(schema.variants).set(set).where(eq(schema.variants.id, v.id));
+    await recordEvent(db, { actor: "seller", kind: "listing_edited", sellerId: seller.id, summary: `Listing updated · “${p.title}” ${input.price !== undefined ? `now $${(set.priceCents! / 100).toFixed(2)}` : ""}${input.stock !== undefined ? ` · stock ${input.stock}` : ""} · used on the next checkout`.replace("  ", " "), data: { productId: p.id, variantId: v.id } });
+  }
+  let paypal: { ok: boolean; debugId?: string; catalogId?: string } | null = null;
+  if (input.description !== undefined || input.category !== undefined) {
+    const [updated] = await db
+      .update(schema.products)
+      .set({ ...(input.description !== undefined ? { description: input.description } : {}), ...(input.category !== undefined ? { category: input.category } : {}), version: p.version + 1, updatedAt: new Date() })
+      .where(eq(schema.products.id, p.id))
+      .returning();
+    paypal = await syncToPayPalCatalog(seller, updated!, input.category !== undefined);
+  }
+  return { ok: true, paypal };
+}
+
 /** Re-sync every approved listing of a seller to PayPal's catalog (create if missing, else PATCH description and
  * image_url). Used after the seed attaches photos (D-087). */
 export async function resyncCatalog(seller: Seller) {
@@ -267,7 +312,7 @@ export async function resyncCatalog(seller: Seller) {
 }
 
 /** Mirror into PayPal Catalog Products (D-016). The catalog carries no price; ours stays the source of truth. */
-async function syncToPayPalCatalog(seller: Seller, p: typeof schema.products.$inferSelect) {
+async function syncToPayPalCatalog(seller: Seller, p: typeof schema.products.$inferSelect, withCategory = false) {
   const { db, paypal } = services();
   const [img] = await db.select().from(schema.productImages).where(eq(schema.productImages.productId, p.id)).orderBy(asc(schema.productImages.position)).limit(1);
   const homeUrl = appUrl(`/s/${seller.handle}/${p.id}`);
@@ -292,6 +337,7 @@ async function syncToPayPalCatalog(seller: Seller, p: typeof schema.products.$in
     }
     const { debugId } = await paypal.updateCatalogProduct(p.paypalCatalogId, [
       { op: "replace", path: "/description", value: p.description.slice(0, 256) || p.title },
+      ...(withCategory ? [{ op: "replace" as const, path: "/category", value: paypalCatalogCategory(p.category) }] : []),
       // "add", not "replace": PayPal answers INVALID_PATCH_PATH ("The field does not exist") when the entry was created
       // without an image, and JSON Patch "add" also overwrites an existing value (D-087, verified on the sandbox).
       ...(img ? [{ op: "add" as const, path: "/image_url", value: imageUrl(img.imageSha256) }] : []),

@@ -1,0 +1,103 @@
+[
+  {
+    "id": "S1 empty state",
+    "ok": true,
+    "detail": {
+      "starters": 4,
+      "lines": 3,
+      "rail": {
+        "search": "todo",
+        "found": "todo",
+        "checkout": "todo",
+        "paypal": "todo",
+        "paid": "todo"
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "S2 image-led results + collapsed tool log",
+    "ok": true,
+    "detail": {
+      "cards": 3,
+      "imgs": [
+        {
+          "ok": true,
+          "src": true
+        },
+        {
+          "ok": true,
+          "src": true
+        },
+        {
+          "ok": true,
+          "src": true
+        }
+      ],
+      "collapsedByDefault": true,
+      "chipsWhenOpen": 1,
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "done",
+        "paypal": "active",
+        "paid": "todo"
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 106
+      }
+    }
+  },
+  {
+    "id": "S3 inline PayPal approval → paid state → rail done",
+    "ok": true,
+    "detail": {
+      "checkoutId": "chk_h94c4u9lg0qb",
+      "db": {
+        "status": "paid",
+        "cap": "8J950269BN789733C"
+      },
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "done",
+        "paypal": "done",
+        "paid": "done"
+      },
+      "thumb": true,
+      "overflowCheckout": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 106
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 106
+      }
+    }
+  },
+  {
+    "id": "S4 closing PayPal charges nothing",
+    "ok": true,
+    "detail": {
+      "message": "You closed PayPal before approving. Nothing was charged.",
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "done",
+        "paypal": "active",
+        "paid": "todo"
+      },
+      "db": {
+        "status": "created"
+      }
+    }
+  }
+]

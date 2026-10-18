@@ -54,7 +54,14 @@ export function describeViewChange(prev: GridView, next: GridView): string[] {
   return out;
 }
 
-/** Merge a model's view into the current one: `columns: null` keeps the current columns. */
+/**
+ * Apply an Ask result to the current view: what the seller asked for replaces the current value; what they didn't
+ * mention stays. A view with nothing set ("show everything", "reset") clears back to the default.
+ */
 export function mergeView(current: GridView, next: GridView): GridView {
-  return { ...next, columns: next.columns ?? current.columns };
+  const keys = Object.keys(EMPTY_VIEW) as Array<keyof GridView>;
+  if (keys.every((k) => next[k] === null)) return EMPTY_VIEW;
+  const out = { ...current };
+  for (const k of keys) if (next[k] !== null) (out as Record<string, unknown>)[k] = next[k];
+  return out;
 }

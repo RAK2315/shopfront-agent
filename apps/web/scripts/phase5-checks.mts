@@ -83,7 +83,8 @@ dash.on("response", async (r) => {
 });
 const studio = <T,>(fn: string) => dash.evaluate(`(() => { const api = window.__shopfrontStudio; return (${fn})(api); })()`) as Promise<T>;
 async function openDashboard() {
-  await dash.goto(`${base}/studio/dashboard`, { waitUntil: "load", timeout: 180_000 });
+  // The AG Studio canvas and its AI assistant live on the Builder tab since D-089.
+  await dash.goto(`${base}/studio/dashboard?tab=builder`, { waitUntil: "load", timeout: 180_000 });
   await dash.locator(".ag-row").first().waitFor({ timeout: 120_000 });
   await until("the Studio API", () => studio<boolean>("(api) => !!api"), 60_000, 1000);
 }

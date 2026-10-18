@@ -219,10 +219,10 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
 
       <div ref={scroller} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5" aria-live="polite" data-testid="chat-scroller">
         {!started && <EmptyState onPick={send} />}
-        <ol className="grid gap-4">
+        <ol className="grid grid-cols-[minmax(0,1fr)] gap-4">
           <AnimatePresence initial={false}>
             {blocks.map((b) => (
-              <motion.li key={b.id} initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}>
+              <motion.li key={b.id} className="min-w-0" initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}>
                 {b.kind === "tools" ? (
                   <ToolGroup calls={b.calls} />
                 ) : b.kind === "checkout" ? (

@@ -86,7 +86,7 @@ try {
     await group.locator("summary").click();
     const r = await rail(page);
     const overflow = await shots(page, "S2-results");
-    record("S2 image-led results + collapsed tool log", n >= 1 && imgs.length > 0 && imgs.every((i) => i.ok && i.src) && /set by the shop/i.test(firstText) && /in stock/i.test(firstText) && collapsed && chips >= 1 && r.search === "done" && r.found === "done", { cards: n, imgs, collapsedByDefault: collapsed, chipsWhenOpen: chips, rail: r, overflow });
+    record("S2 image-led results + collapsed tool log", n >= 1 && imgs.length > 0 && imgs.every((i) => i.ok && i.src) && /set by the shop/i.test(firstText) && /in stock/i.test(firstText) && collapsed && chips >= 1 && r.search === "done" && r.found === "done" && Object.values(overflow).every((o) => o <= 0), { cards: n, imgs, collapsedByDefault: collapsed, chipsWhenOpen: chips, rail: r, overflow });
   }
 
   // S3
@@ -112,7 +112,7 @@ try {
     const row = (await db.query("select c.status, (select paypal_capture_id from captures where checkout_id = c.id limit 1) cap from checkouts c where id = $1", [checkoutId])).rows[0];
     const r = await rail(page);
     const overflow = await shots(page, "S3-paid");
-    record("S3 inline PayPal approval → paid state → rail done", row?.status === "paid" && Boolean(row?.cap) && Object.values(r).every((v) => v === "done") && thumb && (await ck.getAttribute("data-phase")) === "paid", { checkoutId, db: row, rail: r, thumb, overflowCheckout, overflow });
+    record("S3 inline PayPal approval → paid state → rail done", row?.status === "paid" && Boolean(row?.cap) && Object.values(r).every((v) => v === "done") && thumb && (await ck.getAttribute("data-phase")) === "paid" && [...Object.values(overflowCheckout), ...Object.values(overflow)].every((o) => o <= 0), { checkoutId, db: row, rail: r, thumb, overflowCheckout, overflow });
   }
   await ctx.close();
 
