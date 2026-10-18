@@ -95,6 +95,8 @@
 | D-084 | 2026-10-18 | Log in with PayPal planned for the "Get paid" card (verify at connect, block unverified payees); Fern's $50 auto-refund limit kept; deletions only through `scripts/safe-rm.mjs` | ACCEPTED (plan; LIPP build waits for approval) | J1, J3, G1 |
 | D-085 | 2026-10-18 | Walkthrough fix list approved and scheduled; **Phase 11 (Vault reorder) and Spike V cut**; autonomous run to feature-complete; Render ignores docs-only pushes | ACCEPTED | J2, J5, P8 |
 | D-086 | 2026-10-18 | PayPal approval bug: v6 `presentationMode: "auto"` sometimes opened nothing and left the session dead. Now an explicit popup, a redirect fallback and a "Continue in this tab" link | ACCEPTED | R2, J3, G1 |
+| D-087 | 2026-10-18 | CC0 museum photos for every seeded listing (two more Fern & Loom listings); the demo seller's "Include test orders" switch + "Test run" badge; real sandbox demo history; PayPal catalog `image_url` patched with `add` | ACCEPTED | J2, J5, S6.4 |
+| D-088 | 2026-10-18 | `/shop` rebuild: purchase rail, image-led cards, the PayPal button inline in the chat's checkout card, collapsed MCP log, suggestion cards, site nav, mobile live-wire sheet | ACCEPTED | J2, J5, P1 |
 
 ---
 
@@ -1239,6 +1241,55 @@
   - The redirect flow's cancel now says "nothing was charged".
 - **Refund re-walk (#13):** AP1b on Render. A refund asked in the same `/shop` chat was auto-approved by Juniper Clay's policy, and PayPal refund `1AN57176SK298430G` is `COMPLETED`. The step-7 404 in the walkthrough was my link (no `?t=` token), not the app.
 - **Serves:** R2, J3, G1, D-025.
+
+---
+
+## D-087: Listing photos, demo order history, catalog image fix (2026-10-18; walkthrough #1, #2)
+
+- **Photos (#1, owner: "CC0/free-licence stock now… credited in the README… no visible brands"):**
+  - Every seeded listing has a public-domain museum photograph (CC0 1.0), found through Openverse. They come from the Art Institute of Chicago, LACMA and The Met via rawpixel's public-domain collection.
+  - The look is consistent per seller: Juniper Clay is glazed ceramics on a grey studio backdrop; Fern & Loom is indigo textiles; the practice shop has its own cup and bowl.
+  - The bud-vase trio is our composite of three vase photos.
+  - Credits: `apps/web/seed-photos/CREDITS.md` and the README's Credits section.
+- **Copy changed to match the photos:**
+  - The ash-glaze bowl is now "pale wood-ash glaze".
+  - The bud-vase options are now "Celadon + copper red" and "All copper red" (same variant ids).
+  - The practice mug is now "Practice copper-red cup".
+- **Fern & Loom gained two listings** (Shibori tea towel $24, Block-print table runner $64), so its storefront isn't one item.
+- **Same pipeline as uploads:** the seed stores photos through `src/lib/image-process.ts` (sha256 identity, WebP, 1600 px or less), which is now shared with `server/images.ts`.
+- **Demo catalog refreshed:** after the seed, the demo catalog was re-frozen and both shops re-synced to PayPal's catalog (`scripts/admin.mjs`, new admin action `sync_catalog`).
+- **Bug found and fixed in the catalog sync:**
+  - PATCH `/v1/catalogs/products/{id}` with `replace /image_url` returns 400 `INVALID_PATCH_PATH` ("The field does not exist") when the entry was created without an image. Every seeded entry was.
+  - Now it uses `add`, which also overwrites an existing value. Verified on the sandbox: `replace` 400, `add` 204; then Juniper Clay synced 4/4 and Fern & Loom 3/3.
+- **Owner photos later:** 3–4 of the owner's own items for the live photo-to-store and Telegram demos (OWNER-TODO #3). The upload flow is unchanged and ready.
+- **Demo order history (#2):**
+  - Every one of `juniper_clay`'s orders came from test runs (`is_test`), so judges saw an empty Studio.
+  - The demo seller now has an **"Include test orders"** switch, on by default. It's a cookie preference that changes only this browser's view.
+  - Each such order shows a **"Test run"** badge, and the switch label explains where the orders come from.
+  - Real sellers never see test rows. The judge practice shop (`test_only`) always shows its own. Public views (`/live`, landing, `/api/events`) are unchanged.
+- **New history:** `demo-history` placed 10 real sandbox purchases across both shops; 8 were paid and 2 skipped on sandbox login timeouts. 3 were shipped with USPS tracking through PayPal `/track`, and 1 was refunded after the seller approved it.
+  - **Nothing is backdated:** PayPal timestamps are real, so the history grows on the days the ATs run.
+- **Serves:** J2, J5, S6.4, D-070, D-073.
+
+---
+
+## D-088: `/shop` rebuild (2026-10-18; walkthrough #4)
+
+- **Owner's step-2 notes:** make Search → Found → Checkout → PayPal → Paid obvious; show who does what; premium e-commerce, not "a chat with debugging logs"; keep the logs on the right with details collapsed; subtle motion.
+- **Built:**
+  - **A site nav** (`components/site/site-nav.tsx`): wordmark, Try the buyer demo, Live wire, Sell with Shopfront, Developers (`/llms.txt`), Docs (the repo); a sheet menu on phones.
+  - **A 5-step rail** lit only by real events: tool calls and results, then the PayPal button's phase. Each step names its actor: "Agent searches", "Agent picks", "Shop sets the price", "You approve", "PayPal confirms".
+  - **Product cards:** a 4:5 photo, the seller, the title in Alegreya, the price "set by the shop", an in-stock dot and a **Buy this** button. Two per row on desktop, a swipe row on phones.
+  - **The checkout card:** the item photo, Items / Shipping / Total (the total in display size, "set by the shop, not the agent"), and **the PayPal button inline** (`PayPalApprove` `variant="inline"`, the same v6 session and D-086 popup rules). It turns into the paid state in place.
+    - `/pay` stays, as the consent record and the fallback ("Open the payment page").
+    - D-078 #2 said "once the buyer opens the card"; it's simply always shown.
+  - **MCP calls collapsed:** consecutive calls become one line ("Searched the catalog · 'blue mug' → 2 found · 1 MCP call"); the exact calls appear on expand.
+  - **Empty state:** three plain lines on what the agent can and can't do, and four suggestion cards with icons.
+  - **The hack button** moved to a quieter secondary style ("Hack it" on phones). The hack card itself is #5.
+  - **On phones:** the live wire opens in a bottom sheet from the chat header. Only one live-wire stream is mounted per page (desktop column or phone sheet, by media query).
+- **Kept:** the live wire on the right, the "Answered before" legend, all test ids the ATs use (`shop-input`, `checkout-card`, `pay-link`, `hack`, `hack-result`, `tool-chip`).
+- **AT:** `shop-checks` S1–S4 plus overflow at three sizes (results in PROGRESS).
+- **Serves:** J2, J5, P1, D-078 #1–#3.
 
 ---
 

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "S1 empty state",
+    "ok": true,
+    "detail": {
+      "starters": 4,
+      "lines": 3,
+      "rail": {
+        "search": "todo",
+        "found": "todo",
+        "checkout": "todo",
+        "paypal": "todo",
+        "paid": "todo"
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "S2 image-led results + collapsed tool log",
+    "ok": true,
+    "detail": {
+      "cards": 3,
+      "imgs": [
+        {
+          "ok": true,
+          "src": true
+        },
+        {
+          "ok": true,
+          "src": true
+        },
+        {
+          "ok": true,
+          "src": true
+        }
+      ],
+      "collapsedByDefault": true,
+      "chipsWhenOpen": 1,
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "active",
+        "paypal": "todo",
+        "paid": "todo"
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "run",
+    "ok": false,
+    "detail": "locator.waitFor: Timeout 90000ms exceeded."
+  }
+]

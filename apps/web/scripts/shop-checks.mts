@@ -38,7 +38,11 @@ async function shots(page: Page, name: string) {
   for (const s of [{ tag: "desktop", width: 1440, height: 900 }, { tag: "1920", width: 1920, height: 1080 }, { tag: "mobile", width: 390, height: 844 }]) {
     await page.setViewportSize({ width: s.width, height: s.height });
     await page.waitForTimeout(600);
-    overflow[s.tag] = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    // The page and the chat panel itself (an inner sideways scroll hides the user's own words on phones).
+    overflow[s.tag] = await page.evaluate(() => {
+      const chat = document.querySelector("[data-testid=chat-scroller]");
+      return Math.max(document.documentElement.scrollWidth - window.innerWidth, chat ? chat.scrollWidth - chat.clientWidth : 0);
+    });
     await page.screenshot({ path: join(out, `${name}-${s.tag}.png`) });
   }
   await page.setViewportSize(vp);
@@ -87,9 +91,12 @@ try {
 
   // S3
   {
-    const card = page.getByTestId("product-card").filter({ hasText: /cobalt/i }).first();
-    const target = (await card.count()) ? card : page.getByTestId("product-card").first();
-    await target.getByTestId("buy-this").click();
+    // The agent sometimes sets up the checkout straight from the search message; otherwise "Buy this" asks for it.
+    if ((await page.getByTestId("checkout-card").count()) === 0) {
+      const card = page.getByTestId("product-card").filter({ hasText: /cobalt/i }).first();
+      const target = (await card.count()) ? card : page.getByTestId("product-card").first();
+      await target.getByTestId("buy-this").click();
+    }
     const ck = page.getByTestId("checkout-card").last();
     await ck.waitFor({ timeout: 90_000 });
     await ck.locator('[data-phase="ready"]').waitFor({ timeout: 90_000 });
@@ -115,7 +122,7 @@ try {
     const p2 = await ctx2.newPage();
     await p2.goto(`${base}/shop`, { waitUntil: "load" });
     await searchAndBuy(p2);
-    await p2.getByTestId("buy-this").first().click();
+    if ((await p2.getByTestId("checkout-card").count()) === 0) await p2.getByTestId("buy-this").first().click();
     const ck = p2.getByTestId("checkout-card").last();
     await ck.locator('[data-phase="ready"]').waitFor({ timeout: 90_000 });
     const checkoutId = /\/pay\/(chk_[a-z0-9]{12})/.exec((await ck.getByTestId("pay-link").getAttribute("href")) ?? "")?.[1];
@@ -134,6 +141,7 @@ try {
     await ctx2.close();
   }
 } catch (err) {
+  for (const [i, p] of browser.contexts().flatMap((c) => c.pages()).entries()) await p.screenshot({ path: join(out, `_error-${i}.png`) }).catch(() => {});
   record("run", false, err instanceof Error ? err.message.split("\n")[0] : String(err));
 } finally {
   writeFileSync(join(out, `results-${new Date().toISOString().replace(/[:.]/g, "-")}.json`), JSON.stringify(results, null, 2));

@@ -217,7 +217,7 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
         <ProgressRail steps={steps} />
       </header>
 
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-4 py-5" aria-live="polite">
+      <div ref={scroller} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5" aria-live="polite" data-testid="chat-scroller">
         {!started && <EmptyState onPick={send} />}
         <ol className="grid gap-4">
           <AnimatePresence initial={false}>
@@ -357,9 +357,9 @@ function ToolGroup({ calls }: { calls: ToolCall[] }) {
 function ProductCards({ products, onBuy, disabled }: { products: Product[]; onBuy: (p: Product) => void; disabled: boolean }) {
   if (!products.length) return <p className="text-sm text-ink-2">No listings matched.</p>;
   return (
-    <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0" data-testid="product-cards">
+    <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0" data-testid="product-cards">
       {products.map((p) => (
-        <li key={p.product_id} className="flex w-[70%] shrink-0 snap-start flex-col overflow-hidden rounded-lg border border-line bg-surface sm:w-auto" data-testid="product-card">
+        <li key={p.product_id} className="flex w-[min(13.5rem,72%)] shrink-0 snap-start flex-col overflow-hidden rounded-lg border border-line bg-surface sm:w-auto" data-testid="product-card">
           <div className="relative aspect-[4/5] bg-surface-2">
             {p.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
@@ -480,7 +480,7 @@ function ChatItem({ item }: { item: Exclude<Item, ToolCall | { kind: "checkout" 
     case "user":
       return (
         <div className="flex justify-end">
-          <p className="max-w-[85%] rounded-lg rounded-br-sm bg-ink px-3.5 py-2 text-md text-canvas">{item.text}</p>
+          <p className="max-w-[85%] rounded-lg rounded-br-sm bg-ink px-3.5 py-2 text-md break-words text-canvas">{item.text}</p>
         </div>
       );
     case "agent":

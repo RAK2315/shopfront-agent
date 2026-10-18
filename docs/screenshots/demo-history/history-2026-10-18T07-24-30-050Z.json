@@ -1,0 +1,54 @@
+[
+  {
+    "checkout": "chk_uj5va4ve7hyi",
+    "seller": "juniper_clay",
+    "total": "39.00",
+    "buyer": 1,
+    "shipped": "USPS"
+  },
+  {
+    "checkout": "chk_e4zdjcsph7ro",
+    "seller": "juniper_clay",
+    "total": "69.00",
+    "buyer": 2,
+    "shipped": "USPS"
+  },
+  {
+    "checkout": "chk_thg6eyxb74vx",
+    "seller": "juniper_clay",
+    "total": "33.00",
+    "buyer": 1
+  },
+  {
+    "checkout": "chk_50q4ca9fkmba",
+    "seller": "juniper_clay",
+    "total": "69.00",
+    "buyer": 2,
+    "refund": "needs_seller"
+  },
+  {
+    "checkout": "chk_a2wzsxgj9voj",
+    "seller": "juniper_clay",
+    "total": "100.00",
+    "buyer": 1,
+    "shipped": "USPS"
+  },
+  {
+    "checkout": "chk_yy8ggwhaiipf",
+    "seller": "fern_and_loom",
+    "total": "46.00",
+    "buyer": 2
+  },
+  {
+    "checkout": "chk_b3chlyj75oby",
+    "seller": "fern_and_loom",
+    "total": "52.00",
+    "buyer": 1
+  },
+  {
+    "checkout": "chk_o5jpti8bnktq",
+    "seller": "fern_and_loom",
+    "total": "68.00",
+    "buyer": 1
+  }
+]
