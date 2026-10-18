@@ -256,6 +256,16 @@ export async function mirrorMissingToCatalog(seller: Seller) {
   return { mirrored, missing: missing.length };
 }
 
+/** Re-sync every approved listing of a seller to PayPal's catalog (create if missing, else PATCH description and
+ * image_url). Used after the seed attaches photos (D-087). */
+export async function resyncCatalog(seller: Seller) {
+  const { db } = services();
+  const rows = await db.select().from(schema.products).where(and(eq(schema.products.sellerId, seller.id), eq(schema.products.status, "approved")));
+  let ok = 0;
+  for (const p of rows) if ((await syncToPayPalCatalog(seller, p)).ok) ok++;
+  return { synced: ok, of: rows.length };
+}
+
 /** Mirror into PayPal Catalog Products (D-016). The catalog carries no price; ours stays the source of truth. */
 async function syncToPayPalCatalog(seller: Seller, p: typeof schema.products.$inferSelect) {
   const { db, paypal } = services();
