@@ -40,7 +40,7 @@ async function showcase() {
 
 export default async function Home() {
   const [initial, items] = await Promise.all([isTestRun().then((t) => recentEvents(7, t)), showcase()]);
-  const cobalt = items.find((i) => /cobalt/i.test(i.title)) ?? items[0];
+  const cobalt = items.find((i) => /crackle|cobalt/i.test(i.title)) ?? items[0];
   const photo = items.find((i) => /speckled/i.test(i.title)) ?? items[1] ?? cobalt;
   const textile = items.find((i) => i.handle === "fern_and_loom");
 

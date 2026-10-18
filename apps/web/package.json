@@ -46,7 +46,8 @@
     "reconcile-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/reconcile-checks.mts",
     "spike-c": "node --env-file-if-exists=../../.env --import tsx scripts/spike-c.mts",
     "cart-agent": "node --env-file-if-exists=../../.env --import tsx scripts/cart-agent.mts",
-    "cart-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/cart-checks.mts"
+    "cart-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/cart-checks.mts",
+    "review2-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/review2-checks.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

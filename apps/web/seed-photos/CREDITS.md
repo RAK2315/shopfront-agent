@@ -6,7 +6,7 @@ Every seeded listing photo is a **public-domain museum photograph released under
 |---|---|---|---|---|---|
 | juniper-speckled-cup.jpg | Speckled stoneware mug (Oat speckle) | Minimalist ceramic tea bowl | Art Institute of Chicago | https://www.rawpixel.com/image/8952600/cup | CC0 1.0 |
 | juniper-sea-glass-bowl-cup.jpg | Speckled stoneware mug (Sea glass blue) | Elegant minimalist ceramic bowl | LACMA | https://www.rawpixel.com/image/11801838/bowl | CC0 1.0 |
-| juniper-cobalt-drip.jpg | Cobalt drip mug | dark blue curved mug handle | rawpixel public domain | https://www.rawpixel.com/image/7466628/photo-image-art-dark-public-domain | CC0 1.0 |
+| juniper-blue-crackle.jpg | Blue crackle mug (was "Cobalt drip mug"; renamed to match this photo, review v2 #2) | A light blue ceramic mug with a webbed, crackled pattern (cropped) | WordPress Photo Directory (CC0) | https://wordpress.org/photos/ (Openverse id 3e88ed44-04cd-4f3e-9b0b-bd0a530e073b) | CC0 1.0 |
 | juniper-ash-bowl.jpg | Ash-glaze serving bowl | Minimalist white ceramic bowl | LACMA | https://www.rawpixel.com/image/11800362/bowl | CC0 1.0 |
 | vase-celadon.jpg | Bud vase trio (left of the composite) | Elegant minimalist ceramic vase | The Metropolitan Museum of Art | https://www.rawpixel.com/image/12491159/bottle | CC0 1.0 |
 | vase-pink.jpg | Bud vase trio (centre) | Small vase | The Metropolitan Museum of Art | https://www.rawpixel.com/image/8175181/small-vase | CC0 1.0 |

@@ -109,7 +109,7 @@ try {
   {
     // The agent sometimes sets up the checkout straight from the search message; otherwise "Buy this" asks for it.
     if ((await page.getByTestId("checkout-card").count()) === 0) {
-      const card = page.getByTestId("product-card").filter({ hasText: /cobalt/i }).first();
+      const card = page.getByTestId("product-card").filter({ hasText: /crackle|cobalt/i }).first();
       const target = (await card.count()) ? card : page.getByTestId("product-card").first();
       await target.getByTestId("buy-this").click();
     }

@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { RefundPolicy } from "@shopfront/core";
-import { closeDb, getDb, schema, sql } from "@shopfront/db";
+import { and, closeDb, eq, getDb, notInArray, schema, sql } from "@shopfront/db";
 import { photoSha256, processPhoto } from "../src/lib/image-process";
 
 // Listing photos: public-domain museum photos (CC0), credited in seed-photos/CREDITS.md and the README (D-087).
@@ -70,12 +70,13 @@ const products: Array<{
   {
     id: id("prd", "cobaltdrip"),
     sellerId: sellers[0]!.id,
-    title: "Cobalt drip mug",
-    description: "Deep cobalt blue glaze that pools into a darker drip at the rim. Hand-thrown, 12 oz, with a thumb rest on the handle.",
+    // Review v2 #2: renamed to match its photo (a real hand-thrown mug, CC0); the ids stay so every test still holds.
+    title: "Blue crackle mug",
+    description: "Pale sky-blue glaze crazed into a fine web of crackle lines. Hand-thrown, 12 oz, with a wide, comfortable handle.",
     category: "mugs",
     attributes: { material: "stoneware", color: "blue", capacity: "12 oz" },
     variants: [{ key: "cobalt12", sku: "JCS-MUG-COBALT", options: { size: "12 oz" }, priceCents: 3200, stock: 5 }],
-    photos: ["juniper-cobalt-drip.jpg"],
+    photos: ["juniper-blue-crackle.jpg"],
   },
   {
     id: id("prd", "ashbowl"),
@@ -180,13 +181,17 @@ async function main() {
         .onConflictDoUpdate({ target: schema.variants.id, set: { priceCents: v.priceCents, stock: v.stock, active: true, options: v.options } });
     }
     // Photos go through the same pipeline as a seller's upload (sha256 identity, WebP, ≤ 1600 px).
+    const keep: string[] = [];
     for (const [position, file] of photos.entries()) {
       const input = readFileSync(join(PHOTOS, file));
       const sha256 = photoSha256(input);
       const { data, info } = await processPhoto(input);
       await db.insert(schema.images).values({ sha256, mime: "image/webp", width: info.width, height: info.height, bytes: data }).onConflictDoNothing();
       await db.insert(schema.productImages).values({ productId: p.id, imageSha256: sha256, position }).onConflictDoUpdate({ target: [schema.productImages.productId, schema.productImages.imageSha256], set: { position } });
+      keep.push(sha256);
     }
+    // A replaced photo is detached, so the listing shows only what the seed lists.
+    if (keep.length) await db.delete(schema.productImages).where(and(eq(schema.productImages.productId, p.id), notInArray(schema.productImages.imageSha256, keep)));
   }
   const [{ n }] = (await db.execute<{ n: number }>(sql`select count(*)::int n from variants where active`)).rows as [{ n: number }];
   console.log(`Seeded ${chosen.length} sellers, ${products.filter((p) => chosenIds.has(p.sellerId)).length} products; ${n} active variants in total.`);

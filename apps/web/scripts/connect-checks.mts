@@ -103,7 +103,10 @@ try {
   const fields = (await db.query("select data->'fields' f from events where kind='payout_identity_checked' order by id desc limit 1")).rows[0]?.f;
   await page.getByTestId("get-paid-card").screenshot({ path: join(out, "C2-get-paid-checked.png") });
   await page.screenshot({ path: join(out, "C2-studio-after-connect-desktop.png") });
-  record("C2 Log in with PayPal returns the account PayPal confirmed; demo shop not rerouted", /confirmed the account/i.test(result) && cardText.includes(SELLER2_MERCHANT) && juniper.payout_status === "platform", { result, merchantShown: cardText.includes(SELLER2_MERCHANT), juniper: juniper.payout_status, userinfoFields: fields });
+  // Review v2 #6: a prominent "Verified by PayPal" banner with the account, and an explicit payouts state.
+  const banner = await page.getByTestId("verified-banner").innerText().catch(() => "");
+  const payouts = await page.getByTestId("payouts-state").innerText().catch(() => "");
+  record("C2 Log in with PayPal returns the account PayPal confirmed; demo shop not rerouted", /verified by paypal/i.test(result) && /verified by paypal/i.test(banner) && banner.includes(SELLER2_MERCHANT) && /not enabled on this demo shop/i.test(payouts) && cardText.includes(SELLER2_MERCHANT) && juniper.payout_status === "platform", { result, banner, payouts, merchantShown: cardText.includes(SELLER2_MERCHANT), juniper: juniper.payout_status, userinfoFields: fields });
 
   // C3: the same return link again → refused.
   if (returnUrl) {

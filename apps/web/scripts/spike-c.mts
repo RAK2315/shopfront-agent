@@ -114,7 +114,7 @@ try {
   // C1: PayPal's own Cart API v1 schema.
   {
     const cart = {
-      items: [{ variant_id: "var_cobalt120000", quantity: 1, name: "Cobalt drip mug" }],
+      items: [{ variant_id: "var_cobalt120000", quantity: 1, name: "Blue crackle mug" }],
       shipping_address: { address_line_1: "1 Main St", admin_area_2: "San Jose", admin_area_1: "CA", postal_code: "95131", country_code: "US" },
       payment_method: { type: "paypal" },
     };

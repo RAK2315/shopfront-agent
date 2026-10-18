@@ -13,6 +13,11 @@ import { hashToken, newOrderToken, tokenMatchesHash, verifyOrderToken } from "./
 
 const CHECKOUT_TTL_MS = 3 * 60 * 60 * 1000; // PayPal orders that are never approved lapse after ~3h
 
+/** Words that say how someone asks, not what they want (review v2 #2). */
+const SEARCH_STOPWORDS = new Set(
+  "a an the and or of for to in on at by with from as is are be my me i we you it this that some any find show get buy want need looking look like would please under over below above less more than about around gift gifts something thing things item items one usd dollar dollars price cheap budget".split(" "),
+);
+
 function imageUrl(sha: string | null | undefined) {
   return sha ? appUrl(`/img/${sha}`) : null;
 }
@@ -33,15 +38,25 @@ async function firstImages(productIds: string[]) {
 export const shop: ShopPort = {
   async searchProducts(input) {
     const { db } = services();
-    const terms = input.query
-      .toLowerCase()
-      .split(/[^a-z0-9]+/)
-      .filter((t) => t.length > 1)
-      .slice(0, 8);
-    const haystack = sql`lower(${schema.products.title} || ' ' || ${schema.products.description} || ' ' || ${schema.products.category} || ' ' || ${schema.products.attributes}::text)`;
+    // Review v2 #2: weighted relevance. Filler words and prices don't count; a match in the title or category weighs
+    // three times one in the description; simple plurals match ("mugs" → "mug"). Results scoring under half of the
+    // best match are dropped, so "a handmade blue mug" no longer brings a tea towel that is merely handmade.
+    const terms = [
+      ...new Set(
+        input.query
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .filter((t) => t.length > 1 && !SEARCH_STOPWORDS.has(t) && !/^\d+$/.test(t))
+          .map((t) => (t.length > 3 && t.endsWith("s") && !t.endsWith("ss") ? t.slice(0, -1) : t)),
+      ),
+    ].slice(0, 8);
+    const field = (col: unknown) => sql`lower(${col}::text)`;
     const score = terms.length
       ? sql<number>`(${sql.join(
-          terms.map((t) => sql`(case when ${haystack} like ${"%" + t + "%"} then 1 else 0 end)`),
+          terms.map(
+            (t) =>
+              sql`(case when ${field(schema.products.title)} like ${"%" + t + "%"} then 3 else 0 end + case when ${field(schema.products.category)} like ${"%" + t + "%"} then 3 else 0 end + case when ${field(schema.products.description)} like ${"%" + t + "%"} or ${field(schema.products.attributes)} like ${"%" + t + "%"} then 1 else 0 end)`,
+          ),
           sql` + `,
         )})`
       : sql<number>`0`;
@@ -71,7 +86,8 @@ export const shop: ShopPort = {
       .groupBy(schema.products.id, schema.sellers.handle, schema.sellers.displayName)
       .orderBy(sql`max(${score}) desc`, asc(schema.products.title));
 
-    let results = rows.filter((r) => (terms.length === 0 || Number(r.score) > 0));
+    const best = Math.max(0, ...rows.map((r) => Number(r.score)));
+    let results = rows.filter((r) => terms.length === 0 || (Number(r.score) > 0 && Number(r.score) * 2 >= best));
     if (input.max_price_usd !== undefined) results = results.filter((r) => Number(r.minPrice) <= Math.round(input.max_price_usd! * 100));
     if (input.in_stock_only) results = results.filter((r) => Number(r.stock) > 0);
     const page = results.slice(0, input.limit);

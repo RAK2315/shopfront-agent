@@ -545,6 +545,34 @@ function ChatItem({ item }: { item: Exclude<Item, ToolCall | { kind: "checkout" 
   }
 }
 
+const LANES = [
+  { icon: Bot, name: "Buyer agent", what: "Decides what to search and buy. It never sees a price it can change." },
+  { icon: Cable, name: "MCP", what: "The shop's tools: ids and quantities in, server-set prices out." },
+  { icon: CircleCheck, name: "PayPal", what: "The real Orders v2 order, your approval and the capture, with their ids." },
+  { icon: ShieldCheck, name: "Webhook", what: "PayPal's own confirmation, signature-verified, processed once." },
+];
+
+/** A quiet wire explains what will appear on it (review v2 #8), instead of a tall empty panel. */
+function WireGuide() {
+  return (
+    <div className="grid gap-2.5">
+      <p className="text-xs font-medium uppercase tracking-[0.08em] text-ink-panel-muted">What you&apos;ll see here</p>
+      <ul className="grid gap-2">
+        {LANES.map((l) => (
+          <li key={l.name} className="flex items-start gap-2.5">
+            <span className="grid size-6 shrink-0 place-items-center rounded-pill bg-ink-panel-2 text-ink-panel-text ring-1 ring-ink-panel-line" aria-hidden>
+              <l.icon className="size-3.5" />
+            </span>
+            <span className="text-sm text-ink-panel-text">
+              <span className="font-medium">{l.name}</span> <span className="text-ink-panel-muted">· {l.what}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** The live wire beside the chat: every agent step, MCP call, PayPal request and webhook. */
 export function ShopTimeline({ after }: { after: number }) {
   const [events, setEvents] = useState<ShopEvent[]>([]);
@@ -568,6 +596,7 @@ export function ShopTimeline({ after }: { after: number }) {
       emptyText="Ask the agent for something. Every step shows up here."
       className="h-full"
       listClassName="overflow-y-auto"
+      guide={<WireGuide />}
       footer={
         <p data-testid="answered-before-legend">
           <Badge tone="panel">Answered before</Badge> = the same question was answered earlier and its words reused. Prices, totals and every PayPal call are always live.

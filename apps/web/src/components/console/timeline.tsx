@@ -202,10 +202,13 @@ export function Timeline({
   emptyText = "Waiting for the first agent call. Try the buyer chat on the left.",
   toolbar,
   footer,
+  guide,
   className,
   listClassName,
 }: {
   items: TimelineItem[];
+  /** Shown under the list while it has fewer than 4 rows, so a quiet wire still explains itself (review v2 #8). */
+  guide?: ReactNode;
   live?: boolean;
   state?: WireState;
   title?: string;
@@ -263,6 +266,7 @@ export function Timeline({
         </AnimatePresence>
         {items.length === 0 && <li className="py-6 text-center text-sm text-ink-panel-muted">{emptyText}</li>}
       </ol>
+      {guide && items.length < 4 && <div className="border-t border-ink-panel-line px-4 py-3" data-testid="wire-guide">{guide}</div>}
       {footer && <footer className="border-t border-ink-panel-line px-4 py-2.5 text-xs text-ink-panel-muted">{footer}</footer>}
     </section>
   );

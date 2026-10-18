@@ -59,7 +59,7 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
         </div>
         <SellerNav handle={seller.handle} current="studio" />
       </header>
-      {card && <GetPaidCard card={card} result={typeof result === "string" ? result : undefined} connectEnabled={env().PAYPAL_LIPP_ENABLED === "1"} />}
+      {card && <GetPaidCard card={card} result={typeof result === "string" ? result : undefined} connectEnabled={env().PAYPAL_LIPP_ENABLED === "1"} testLogin={env().SANDBOX_BUYER_EMAIL && env().SANDBOX_BUYER_PASSWORD ? { email: env().SANDBOX_BUYER_EMAIL, password: env().SANDBOX_BUYER_PASSWORD } : undefined} />}
       <TelegramCard judgeLink={bot ? `https://t.me/${bot}?start=judge` : null} />
       <StoreSyncCard baseUrl={appUrl(`/api/paypal/v1/stores/${seller.handle}`)} />
       <Studio seller={{ handle: seller.handle, displayName: seller.displayName }} initialDrafts={drafts} initialLive={live} mcpUrl={appUrl("/mcp")} />
