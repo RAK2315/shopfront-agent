@@ -73,9 +73,19 @@ async function buyAndPay(): Promise<string> {
   const browser = await chromium.launch({ headless: false, channel: "chromium" });
   const page = await (await browser.newContext()).newPage();
   try {
-    await page.goto(href, { waitUntil: "domcontentloaded" });
-    await loginAndApprove(page, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
-    await page.waitForURL(/\/pay\/chk_/, { timeout: 90_000 });
+    // PayPal's sandbox sometimes answers "Things don't appear to be working at the moment"; retry the same order once.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await page.goto(href, { waitUntil: "domcontentloaded" });
+        await loginAndApprove(page, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
+        await page.waitForURL(/\/pay\/chk_/, { timeout: 90_000 });
+        break;
+      } catch (err) {
+        if (attempt >= 2 || !/working at the moment/i.test(await page.locator("body").innerText().catch(() => ""))) throw err;
+        log("PayPal sandbox hiccup; retrying the approval once");
+        await sleep(8000);
+      }
+    }
   } catch (err) {
     await page.screenshot({ path: join(out, `_error-paypal-${ck}.png`) }).catch(() => {});
     throw err;

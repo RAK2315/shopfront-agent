@@ -1,0 +1,75 @@
+[
+  {
+    "id": "E1 step 1 of 3, drop zone with real photos",
+    "ok": true,
+    "detail": {
+      "rail": [
+        "active",
+        "todo",
+        "todo"
+      ],
+      "thumbs": 3,
+      "overflow": {
+        "1920": -15,
+        "desktop": -15,
+        "mobile": -15
+      }
+    }
+  },
+  {
+    "id": "E3a a non-image upload does nothing harmful",
+    "ok": true,
+    "detail": {
+      "note": "the input filters to images; no draft appears"
+    }
+  },
+  {
+    "id": "E2 AI draft: rail on Review, AI markers, price block, Publish locked",
+    "ok": true,
+    "detail": {
+      "rail": [
+        "done",
+        "active",
+        "todo"
+      ],
+      "aiMarks": 7,
+      "priceBlock": true,
+      "publishDisabled": true,
+      "overflow": {
+        "1920": -15,
+        "desktop": -15,
+        "mobile": -15
+      }
+    }
+  },
+  {
+    "id": "E3b a $0 price can't be confirmed",
+    "ok": true,
+    "detail": {
+      "stillLocked": true
+    }
+  },
+  {
+    "id": "E4 publish → success panel → live in the storefront and PayPal's catalog",
+    "ok": true,
+    "detail": {
+      "productId": "prd_8y736ltdacxd",
+      "db": {
+        "status": "approved",
+        "paypal_catalog_id": "prd_8y736ltdacxd",
+        "price_cents": 3800
+      },
+      "rail": [
+        "done",
+        "done",
+        "done"
+      ],
+      "storefrontShowsPrice": true,
+      "overflow": {
+        "1920": -15,
+        "desktop": -15,
+        "mobile": -15
+      }
+    }
+  }
+]

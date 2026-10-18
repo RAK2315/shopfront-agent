@@ -130,3 +130,13 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** —
 - **Risks:** the README claims Log in with PayPal is "switching on"; update it once OWNER-TODO #4 is done.
 - **Next:** #14.
+
+## #14: final regression (2026-10-18, partial; stopped by the local machine)
+- **Done (on Render, `d99f012`, log in `docs/screenshots/final-regression.log`):**
+  - approval 6/6, shop 4/4, dashboard 9/9, studio 5/5, landing 5/5, live 5/5, hack 3/3, mobile 39/39, telegram 6/6;
+  - telegram-flow 5/6: F1–F5 pass; F6 hit PayPal's own sandbox error page ("Things don't appear to be working at the moment", screenshot `docs/screenshots/telegram/_error-paypal-*.png`). F6 passed in the previous run; the AT now retries that page once.
+  - The fresh-clone run from the README passed (install, typecheck, 176 tests, build, start).
+- **Not run yet:** Claude Code stopped the background run during `phase2-checks` because this computer was low on memory. Still to run: phase2, phase4, phase5 (AT-5 on the Builder tab, then the demo reset), phase6, recovery, fixes, lane, `final-screens`.
+- **Excluded:** `phase9-checks` (superseded by `connect-checks` since D-084, now guarded) and `connect-checks` C2–C6 (OWNER-TODO #4).
+- **Risks:** none found in our code during the run.
+- **Next:** finish the remaining scripts when the machine has memory.

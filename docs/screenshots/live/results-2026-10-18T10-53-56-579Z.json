@@ -1,0 +1,50 @@
+[
+  {
+    "id": "V1 KPI strip (24 h, from the database)",
+    "ok": true,
+    "detail": {
+      "agent": 241,
+      "mcp": 243,
+      "payments": 38,
+      "blocked": 45
+    }
+  },
+  {
+    "id": "V2 ids behind Details; PayPal rows keep their key id",
+    "ok": true,
+    "detail": {
+      "detailToggles": 60,
+      "nonPayPalIdsVisibleBefore": 0,
+      "openedItems": 20,
+      "paypalKeyIds": 20
+    }
+  },
+  {
+    "id": "V3 a new event slides in and the KPI counts up",
+    "ok": true,
+    "detail": {
+      "before": 243,
+      "after": 244,
+      "newest": "MCP search_products"
+    }
+  },
+  {
+    "id": "V4 group by checkout; follow one checkout",
+    "ok": true,
+    "detail": {
+      "groups": 18,
+      "followed": true
+    }
+  },
+  {
+    "id": "V5 no sideways scroll",
+    "ok": true,
+    "detail": {
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  }
+]

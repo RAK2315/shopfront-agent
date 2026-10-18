@@ -1,0 +1,58 @@
+[
+  {
+    "id": "H1 every real attack blocked; price from the DB; 0 checkouts in the DB",
+    "ok": true,
+    "detail": {
+      "attacks": 13,
+      "blocked": 13,
+      "families": [
+        "price",
+        "quantity",
+        "ids",
+        "tokens",
+        "webhook",
+        "size"
+      ],
+      "serverPrice": "24.00",
+      "dbPriceCents": 2400,
+      "checkoutsInDb": 0,
+      "answers": [
+        "price0: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "total: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "currency: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "cents: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "negative: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "fraction: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "bulk: MCP error -32602: Input validation error: Invalid arguments for tool c",
+        "fake: {\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"Variant var_free00000000 is no",
+        "refund: {\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"Invalid order token.\"}}",
+        "refundamt: MCP error -32602: Input validation error: Invalid arguments for tool r",
+        "peek: {\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"Invalid order token.\"}}",
+        "webhook: PayPal's signature check failed: stored as unverified and ignored",
+        "size: MCP error -32602: Input validation error: Invalid arguments for tool c"
+      ]
+    }
+  },
+  {
+    "id": "H2 UI: proof numbers, one chip per attack, all blocked; the prompt version creates nothing at $0",
+    "ok": true,
+    "detail": {
+      "blocked": 13,
+      "total": 13,
+      "chips": 13,
+      "proof": "Attacks blocked 13/13 Price, unchanged $24.00 Checkouts created 0",
+      "zeroTotalCheckouts": 0
+    }
+  },
+  {
+    "id": "H3 no sideways scroll",
+    "ok": true,
+    "detail": {
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  }
+]
