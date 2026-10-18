@@ -141,17 +141,22 @@ export interface OrderPayloadOptions {
   cancelUrl: string;
   /** The seller's own PayPal (Phase 9, D-083). Omitted for the platform account, which is the API caller. */
   payee?: { email_address: string } | { merchant_id: string };
+  /** Cart API v1 (D-098): AUTHORIZE at checkout, capture when the seller ships. Default CAPTURE (MCP, /shop). */
+  intent?: 'CAPTURE' | 'AUTHORIZE';
+  /** The address the buyer's agent supplied through the Cart API; PayPal then shows it instead of asking. */
+  shipTo?: { fullName?: string; address: { address_line_1?: string; address_line_2?: string; admin_area_2?: string; admin_area_1?: string; postal_code?: string; country_code: string } };
 }
 
 export function buildPayPalOrderRequest(q: CheckoutQuote, o: OrderPayloadOptions) {
   const amt = (cents: number) => ({ currency_code: q.currency, value: centsToValue(cents) });
   return {
-    intent: 'CAPTURE' as const,
+    intent: o.intent ?? ('CAPTURE' as const),
     purchase_units: [
       {
         reference_id: o.checkoutId,
         custom_id: o.checkoutId,
         ...(o.payee ? { payee: o.payee } : {}),
+        ...(o.shipTo ? { shipping: { ...(o.shipTo.fullName ? { name: { full_name: truncate(o.shipTo.fullName, 300) } } : {}), address: o.shipTo.address } } : {}),
         amount: {
           ...amt(q.totalCents),
           breakdown: {
@@ -174,7 +179,7 @@ export function buildPayPalOrderRequest(q: CheckoutQuote, o: OrderPayloadOptions
       paypal: {
         experience_context: {
           brand_name: truncate(o.brandName, 127),
-          shipping_preference: 'GET_FROM_FILE' as const,
+          shipping_preference: o.shipTo ? ('SET_PROVIDED_ADDRESS' as const) : ('GET_FROM_FILE' as const),
           user_action: 'PAY_NOW' as const,
           return_url: o.returnUrl,
           cancel_url: o.cancelUrl,

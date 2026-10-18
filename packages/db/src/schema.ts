@@ -37,6 +37,7 @@ export const eventActor = pgEnum('event_actor', [
   'seller',
   'ops_agent',
   'llm',
+  'cart_api', // PayPal Cart API v1 calls from a buyer's agent (D-097)
 ]);
 
 export const sellers = pgTable('sellers', {
@@ -156,6 +157,14 @@ export const checkouts = pgTable(
     expiresAt: ts('expires_at').notNull(),
     /** Bumped once per INSTRUMENT_DECLINED, so the buyer's next approval captures with a new PayPal-Request-Id (REVIEW-1 #8). */
     captureAttempt: integer('capture_attempt').notNull().default(0),
+    /** CAPTURE (MCP, /shop) or AUTHORIZE (Cart API: authorize at checkout, capture on ship, D-098). */
+    intent: text('intent').notNull().default('CAPTURE'),
+    paypalAuthorizationId: text('paypal_authorization_id'),
+    authorizedAt: ts('authorized_at'),
+    /** PayPal's expiry for the hold; its 3-day honor period ends earlier (authorizedAt + 3 days). */
+    authorizationExpiresAt: ts('authorization_expires_at'),
+    /** Set when stock was taken at authorization, so the capture on ship doesn't take it again. */
+    stockReservedAt: ts('stock_reserved_at'),
     /** Where PayPal was told to send the money (Phase 9). Both null = the platform account. */
     payeeEmail: text('payee_email'),
     payeeMerchantId: text('payee_merchant_id'),
@@ -388,3 +397,30 @@ export const reconciliationRuns = pgTable('reconciliation_runs', {
   durationMs: integer('duration_ms'),
   createdAt: createdAt(),
 });
+
+/**
+ * PayPal Cart API v1 carts (D-097, D-098). One row per cart a buyer's agent builds against one store (the JWT's
+ * audience). `request` keeps what the agent last sent (PUT replaces it whole, per the spec); prices in it are never
+ * used. Once valid, the cart owns one checkout (intent AUTHORIZE); a changed cart opens a new one.
+ */
+export const carts = pgTable(
+  'carts',
+  {
+    id: text('id').primaryKey(), // cart_ + 12 chars
+    sellerId: text('seller_id').notNull().references(() => sellers.id),
+    client: text('client').notNull(), // the JWT subject: which agent built it
+    status: text('status').notNull(), // CREATED | INCOMPLETE | READY | COMPLETED (the spec's cart status)
+    validationStatus: text('validation_status').notNull(), // VALID | INVALID | REQUIRES_ADDITIONAL_INFORMATION
+    request: jsonb('request').$type<Record<string, unknown>>().notNull(),
+    issues: jsonb('issues').$type<Array<Record<string, unknown>>>().notNull().default([]),
+    totals: jsonb('totals').$type<Record<string, unknown>>().notNull().default({}),
+    checkoutId: text('checkout_id').references(() => checkouts.id),
+    /** Bumped by every PUT, so a changed cart gets a fresh checkout and PayPal-Request-Id. */
+    version: integer('version').notNull().default(1),
+    isTest: boolean('is_test').notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: ts('updated_at').notNull().defaultNow(),
+    completedAt: ts('completed_at'),
+  },
+  (t) => [index('carts_seller').on(t.sellerId, t.createdAt), index('carts_checkout').on(t.checkoutId)],
+);

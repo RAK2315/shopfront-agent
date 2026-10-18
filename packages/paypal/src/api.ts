@@ -22,6 +22,17 @@ export interface PayPalCapture {
   links?: PayPalLink[];
 }
 
+/** Payments v2 authorization (Cart API capture on ship, D-098; verified in the sandbox by Spike C). */
+export interface PayPalAuthorization {
+  id: string;
+  status: 'CREATED' | 'CAPTURED' | 'DENIED' | 'PARTIALLY_CAPTURED' | 'VOIDED' | 'PENDING' | 'EXPIRED';
+  amount: { currency_code: string; value: string };
+  expiration_time?: string;
+  create_time?: string;
+  payee?: { email_address?: string; merchant_id?: string };
+  supplementary_data?: { related_ids?: { order_id?: string } };
+}
+
 export interface PayPalOrder {
   id: string;
   status: 'CREATED' | 'SAVED' | 'APPROVED' | 'VOIDED' | 'COMPLETED' | 'PAYER_ACTION_REQUIRED';
@@ -32,7 +43,7 @@ export interface PayPalOrder {
     custom_id?: string;
     payee?: { email_address?: string; merchant_id?: string };
     shipping?: { name?: { full_name?: string }; address?: Record<string, string>; trackers?: Array<{ id: string; status?: string }> };
-    payments?: { captures?: PayPalCapture[]; refunds?: PayPalRefund[] };
+    payments?: { captures?: PayPalCapture[]; refunds?: PayPalRefund[]; authorizations?: PayPalAuthorization[] };
   }>;
 }
 
@@ -92,6 +103,20 @@ export function createPayPalApi(c: PayPalClient) {
       requestId: string,
       o: Ctx = {},
     ) => c.request<PayPalOrder>('POST', `/v2/checkout/orders/${encodeURIComponent(orderId)}/track`, { body, requestId, ...o }),
+
+    /** Orders v2 authorize (intent AUTHORIZE orders only). Spike C: 201 with the authorization in purchase_units. */
+    authorizeOrder: (orderId: string, requestId: string, o: Ctx = {}) =>
+      c.request<PayPalOrder>('POST', `/v2/checkout/orders/${encodeURIComponent(orderId)}/authorize`, { body: {}, requestId, ...o }),
+
+    getAuthorization: (authorizationId: string, o: Ctx = {}) => c.request<PayPalAuthorization>('GET', `/v2/payments/authorizations/${encodeURIComponent(authorizationId)}`, o),
+
+    /** Capture a held authorization (on ship). Works for the platform and for a direct payee (Spike C, C5). */
+    captureAuthorization: (authorizationId: string, requestId: string, o: Ctx = {}) =>
+      c.request<PayPalCapture>('POST', `/v2/payments/authorizations/${encodeURIComponent(authorizationId)}/capture`, { body: { final_capture: true }, requestId, ...o }),
+
+    /** Release a hold. PayPal refuses it (403) for a direct payee's authorization (Spike C, C6): that is a seller handoff. */
+    voidAuthorization: (authorizationId: string, requestId: string, o: Ctx = {}) =>
+      c.request<PayPalAuthorization | Record<string, never>>('POST', `/v2/payments/authorizations/${encodeURIComponent(authorizationId)}/void`, { requestId, ...o }),
 
     getCapture: (captureId: string, o: Ctx = {}) => c.request<PayPalCapture>('GET', `/v2/payments/captures/${encodeURIComponent(captureId)}`, o),
 

@@ -125,7 +125,23 @@ async function reconcile(trigger: Trigger): Promise<ReconciliationRun> {
     }
   }
 
-  const result = reconcileLedger({ ours, paidWithoutCaptureRow, paypal: seen, unknownAtPayPal, explained: EXPLAINED_CAPTURES });
+  // 4: Cart API holds (D-098): every order we hold as authorized is checked against PayPal's authorization.
+  const held = (
+    await db.execute<{ checkoutId: string; sellerId: string; authorizationId: string; amountCents: number; isTest: boolean }>(sql`
+      select k.id "checkoutId", k.seller_id "sellerId", k.paypal_authorization_id "authorizationId", k.total_cents "amountCents", k.is_test "isTest"
+      from ${schema.checkouts} k where k.status = 'authorized' and k.paypal_authorization_id is not null`)
+  ).rows;
+  const authorizations: Array<(typeof held)[number] & { paypalStatus: string }> = [];
+  for (const h of held.slice(0, MAX_GETS)) {
+    try {
+      const { data } = await paypal.getAuthorization(h.authorizationId, { context: { checkoutId: h.checkoutId } });
+      authorizations.push({ ...h, paypalStatus: data.status });
+    } catch (e) {
+      if (isPayPalApiError(e) && e.status === 404) authorizations.push({ ...h, paypalStatus: "NOT_FOUND" });
+    }
+  }
+
+  const result = reconcileLedger({ ours, paidWithoutCaptureRow, paypal: seen, unknownAtPayPal, explained: EXPLAINED_CAPTURES, authorizations });
 
   // A capture with no order belongs to the seller PayPal names as payee; with no payee it's the platform account's.
   const sellers = await db.select({ id: schema.sellers.id, merchant: schema.sellers.paypalMerchantId }).from(schema.sellers);
@@ -151,6 +167,7 @@ async function reconcile(trigger: Trigger): Promise<ReconciliationRun> {
         transactionSearchRefreshed: tsRefreshed,
         webhooks: webhookCount,
         askedPayPal: asked,
+        holds: authorizations.length,
         unchecked: Math.max(0, toAsk.length - MAX_GETS),
         matchedBySeller: result.matchedBySeller,
       },

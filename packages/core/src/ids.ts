@@ -14,6 +14,7 @@ export const ID_PREFIXES = {
   buyerSession: 'bys',
   extraction: 'ext',
   telegramAction: 'tga',
+  cart: 'cart',
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;

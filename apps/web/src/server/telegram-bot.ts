@@ -211,7 +211,11 @@ export async function pingOrderPaid(checkoutId: string) {
     .where(eq(schema.checkoutItems.checkoutId, c.id))
     .limit(1);
   const paidTo = c.payeeMerchantId || c.payeeEmail ? "straight to your PayPal" : "to the Shopfront sandbox account";
-  const html = [`🛍️ <b>New order · ${usd(c.totalCents)}</b>`, esc(items), `Paid in PayPal ${paidTo}. ✅ Payment confirmed.`, "", "📦 When it's packed, send me a photo of the shipping label and I'll add tracking to the PayPal order."].join("\n");
+  // Cart API orders (D-098) are only authorized: PayPal holds the money, and adding tracking is what charges it.
+  const held = c.status === "authorized";
+  const html = held
+    ? [`🔒 <b>New order · ${usd(c.totalCents)} · authorized</b>`, esc(items), `PayPal is holding the payment ${paidTo}. It's charged when you add tracking, so please ship within 3 days.`, "", "📦 When it's packed, send me a photo of the shipping label: adding tracking captures the payment."].join("\n")
+    : [`🛍️ <b>New order · ${usd(c.totalCents)}</b>`, esc(items), `Paid in PayPal ${paidTo}. ✅ Payment confirmed.`, "", "📦 When it's packed, send me a photo of the shipping label and I'll add tracking to the PayPal order."].join("\n");
   const buttons: Button[][] = [[{ text: "Open the order", url: appUrl("/studio/orders") }]];
   if (s?.testOnly && c.mcpClientName === SIM_CLIENT) buttons.push([{ text: "🧪 Simulate a refund request", data: `m:simrefund:${c.id}` }]);
   for (const chatId of chats) await send(chatId, html, { sellerId: c.sellerId, checkoutId: c.id, kind: "order_ping", buttons, photoUrl: img ? imageUrl(img.sha) : undefined, isTest: c.isTest });

@@ -74,7 +74,7 @@ function GroupHeader({ data, onToggle }: { data: Group; onToggle: (id: string) =
   );
 }
 
-const ACTOR: Record<string, string> = { mcp: "Agent → MCP", agent: "Buyer agent", paypal: "PayPal", webhook: "PayPal webhook", server: "Shopfront", seller: "Seller", seller_agent: "Seller agent", poller: "Fallback check" };
+const ACTOR: Record<string, string> = { mcp: "Agent → MCP", agent: "Buyer agent", paypal: "PayPal", webhook: "PayPal webhook", server: "Shopfront", seller: "Seller", seller_agent: "Seller agent", poller: "Fallback check", cart_api: "Agent → Cart API" };
 
 function DetailPanel({ order }: { order: string }) {
   const [h, setH] = useState<{ events: HistoryItem[]; calls: Array<{ at: string; method: string; path: string; status: number; debugId: string | null; requestId: string | null; ms: number }> } | null>(null);

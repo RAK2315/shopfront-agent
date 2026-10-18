@@ -1,7 +1,7 @@
 import "server-only";
 import { centsToValue, isVerifyOutage, newId, sweepEligible, valueToCents, WEBHOOK_SWEEP } from "@shopfront/core";
 import { and, asc, eq, isNull, lt, schema, sql } from "@shopfront/db";
-import { isPayPalApiError, type PayPalCapture, type PayPalOrder, type PayPalRefund, refundCaptureId } from "@shopfront/paypal";
+import { isPayPalApiError, type PayPalAuthorization, type PayPalCapture, type PayPalOrder, type PayPalRefund, refundCaptureId } from "@shopfront/paypal";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { applyCheckoutEvent, captureCheckout } from "./payments";
@@ -273,6 +273,36 @@ async function route(event: WebhookEvent): Promise<boolean> {
       });
       // Phase 9: a refund the seller made in their own PayPal closes a handed-off request (D-083).
       await recordSellerRefund(cap.checkoutId, { id: refund.id, amountCents: valueToCents(refund.amount?.value ?? "0") }, "webhook");
+      return true;
+    }
+    case "PAYMENT.AUTHORIZATION.CREATED":
+    case "PAYMENT.AUTHORIZATION.VOIDED": {
+      // Cart API holds (D-098). CREATED confirms the hold our checkout call placed; VOIDED closes a cancelled order,
+      // including a direct-paid seller who released the hold in their own PayPal (the handoff, Spike C C6).
+      const auth = event.resource as unknown as PayPalAuthorization;
+      const c = await checkoutByOrderId(auth.supplementary_data?.related_ids?.order_id);
+      if (!c) return false;
+      if (event.event_type === "PAYMENT.AUTHORIZATION.VOIDED") {
+        const { releaseHold } = await import("./cart");
+        const r = await releaseHold(c.id, "webhook");
+        await recordEvent(db, {
+          actor: "webhook",
+          kind: "authorization_voided",
+          checkoutId: c.id,
+          sellerId: c.sellerId,
+          summary: `PAYMENT.AUTHORIZATION.VOIDED · signature verified · ${r.changed ? "hold released, order cancelled, stock returned" : "confirms existing state"}`,
+          data: { eventId: event.id, authorizationId: auth.id },
+        });
+      } else {
+        await recordEvent(db, {
+          actor: "webhook",
+          kind: "authorization_webhook",
+          checkoutId: c.id,
+          sellerId: c.sellerId,
+          summary: `PAYMENT.AUTHORIZATION.CREATED · signature verified · PayPal holds $${auth.amount?.value ?? "?"} until the seller ships`,
+          data: { eventId: event.id, authorizationId: auth.id },
+        });
+      }
       return true;
     }
     case "PAYMENT.CAPTURE.REVERSED": {

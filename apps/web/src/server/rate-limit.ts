@@ -9,6 +9,8 @@ const LIMITS = {
   mcp: { max: 120, windowMs: 60_000 },
   shop_chat: { max: 12, windowMs: 60_000 },
   shop_hack: { max: 6, windowMs: 60_000 },
+  cart_api: { max: 60, windowMs: 60_000 }, // PayPal Cart API v1 (D-097)
+  cart_token: { max: 5, windowMs: 60_000 }, // demo tokens for judges
 } as const;
 export type RateKey = keyof typeof LIMITS;
 

@@ -46,7 +46,7 @@ export async function applyCheckoutEvent(
   });
 }
 
-function buyerDetails(order: PayPalOrder) {
+export function buyerDetails(order: PayPalOrder) {
   const shipping = order.purchase_units?.[0]?.shipping;
   return {
     buyerEmail: order.payer?.email_address ?? null,
@@ -78,20 +78,60 @@ async function recordCapture(checkoutId: string, cap: PayPalCapture, payeeMercha
     .onConflictDoUpdate({ target: schema.captures.paypalCaptureId, set: { status: cap.status, ...(payeeMerchantId ? { payeeMerchantId } : {}) } })
     .returning({ id: schema.captures.id, xmax: sql<string>`xmax` });
   const isNew = inserted[0]?.xmax === "0";
-  if (isNew && cap.status === "COMPLETED") {
-    await db.execute(sql`
-      update ${schema.variants} v set stock = greatest(v.stock - ci.quantity, 0)
-      from ${schema.checkoutItems} ci
-      where ci.checkout_id = ${checkoutId} and ci.variant_id = v.id`);
-    // Demo listings never run out (owner, 2026-10-18): a sold-out demo variant is restocked at once, so a judge never
-    // sees "out of stock". Only the seeded demo shops; a real seller's stock is never touched.
-    await db.execute(sql`
-      update ${schema.variants} v set stock = ${DEMO_RESTOCK_TO}
-      from ${schema.checkoutItems} ci, ${schema.products} p, ${schema.sellers} s
-      where ci.checkout_id = ${checkoutId} and ci.variant_id = v.id and p.id = v.product_id and s.id = p.seller_id
-        and v.stock <= 0 and (s.test_only or s.handle in (${DEMO_SHOP_SQL}))`);
-  }
+  // A Cart API order took its stock when it was authorized (D-098); the capture on ship must not take it again.
+  const [own] = await db.select({ reserved: schema.checkouts.stockReservedAt }).from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
+  if (isNew && cap.status === "COMPLETED" && !own?.reserved) await takeStock(checkoutId);
   return isNew;
+}
+
+/** Take a checkout's quantities from stock (once money moves: a capture, or a Cart API authorization, D-098). */
+export async function takeStock(checkoutId: string) {
+  const { db } = services();
+  await db.execute(sql`
+    update ${schema.variants} v set stock = greatest(v.stock - ci.quantity, 0)
+    from ${schema.checkoutItems} ci
+    where ci.checkout_id = ${checkoutId} and ci.variant_id = v.id`);
+  // Demo listings never run out (owner, 2026-10-18): a sold-out demo variant is restocked at once, so a judge never
+  // sees "out of stock". Only the seeded demo shops; a real seller's stock is never touched.
+  await db.execute(sql`
+    update ${schema.variants} v set stock = ${DEMO_RESTOCK_TO}
+    from ${schema.checkoutItems} ci, ${schema.products} p, ${schema.sellers} s
+    where ci.checkout_id = ${checkoutId} and ci.variant_id = v.id and p.id = v.product_id and s.id = p.seller_id
+      and v.stock <= 0 and (s.test_only or s.handle in (${DEMO_SHOP_SQL}))`);
+}
+
+/** Give back what takeStock took (a released Cart API hold, D-098). */
+export async function returnStock(checkoutId: string) {
+  const { db } = services();
+  await db.execute(sql`
+    update ${schema.variants} v set stock = v.stock + ci.quantity
+    from ${schema.checkoutItems} ci
+    where ci.checkout_id = ${checkoutId} and ci.variant_id = v.id`);
+}
+
+/**
+ * Cart API capture on ship (D-098): the capture of a held authorization goes through the same recording, payee check,
+ * state machine and timeline as every other capture.
+ */
+export async function settleAuthorizationCapture(checkoutId: string, cap: PayPalCapture, meta: { debugId?: string; requestId?: string; authorizationId: string }) {
+  const { db } = services();
+  const paidTo = cap.payee?.merchant_id;
+  await recordCapture(checkoutId, cap, paidTo);
+  if (cap.status === "COMPLETED") await verifyPayeeFromCapture(checkoutId, paidTo);
+  const ev: CheckoutEvent = cap.status === "COMPLETED" ? "CAPTURE_COMPLETED" : cap.status === "PENDING" ? "CAPTURE_PENDING" : "CAPTURE_DENIED";
+  const r = await applyCheckoutEvent(checkoutId, ev, "capture_response");
+  if (r?.result.kind === "changed") {
+    await recordEvent(db, {
+      actor: "paypal",
+      kind: "captured",
+      checkoutId,
+      sellerId: r.checkout.sellerId,
+      summary: cap.status === "COMPLETED" ? "Hold captured on ship · order marked PAID (Cart API, authorize → capture)" : `Capture of the hold ${cap.status.toLowerCase()}`,
+      data: { captureId: cap.id, authorizationId: meta.authorizationId, debugId: meta.debugId, paypalRequestId: meta.requestId, trigger: "ship" },
+    });
+    if (cap.status === "COMPLETED") scheduleFallbackChecks(checkoutId, "paid");
+  }
+  return r;
 }
 
 export type CaptureOutcome =
@@ -111,6 +151,9 @@ export async function captureCheckout(
   const { db, paypal } = services();
   const [c] = await db.select().from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
   if (!c?.paypalOrderId) return { ok: false, reason: "not_found", message: "Checkout not found." };
+  // A Cart API order is authorized by the agent's checkout call and captured when the seller ships (D-098). No other
+  // path (the pay page, the return URL, the approved webhook, a fallback check) may capture it.
+  if (c.intent === "AUTHORIZE") return { ok: false, reason: "already_final", message: "This order is completed through PayPal's Cart API: authorized at checkout, charged when it ships." };
   if (["paid", "shipped", "partially_refunded", "refunded"].includes(c.status)) {
     const [cap] = await db.select().from(schema.captures).where(eq(schema.captures.checkoutId, c.id));
     return { ok: true, status: c.status as CheckoutStatus, captureId: cap?.paypalCaptureId ?? "", captureStatus: cap?.status ?? "COMPLETED" };

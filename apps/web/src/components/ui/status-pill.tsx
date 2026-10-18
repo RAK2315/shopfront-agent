@@ -6,6 +6,7 @@ import {
   CircleCheck,
   CircleDashed,
   CircleDot,
+  Lock,
   Hourglass,
   PackageCheck,
   RotateCcw,
@@ -20,6 +21,7 @@ import { cn } from "@/lib/cn";
 const STYLE: Record<CheckoutStatus, { icon: LucideIcon; cls: string }> = {
   created: { icon: CircleDashed, cls: "border-line-strong bg-surface text-ink-2" },
   approved: { icon: CircleDot, cls: "border-clay/30 bg-clay-soft text-clay-strong" },
+  authorized: { icon: Lock, cls: "border-paypal/25 bg-paypal-soft text-paypal" },
   capture_pending: { icon: Hourglass, cls: "border-warning/30 bg-warning-soft text-warning" },
   paid: { icon: CircleCheck, cls: "border-success/30 bg-success-soft text-success" },
   shipped: { icon: PackageCheck, cls: "border-success/30 bg-success-soft text-success" },

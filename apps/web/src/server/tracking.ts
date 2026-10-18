@@ -58,8 +58,14 @@ export async function addTracking(seller: Seller, checkoutId: string, input: z.i
   if (!number) throw new ShopError("VALIDATION_ERROR", "That doesn't look like a tracking number.");
   const [c] = await db.select().from(schema.checkouts).where(and(eq(schema.checkouts.id, checkoutId), eq(schema.checkouts.sellerId, seller.id)));
   if (!c?.paypalOrderId) throw new ShopError("NOT_FOUND", "Order not found.");
-  if (!["paid", "shipped", "partially_refunded"].includes(c.status)) throw new ShopError("VALIDATION_ERROR", `Order is ${c.status}; only paid orders can ship.`);
+  if (!["paid", "shipped", "partially_refunded", "authorized"].includes(c.status)) throw new ShopError("VALIDATION_ERROR", `Order is ${c.status}; only paid orders can ship.`);
+  // Cart API (D-098): shipping is what charges an authorized order. Capture the hold first; tracking needs the capture.
+  if (c.status === "authorized") {
+    const { captureOnShip } = await import("./cart");
+    await captureOnShip(checkoutId);
+  }
   const [cap] = await db.select().from(schema.captures).where(eq(schema.captures.checkoutId, checkoutId));
+  if (!cap) throw new ShopError("VALIDATION_ERROR", "This order has no PayPal capture yet.");
   const [dup] = await db.select().from(schema.shipments).where(and(eq(schema.shipments.checkoutId, checkoutId), eq(schema.shipments.trackingNumber, number)));
   if (dup) return dup;
 
@@ -68,7 +74,7 @@ export async function addTracking(seller: Seller, checkoutId: string, input: z.i
   let debugId: string | undefined;
   let trackerId: string | undefined;
   try {
-    const r = await paypal.addTracking(c.paypalOrderId, { capture_id: cap!.paypalCaptureId, tracking_number: number, ...carrier, notify_payer: false }, requestId, { context: { checkoutId } });
+    const r = await paypal.addTracking(c.paypalOrderId, { capture_id: cap.paypalCaptureId, tracking_number: number, ...carrier, notify_payer: false }, requestId, { context: { checkoutId } });
     debugId = r.debugId;
     trackerId = r.data.purchase_units?.[0]?.shipping?.trackers?.find((t) => t.id.endsWith(number))?.id;
   } catch (e) {

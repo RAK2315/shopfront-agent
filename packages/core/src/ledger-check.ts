@@ -30,7 +30,10 @@ export interface PayPalSeen {
   payeeMerchantId?: string;
 }
 
-export type MismatchKind = 'capture_without_paid_order' | 'paid_order_without_capture' | 'amount_mismatch';
+export type MismatchKind = 'capture_without_paid_order' | 'paid_order_without_capture' | 'amount_mismatch' | 'authorization_mismatch';
+
+/** PayPal authorization states in which our `authorized` order is still a live hold (D-098). */
+export const LIVE_AUTHORIZATION_STATUSES: ReadonlySet<string> = new Set(['CREATED', 'PENDING']);
 
 export interface Mismatch {
   kind: MismatchKind;
@@ -53,6 +56,8 @@ export interface LedgerInput {
   unknownAtPayPal: Record<string, string>;
   /** Captures with no order by design, each with its documented reason (e.g. a spike run outside the app). */
   explained: Record<string, string>;
+  /** Our `authorized` orders (Cart API, D-098) with the status PayPal reports for their authorization. */
+  authorizations?: Array<{ checkoutId: string; sellerId: string; authorizationId: string; paypalStatus: string; amountCents: number; isTest: boolean }>;
 }
 
 export interface LedgerResult {
@@ -116,6 +121,11 @@ export function reconcileLedger(input: LedgerInput): LedgerResult {
   for (const o of input.paidWithoutCaptureRow) {
     mismatches.push({ kind: 'paid_order_without_capture', checkoutId: o.checkoutId, sellerId: o.sellerId, orderStatus: o.orderStatus, amountCents: o.totalCents, isTest: o.isTest, detail: `The order is ${o.orderStatus.replace(/_/g, ' ')} but no PayPal capture is recorded` });
   }
+  // 3. An order we hold as authorized whose authorization PayPal no longer holds (voided, expired or captured elsewhere).
+  for (const a of input.authorizations ?? []) {
+    if (LIVE_AUTHORIZATION_STATUSES.has(a.paypalStatus)) continue;
+    mismatches.push({ kind: 'authorization_mismatch', checkoutId: a.checkoutId, sellerId: a.sellerId, orderStatus: 'authorized', amountCents: a.amountCents, isTest: a.isTest, detail: `The order is authorized but PayPal reports its authorization ${a.authorizationId} as ${a.paypalStatus}` });
+  }
   return { matched, matchedBySeller, mismatches, explained };
 }
 
@@ -128,4 +138,5 @@ export const MISMATCH_LABEL: Record<MismatchKind, string> = {
   capture_without_paid_order: 'Captured, but no paid order',
   paid_order_without_capture: 'Paid order, but no capture',
   amount_mismatch: 'Amounts differ',
+  authorization_mismatch: 'Hold no longer at PayPal',
 };

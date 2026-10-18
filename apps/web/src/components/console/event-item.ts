@@ -5,6 +5,8 @@ import type { AiSource, TimelineItem } from "./timeline";
 const ID_KEYS: Array<{ key: string; label: string; paypal?: boolean }> = [
   { key: "orderId", label: "Order", paypal: true },
   { key: "captureId", label: "Capture", paypal: true },
+  { key: "authorizationId", label: "Authorization", paypal: true },
+  { key: "cartId", label: "Cart" },
   { key: "refundId", label: "Refund", paypal: true },
   { key: "catalogId", label: "Catalog", paypal: true },
   { key: "trackingNumber", label: "Tracking", paypal: true },
@@ -16,7 +18,7 @@ const ID_KEYS: Array<{ key: string; label: string; paypal?: boolean }> = [
 ];
 
 const ERROR_KINDS = new Set(["order_failed", "capture_failed", "capture_declined"]);
-const BLOCKED_KINDS = new Set(["webhook_rejected", "capture_skipped"]);
+const BLOCKED_KINDS = new Set(["webhook_rejected", "capture_skipped", "cart_rejected"]);
 
 /** Server event → timeline row. The summary's first " · " segment is the title; the rest is detail. */
 export function toTimelineItem(e: ShopEvent): TimelineItem {

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
-import { Bot } from "lucide-react";
+import { Bot, Lock } from "lucide-react";
 import { centsToValue, optionsLabel, PAY_PAGE_DELAYS_MS, type CheckoutStatus } from "@shopfront/core";
 import { eq, schema } from "@shopfront/db";
 import { Money } from "@/components/ui/money";
 import { agentLabel } from "@/lib/agent-label";
 import { PayPalApprove } from "@/components/pay/paypal-approve";
+import { StatusPill } from "@/components/ui/status-pill";
 import { env } from "@/server/env";
 import { scheduleFallbackChecks } from "@/server/fallback";
 import { services } from "@/server/services";
@@ -33,7 +34,9 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
   const expired = ck.status === "created" && ck.expiresAt < new Date();
   // The buyer is here to approve: arm fallback checks from now, so an approval whose capture never arrives
   // (tab closed, webhook lost) is still captured within about a minute. An expired one is checked at once (D-025).
-  if (["created", "approved", "capture_pending"].includes(ck.status)) after(() => scheduleFallbackChecks(id, expired ? "expiry" : "pay_page", expired ? [0] : PAY_PAGE_DELAYS_MS));
+  // Cart API orders (D-098) are authorized by the buyer's agent, never captured from this page.
+  const held = ck.intent === "AUTHORIZE" && ["created", "approved", "authorized"].includes(ck.status);
+  if (!held && ["created", "approved", "capture_pending"].includes(ck.status)) after(() => scheduleFallbackChecks(id, expired ? "expiry" : "pay_page", expired ? [0] : PAY_PAGE_DELAYS_MS));
 
   return (
     <main className="mx-auto grid min-h-dvh max-w-[64rem] grid-cols-[minmax(0,1fr)] content-start gap-8 px-3 py-8 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:py-16">
@@ -96,6 +99,25 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
           <h2 className="text-lg font-semibold">{["created", "approved", "cancelled"].includes(ck.status) ? "Approve in PayPal" : "Your payment"}</h2>
           {expired || ck.status === "cancelled" ? (
             <p className="text-base text-ink-2">This checkout has expired. Ask your agent to create a new one.</p>
+          ) : held ? (
+            <div className="grid gap-3" data-testid="cart-hold">
+              <StatusPill status={ck.status as CheckoutStatus} />
+              {ck.status === "authorized" ? (
+                <p className="inline-flex items-start gap-2 text-base text-ink">
+                  <Lock aria-hidden className="mt-1 size-4 shrink-0 text-paypal" />
+                  PayPal holds ${centsToValue(ck.totalCents)} for this order. You&apos;re charged only when {c.seller.displayName} ships it.
+                </p>
+              ) : (
+                <>
+                  <p className="text-base text-ink-2">Your shopping agent completes this order through PayPal&apos;s Cart API. Approve it in PayPal; nothing is charged until the shop ships.</p>
+                  {ck.approveUrl && (
+                    <a href={ck.approveUrl} className="inline-flex h-11 items-center justify-center rounded-md bg-paypal px-4 text-base font-semibold text-white hover:bg-paypal-bright" data-testid="cart-approve">
+                      Approve in PayPal
+                    </a>
+                  )}
+                </>
+              )}
+            </div>
           ) : (
             <PayPalApprove
               checkoutId={ck.id}

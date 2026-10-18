@@ -1,5 +1,5 @@
 import "server-only";
-import { buildPayPalOrderRequest, centsToValue, type CheckoutStatus, money, newId, payeeRoute, type PricedVariant, quoteCheckout, type SellerPricing, ShopError, STATUS_LABEL } from "@shopfront/core";
+import { buildPayPalOrderRequest, centsToValue, type CheckoutStatus, money, newId, type OrderPayloadOptions, payeeRoute, type PricedVariant, quoteCheckout, type SellerPricing, ShopError, STATUS_LABEL } from "@shopfront/core";
 import { and, asc, eq, inArray, schema, sql } from "@shopfront/db";
 import { approveLink, isPayPalApiError } from "@shopfront/paypal";
 import type { CallContext, ShopPort } from "@shopfront/mcp";
@@ -130,7 +130,7 @@ export const shop: ShopPort = {
   },
 
   async createCheckout(input, ctx) {
-    const { db, paypal } = services();
+    const { db } = services();
 
     // Idempotency: the same client_request_id with the same items returns the same checkout and token. The token is
     // re-derived from the key, so only the caller holding the key gets it back; a key reused for other items is refused.
@@ -145,130 +145,14 @@ export const shop: ShopPort = {
       }
     }
 
-    const variantIds = [...new Set(input.items.map((i) => i.variant_id))];
-    const rows = await db
-      .select({ v: schema.variants, p: schema.products, s: schema.sellers })
-      .from(schema.variants)
-      .innerJoin(schema.products, eq(schema.products.id, schema.variants.productId))
-      .innerJoin(schema.sellers, eq(schema.sellers.id, schema.products.sellerId))
-      .where(inArray(schema.variants.id, variantIds));
-
-    const variants = new Map<string, PricedVariant>(
-      rows.map(({ v, p }) => [
-        v.id,
-        {
-          id: v.id,
-          productId: p.id,
-          sellerId: p.sellerId,
-          sku: v.sku,
-          title: p.title,
-          options: v.options,
-          priceCents: v.priceCents,
-          currency: v.currency as "USD",
-          stock: v.stock,
-          active: v.active,
-          productStatus: p.status,
-        },
-      ]),
-    );
-    const sellers = new Map<string, SellerPricing>(
-      rows.map(({ s }) => [s.id, { id: s.id, brandName: s.displayName, flatShippingCents: s.flatShippingCents, currency: s.currency as "USD" }]),
-    );
-
-    // PRICING ENGINE: totals come from the DB rows above, never from the caller (D-002).
-    const quote = quoteCheckout(input.items, variants, sellers);
-    // Phase 9 (D-083): money goes straight to the seller's own PayPal. A seller with no payout account is refused
-    // here, before any row or PayPal call, so nothing is ever routed to the platform by default.
-    const sellerRow = rows.find(({ s }) => s.id === quote.sellerId)!.s;
-    const route = payeeRoute(sellerRow);
-    if (route.kind === "not_ready") throw new ShopError("SELLER_NOT_READY", `${sellerRow.displayName} hasn't connected a PayPal account yet, so this shop can't take payments. Nothing was charged.`);
-    const payee = route.kind === "payee" ? route.payee : undefined;
-    const checkoutId = newId("checkout");
-    const token = newOrderToken(checkoutId, input.client_request_id ?? null);
-    const seller = sellers.get(quote.sellerId)!;
-
-    await db.transaction(async (tx) => {
-      await tx.insert(schema.checkouts).values({
-        id: checkoutId,
-        sellerId: quote.sellerId,
-        orderTokenHash: hashToken(token),
-        clientRequestId: input.client_request_id ?? null,
-        source: ctx.clientName === "shopfront-web-agent" ? "web_agent" : "mcp_external",
-        mcpClientName: ctx.clientName ?? null,
-        // Every order for a test_only seller (the judge demo, D-073) is a test by design, header or not.
-        isTest: (await isTestRun()) || rows.some(({ s }) => s.id === quote.sellerId && s.testOnly),
-        payeeEmail: payee && "email_address" in payee ? payee.email_address : null,
-        payeeMerchantId: payee && "merchant_id" in payee ? payee.merchant_id : null,
-        status: "created",
-        itemTotalCents: quote.itemTotalCents,
-        shippingCents: quote.shippingCents,
-        taxCents: quote.taxCents,
-        totalCents: quote.totalCents,
-        currency: quote.currency,
-        expiresAt: new Date(Date.now() + CHECKOUT_TTL_MS),
-      });
-      await tx.insert(schema.checkoutItems).values(
-        quote.lines.map((l) => ({
-          checkoutId,
-          variantId: l.variantId,
-          sku: l.sku,
-          titleSnapshot: l.title,
-          optionsSnapshot: l.options,
-          unitPriceCents: l.unitPriceCents,
-          quantity: l.quantity,
-          lineTotalCents: l.lineTotalCents,
-        })),
-      );
+    const opened = await openCheckout({
+      items: input.items,
+      clientRequestId: input.client_request_id ?? null,
+      source: ctx.clientName === "shopfront-web-agent" ? "web_agent" : "mcp_external",
+      clientName: ctx.clientName ?? null,
+      event: { actor: "mcp", kind: "create_checkout", label: "create_checkout", data: { mcpRequestId: ctx.requestId, client: ctx.clientName } },
     });
-
-    await recordEvent(db, {
-      actor: "mcp",
-      kind: "create_checkout",
-      checkoutId,
-      sellerId: quote.sellerId,
-      summary: `create_checkout · ${quote.lines.map((l) => `${l.quantity} × ${l.title}`).join(", ")} · server total $${centsToValue(quote.totalCents)}`,
-      data: { mcpRequestId: ctx.requestId, client: ctx.clientName, totalCents: quote.totalCents },
-    });
-
-    const body = buildPayPalOrderRequest(quote, {
-      checkoutId,
-      brandName: seller.brandName,
-      // The return URL carries the creator's token: /pay/return never issues one (REVIEW-1 #2).
-      returnUrl: appUrl(`/pay/return?checkout=${checkoutId}&t=${token}`),
-      cancelUrl: appUrl(`/pay/${checkoutId}?t=${token}&cancelled=1`),
-      payee,
-    });
-    const requestId = `checkout-${checkoutId}`;
-    try {
-      const { data: order, debugId } = await paypal.createOrder(body, requestId, { context: { checkoutId } });
-      await db
-        .update(schema.checkouts)
-        .set({ paypalOrderId: order.id, approveUrl: approveLink(order) ?? null, updatedAt: new Date() })
-        .where(eq(schema.checkouts.id, checkoutId));
-      await recordEvent(db, {
-        actor: "paypal",
-        kind: "order_created",
-        checkoutId,
-        sellerId: quote.sellerId,
-        summary: `Order created (${order.status}) · ${payee ? `paid directly to ${sellerRow.displayName}'s PayPal` : "paid to the Shopfront sandbox account"}`,
-        data: { orderId: order.id, debugId, paypalRequestId: requestId, paidTo: payee ? "seller" : "platform" },
-      });
-      scheduleFallbackChecks(checkoutId, "created");
-      scheduleExpiryCheck(checkoutId, new Date(Date.now() + CHECKOUT_TTL_MS));
-    } catch (e) {
-      await db.update(schema.checkouts).set({ status: "cancelled", updatedAt: new Date() }).where(eq(schema.checkouts.id, checkoutId));
-      const debugId = isPayPalApiError(e) ? e.debugId : undefined;
-      await recordEvent(db, {
-        actor: "paypal",
-        kind: "order_failed",
-        checkoutId,
-        sellerId: quote.sellerId,
-        summary: `PayPal order creation failed${isPayPalApiError(e) ? ` (${e.issue})` : ""}`,
-        data: { debugId, paypalRequestId: requestId },
-      });
-      throw new ShopError("UPSTREAM_ERROR", "PayPal could not create the order. Please try again.", { debug_id: debugId });
-    }
-    return checkoutView(checkoutId, token);
+    return checkoutView(opened.checkoutId, opened.token);
   },
 
   async getCheckoutStatus(input) {
@@ -340,6 +224,159 @@ async function checkoutView(checkoutId: string, token: string) {
     expires_at: c.expiresAt.toISOString(),
     next_step: "Give pay_url to the human buyer. Payment needs their approval in PayPal; you cannot approve it.",
   };
+}
+
+
+export interface OpenCheckoutInput {
+  items: ReadonlyArray<{ variant_id: string; quantity: number }>;
+  clientRequestId: string | null;
+  source: "web_agent" | "mcp_external" | "cart_api";
+  clientName: string | null;
+  /** Cart API: the store the buyer's agent is bound to (its JWT audience); items from another store are refused. */
+  sellerId?: string;
+  intent?: "CAPTURE" | "AUTHORIZE";
+  shipTo?: OrderPayloadOptions["shipTo"];
+  returnUrl?: (checkoutId: string) => string;
+  cancelUrl?: (checkoutId: string) => string;
+  event: { actor: "mcp" | "cart_api"; kind: string; label: string; data: Record<string, unknown> };
+}
+
+/**
+ * Prices a set of lines from the database (D-002), routes the payee (D-083), writes the checkout and asks PayPal for
+ * the Orders v2 order. Shared by the MCP `create_checkout` and the Cart API (D-097), so both paths keep the same money
+ * rules, timers, webhooks and reconciliation.
+ */
+export async function openCheckout(o: OpenCheckoutInput) {
+  const { db, paypal } = services();
+  const variantIds = [...new Set(o.items.map((i) => i.variant_id))];
+  const rows = await db
+    .select({ v: schema.variants, p: schema.products, s: schema.sellers })
+    .from(schema.variants)
+    .innerJoin(schema.products, eq(schema.products.id, schema.variants.productId))
+    .innerJoin(schema.sellers, eq(schema.sellers.id, schema.products.sellerId))
+    .where(inArray(schema.variants.id, variantIds));
+
+  const variants = new Map<string, PricedVariant>(
+    rows.map(({ v, p }) => [
+      v.id,
+      {
+        id: v.id,
+        productId: p.id,
+        sellerId: p.sellerId,
+        sku: v.sku,
+        title: p.title,
+        options: v.options,
+        priceCents: v.priceCents,
+        currency: v.currency as "USD",
+        stock: v.stock,
+        active: v.active,
+        productStatus: p.status,
+      },
+    ]),
+  );
+  const sellers = new Map<string, SellerPricing>(
+    rows.map(({ s }) => [s.id, { id: s.id, brandName: s.displayName, flatShippingCents: s.flatShippingCents, currency: s.currency as "USD" }]),
+  );
+
+  // PRICING ENGINE: totals come from the DB rows above, never from the caller (D-002).
+  const quote = quoteCheckout(o.items, variants, sellers);
+  if (o.sellerId && quote.sellerId !== o.sellerId) throw new ShopError("FORBIDDEN", "These items belong to another store.");
+  // Phase 9 (D-083): money goes straight to the seller's own PayPal. A seller with no payout account is refused
+  // here, before any row or PayPal call, so nothing is ever routed to the platform by default.
+  const sellerRow = rows.find(({ s }) => s.id === quote.sellerId)!.s;
+  const route = payeeRoute(sellerRow);
+  if (route.kind === "not_ready") throw new ShopError("SELLER_NOT_READY", `${sellerRow.displayName} hasn't connected a PayPal account yet, so this shop can't take payments. Nothing was charged.`);
+  const payee = route.kind === "payee" ? route.payee : undefined;
+  const checkoutId = newId("checkout");
+  const token = newOrderToken(checkoutId, o.clientRequestId);
+  const seller = sellers.get(quote.sellerId)!;
+
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.checkouts).values({
+      id: checkoutId,
+      sellerId: quote.sellerId,
+      orderTokenHash: hashToken(token),
+      clientRequestId: o.clientRequestId,
+      source: o.source,
+      mcpClientName: o.clientName,
+      intent: o.intent ?? "CAPTURE",
+      // Every order for a test_only seller (the judge demo, D-073) is a test by design, header or not.
+      isTest: (await isTestRun()) || rows.some(({ s }) => s.id === quote.sellerId && s.testOnly),
+      payeeEmail: payee && "email_address" in payee ? payee.email_address : null,
+      payeeMerchantId: payee && "merchant_id" in payee ? payee.merchant_id : null,
+      status: "created",
+      itemTotalCents: quote.itemTotalCents,
+      shippingCents: quote.shippingCents,
+      taxCents: quote.taxCents,
+      totalCents: quote.totalCents,
+      currency: quote.currency,
+      expiresAt: new Date(Date.now() + CHECKOUT_TTL_MS),
+    });
+    await tx.insert(schema.checkoutItems).values(
+      quote.lines.map((l) => ({
+        checkoutId,
+        variantId: l.variantId,
+        sku: l.sku,
+        titleSnapshot: l.title,
+        optionsSnapshot: l.options,
+        unitPriceCents: l.unitPriceCents,
+        quantity: l.quantity,
+        lineTotalCents: l.lineTotalCents,
+      })),
+    );
+  });
+
+  await recordEvent(db, {
+    actor: o.event.actor,
+    kind: o.event.kind,
+    checkoutId,
+    sellerId: quote.sellerId,
+    summary: `${o.event.label} · ${quote.lines.map((l) => `${l.quantity} × ${l.title}`).join(", ")} · server total $${centsToValue(quote.totalCents)}${o.intent === "AUTHORIZE" ? " · authorize now, capture when shipped" : ""}`,
+    data: { ...o.event.data, totalCents: quote.totalCents, intent: o.intent ?? "CAPTURE" },
+  });
+
+  const body = buildPayPalOrderRequest(quote, {
+    checkoutId,
+    brandName: seller.brandName,
+    // The return URL carries the creator's token: /pay/return never issues one (REVIEW-1 #2).
+    returnUrl: o.returnUrl?.(checkoutId) ?? appUrl(`/pay/return?checkout=${checkoutId}&t=${token}`),
+    cancelUrl: o.cancelUrl?.(checkoutId) ?? appUrl(`/pay/${checkoutId}?t=${token}&cancelled=1`),
+    payee,
+    intent: o.intent,
+    shipTo: o.shipTo,
+  });
+  const requestId = `checkout-${checkoutId}`;
+  let approveUrl: string | null = null;
+  let paypalOrderId = "";
+  try {
+    const { data: order, debugId } = await paypal.createOrder(body, requestId, { context: { checkoutId } });
+    approveUrl = approveLink(order) ?? null;
+    paypalOrderId = order.id;
+    await db.update(schema.checkouts).set({ paypalOrderId: order.id, approveUrl, updatedAt: new Date() }).where(eq(schema.checkouts.id, checkoutId));
+    await recordEvent(db, {
+      actor: "paypal",
+      kind: "order_created",
+      checkoutId,
+      sellerId: quote.sellerId,
+      summary: `Order created (${order.status}) · ${payee ? `paid directly to ${sellerRow.displayName}'s PayPal` : "paid to the Shopfront sandbox account"}`,
+      data: { orderId: order.id, debugId, paypalRequestId: requestId, paidTo: payee ? "seller" : "platform" },
+    });
+    scheduleFallbackChecks(checkoutId, "created");
+    scheduleExpiryCheck(checkoutId, new Date(Date.now() + CHECKOUT_TTL_MS));
+  } catch (e) {
+    await db.update(schema.checkouts).set({ status: "cancelled", updatedAt: new Date() }).where(eq(schema.checkouts.id, checkoutId));
+    const debugId = isPayPalApiError(e) ? e.debugId : undefined;
+    await recordEvent(db, {
+      actor: "paypal",
+      kind: "order_failed",
+      checkoutId,
+      sellerId: quote.sellerId,
+      summary: `PayPal order creation failed${isPayPalApiError(e) ? ` (${e.issue})` : ""}`,
+      data: { debugId, paypalRequestId: requestId },
+    });
+    throw new ShopError("UPSTREAM_ERROR", "PayPal could not create the order. Please try again.", { debug_id: debugId });
+  }
+  return { checkoutId, token, quote, paypalOrderId, approveUrl };
 }
 
 export type { CallContext };

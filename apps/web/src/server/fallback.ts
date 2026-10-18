@@ -82,6 +82,8 @@ export async function runFallbackCheck(checkoutId: string, reason: ArmReason | "
       break;
     }
     case "capture": {
+      // Cart API orders (D-098) are authorized by the agent's checkout call, never captured from here.
+      if (c.intent === "AUTHORIZE") break;
       await recordEvent(db, {
         actor: "poller",
         kind: "poll_found_approved",

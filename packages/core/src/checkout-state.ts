@@ -4,6 +4,8 @@
 export const CHECKOUT_STATUSES = [
   'created',
   'approved',
+  /** Cart API v1 (D-098): PayPal holds the buyer's money; it is captured when the seller ships. */
+  'authorized',
   'capture_pending',
   'paid',
   'shipped',
@@ -17,6 +19,8 @@ export type CheckoutStatus = (typeof CHECKOUT_STATUSES)[number];
 
 export const CHECKOUT_EVENTS = [
   'APPROVED',
+  'AUTHORIZED',
+  'AUTHORIZATION_VOIDED',
   'CAPTURE_PENDING',
   'CAPTURE_COMPLETED',
   'CAPTURE_DENIED',
@@ -39,6 +43,7 @@ export const TERMINAL_STATUSES: ReadonlySet<CheckoutStatus> = new Set(['refunded
 const RANK: Record<CheckoutStatus, number> = {
   created: 0,
   approved: 1,
+  authorized: 2,
   capture_pending: 2,
   paid: 3,
   shipped: 4,
@@ -58,10 +63,18 @@ const TABLE: Partial<Record<CheckoutStatus, Partial<Record<CheckoutEvent, Checko
     CANCELLED: 'cancelled',
   },
   approved: {
+    AUTHORIZED: 'authorized',
     CAPTURE_PENDING: 'capture_pending',
     CAPTURE_COMPLETED: 'paid',
     CAPTURE_DENIED: 'capture_denied',
     CANCELLED: 'cancelled', // e.g. voided because stock ran out before capture (D-009)
+  },
+  // Capture on ship (D-098): the hold becomes a capture when tracking is added, or is voided if the order is cancelled.
+  authorized: {
+    CAPTURE_PENDING: 'capture_pending',
+    CAPTURE_COMPLETED: 'paid',
+    CAPTURE_DENIED: 'capture_denied',
+    AUTHORIZATION_VOIDED: 'cancelled',
   },
   capture_pending: {
     CAPTURE_COMPLETED: 'paid',
@@ -92,6 +105,8 @@ const TABLE: Partial<Record<CheckoutStatus, Partial<Record<CheckoutEvent, Checko
 /** Event → the status it leads to in the happy lifecycle, used to classify stale vs duplicate. */
 const EVENT_TARGET: Record<CheckoutEvent, CheckoutStatus> = {
   APPROVED: 'approved',
+  AUTHORIZED: 'authorized',
+  AUTHORIZATION_VOIDED: 'cancelled',
   CAPTURE_PENDING: 'capture_pending',
   CAPTURE_COMPLETED: 'paid',
   CAPTURE_DENIED: 'capture_denied',
@@ -135,6 +150,7 @@ export function transition(current: CheckoutStatus, event: CheckoutEvent): Trans
 export const STATUS_LABEL: Record<CheckoutStatus, string> = {
   created: 'Awaiting payment',
   approved: 'Approved, capturing',
+  authorized: 'Authorized · charged when it ships',
   capture_pending: 'Payment pending',
   paid: 'Paid',
   shipped: 'Shipped',

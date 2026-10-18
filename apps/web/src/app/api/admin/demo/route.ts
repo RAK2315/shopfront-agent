@@ -6,7 +6,10 @@ import { linkedSeller } from "@/server/telegram";
 import { onPhoto } from "@/server/telegram-bot";
 import { freezeDemoCatalog, isAdmin, resetDemo } from "@/server/demo";
 import { runHandoffCheck } from "@/server/handoff";
+import { cancelAuthorized } from "@/server/cart";
+import { issueCartToken } from "@/server/cart-auth";
 import { runReconciliation } from "@/server/ledger";
+import { addTracking } from "@/server/tracking";
 import { setPayoutAccount } from "@/server/payouts";
 import { refundStrayCapture } from "@/server/refunds";
 import { services } from "@/server/services";
@@ -31,6 +34,11 @@ const Body = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("reconcile") }),
   // D-095: refund a capture that landed on a cancelled order (the D-094 incident) through the app's refund code.
   z.strictObject({ action: z.literal("refund_stray"), checkout_id: z.string().regex(/^chk_[a-z0-9]{12}$/), note: z.string().min(10).max(300) }),
+  // Cart API ATs (D-097, D-098): a store-bound token for any store, and the seller's ship / cancel for a store the AT
+  // can't sign in to (Fern & Loom, paid directly). Both run the same seller functions as the Studio.
+  z.strictObject({ action: z.literal("cart_token"), handle: z.string().regex(/^[a-z0-9_]{2,40}$/), client: z.string().regex(/^[\w .:@-]{2,60}$/), ttl_seconds: z.number().int().min(-600).max(86_400).optional() }),
+  z.strictObject({ action: z.literal("ship"), checkout_id: z.string().regex(/^chk_[a-z0-9]{12}$/), carrier: z.string().min(2).max(40), tracking_number: z.string().min(6).max(60) }),
+  z.strictObject({ action: z.literal("cancel_order"), checkout_id: z.string().regex(/^chk_[a-z0-9]{12}$/) }),
 ]);
 
 // Judge mode (D-011): nightly reset (cron-job.org calls this with the bearer token) or freeze the current catalog.
@@ -46,6 +54,12 @@ export async function POST(req: Request) {
     if (b.action === "handoff_check") return Response.json(await runHandoffCheck(b.refund_request_id));
     if (b.action === "reconcile") return Response.json(await runReconciliation("script"));
     if (b.action === "refund_stray") return Response.json(await refundStrayCapture(b.checkout_id, b.note));
+    if (b.action === "ship" || b.action === "cancel_order") {
+      const [row] = await services().db.select({ s: schema.sellers }).from(schema.checkouts).innerJoin(schema.sellers, eq(schema.sellers.id, schema.checkouts.sellerId)).where(eq(schema.checkouts.id, b.checkout_id));
+      if (!row) return Response.json({ error: { code: "NOT_FOUND", message: "No such order." } }, { status: 404 });
+      if (b.action === "cancel_order") return Response.json(await cancelAuthorized(row.s.id, b.checkout_id));
+      return Response.json({ shipment: await addTracking(row.s, b.checkout_id, { carrier: b.carrier, tracking_number: b.tracking_number, source: "manual" }) });
+    }
     if (b.action === "tg_photo") {
       const link = await linkedSeller(b.chat_id);
       if (!link) return Response.json({ error: { code: "NOT_FOUND", message: "That chat isn't linked." } }, { status: 404 });
@@ -56,6 +70,8 @@ export async function POST(req: Request) {
     if (!s) return Response.json({ error: { code: "NOT_FOUND", message: "No such seller." } }, { status: 404 });
     if (b.action === "sync_catalog") return Response.json(await resyncCatalog(s));
     if (b.action === "connect_url") return Response.json({ url: connectUrl(s.id) });
+    // A negative ttl mints an already-expired token (the AT's expiry check).
+    if (b.action === "cart_token") return Response.json(b.ttl_seconds !== undefined && b.ttl_seconds < 0 ? issueCartToken(s.handle, b.client, 3600, 3600 - b.ttl_seconds) : issueCartToken(s.handle, b.client, b.ttl_seconds ?? 3600));
     return Response.json(await setPayoutAccount(s.id, b.account));
   } catch (e) {
     return Response.json({ error: { code: "ERROR", message: e instanceof Error ? e.message : "failed" } }, { status: 500 });

@@ -11,6 +11,7 @@ import {
   CreditCard,
   RefreshCw,
   Server,
+  ShoppingCart,
   Store,
   Webhook,
   type LucideIcon,
@@ -29,7 +30,8 @@ export type TimelineActor =
   | "poller"
   | "seller"
   | "ops_agent"
-  | "llm";
+  | "llm"
+  | "cart_api";
 
 export type { AiSource } from "@/lib/ai-source";
 
@@ -57,6 +59,7 @@ const ACTOR: Record<TimelineActor, { label: string; icon: LucideIcon; glyph: str
   seller: { label: "Seller", icon: Store, glyph: "bg-ink-panel-text text-ink-panel" },
   ops_agent: { label: "Seller agent", icon: ClipboardCheck, glyph: "bg-clay-soft text-clay-strong" },
   llm: { label: "Model", icon: Cpu, glyph: "bg-ink-panel-2 text-ink-panel-muted ring-1 ring-ink-panel-line" },
+  cart_api: { label: "Cart API", icon: ShoppingCart, glyph: "bg-clay-soft text-clay-strong" },
 };
 
 
@@ -68,6 +71,7 @@ const FAMILY: Record<TimelineActor, "agent" | "mcp" | "paypal" | "webhook" | "sh
   ops_agent: "agent",
   llm: "agent",
   mcp: "mcp",
+  cart_api: "mcp", // the agent-facing protocol lane: MCP or PayPal's Cart API
   paypal: "paypal",
   webhook: "webhook",
   poller: "webhook",

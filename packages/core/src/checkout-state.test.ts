@@ -12,6 +12,17 @@ describe('checkout state machine', () => {
     expect(apply('created', ['APPROVED', 'CAPTURE_COMPLETED', 'TRACKING_ADDED', 'REFUND_FULL'])).toBe('refunded');
   });
 
+  it('Cart API capture on ship (D-098): approved → authorized → paid → shipped; or voided → cancelled', () => {
+    expect(apply('created', ['APPROVED', 'AUTHORIZED', 'CAPTURE_COMPLETED', 'TRACKING_ADDED'])).toBe('shipped');
+    expect(apply('created', ['APPROVED', 'AUTHORIZED', 'AUTHORIZATION_VOIDED'])).toBe('cancelled');
+    expect(transition('authorized', 'APPROVED')).toMatchObject({ kind: 'noop', reason: 'stale' });
+    expect(transition('authorized', 'AUTHORIZED')).toMatchObject({ kind: 'noop', reason: 'duplicate' });
+    expect(transition('paid', 'AUTHORIZED')).toMatchObject({ kind: 'noop', reason: 'stale' });
+    expect(transition('paid', 'AUTHORIZATION_VOIDED').kind).toBe('conflict'); // a captured hold can't be voided
+    expect(transition('authorized', 'TRACKING_ADDED').kind).toBe('conflict'); // capture first, then ship
+    expect(transition('authorized', 'REFUND_FULL').kind).toBe('conflict'); // nothing was charged yet
+  });
+
   it('pending capture then completion', () => {
     expect(apply('created', ['APPROVED', 'CAPTURE_PENDING', 'CAPTURE_COMPLETED'])).toBe('paid');
   });
