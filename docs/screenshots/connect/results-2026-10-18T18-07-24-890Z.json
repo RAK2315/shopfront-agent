@@ -1,0 +1,77 @@
+[
+  {
+    "id": "C1 demo shop's Get paid card: platform account, explained",
+    "ok": true,
+    "detail": {
+      "status": "platform"
+    }
+  },
+  {
+    "id": "C2 Log in with PayPal returns the account PayPal confirmed; demo shop not rerouted",
+    "ok": true,
+    "detail": {
+      "result": "Verified by PayPal. This demo shop still pays into the platform account, so nothing was rerouted.",
+      "banner": "Verified by PayPal\nAccount\nB83JSV9ELHV74\n, copy B83JSV9ELHV74\ns…@business.example.com\nPayouts on this demo shop: not enabled (it stays on the platform account).",
+      "payouts": "Payouts to your own PayPal: not enabled on this demo shop",
+      "merchantShown": true,
+      "juniper": "platform",
+      "userinfoFields": [
+        "user_id",
+        "sub",
+        "payer_id",
+        "verified_account",
+        "emails"
+      ]
+    }
+  },
+  {
+    "id": "C3 a replayed return link is refused",
+    "ok": true,
+    "detail": {
+      "again": "That PayPal sign-in link expired or was already used. Start again."
+    }
+  },
+  {
+    "id": "C5 Log in with PayPal verifies Fern & Loom; next order pays that merchant; /pay, storefront, wire say so",
+    "ok": true,
+    "detail": {
+      "fern": {
+        "payout_status": "verified",
+        "paypal_merchant_id": "B83JSV9ELHV74"
+      },
+      "via": "log_in_with_paypal",
+      "payee": "B83JSV9ELHV74",
+      "summary": "Order created (PAYER_ACTION_REQUIRED) · paid directly to Fern & Loom's PayPal",
+      "payText": "Paid directly to Fern & Loom's PayPal account.",
+      "storeText": "Pay with PayPal · paid directly to Fern & Loom"
+    }
+  },
+  {
+    "id": "C4 unverified payout email: refused before any order (SELLER_NOT_READY)",
+    "ok": true,
+    "detail": {
+      "refused": "{\"error\":{\"code\":\"SELLER_NOT_READY\",\"message\":\"Fern & Loom hasn't connected a PayPal account yet, so this shop can't tak",
+      "checkoutsBefore": 13,
+      "checkoutsAfter": 13
+    }
+  },
+  {
+    "id": "C6 Fern & Loom reconnected (verified again)",
+    "ok": true,
+    "detail": {
+      "payout_status": "verified",
+      "paypal_merchant_id": "B83JSV9ELHV74"
+    }
+  },
+  {
+    "id": "C7 a paid Fern & Loom order lands in seller 2's PayPal",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_u2fhzn10iv87",
+      "capture": {
+        "status": "paid",
+        "payee_merchant_id": "B83JSV9ELHV74"
+      }
+    }
+  }
+]

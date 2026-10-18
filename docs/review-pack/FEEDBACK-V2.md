@@ -30,3 +30,15 @@ Ranked by what a judge meets first and how much it costs. 👁 = a judge sees it
 | 8 | **/shop live panel balance** when there are few events (compact height or a short empty-state explainer) | Step 2 | 👁 minor | 0.1 day |
 
 **Total:** about 2.6 days, well inside the freeze (end of Nov 5). Steps 3 (hack card), 4 (live), 5 (Studio) and 8 (mobile) need no changes.
+
+## Fix status (D-096, D-097)
+
+| Rank | Fix | Status |
+|---|---|---|
+| 1 | /shop checkout prominence | **Done 2026-10-18** (`shop-checks` 6/6: checkout in view at 1440/1920/phone, Your turn, compact cards) |
+| 2 | /shop image and search accuracy | **Done 2026-10-18** (`review2-checks` R2a–R2c: weighted search with a relevance cut; the mug listing renamed "Blue crackle mug" to match a real CC0 mug photo) |
+| 6 | Get paid onboarding clarity | **Done 2026-10-18** (R6 + `connect-checks` C2) |
+| 8 | /shop live panel balance | **Done 2026-10-18** (R8: a 4-lane guide while the wire is quiet) |
+| 4, 5 | Dashboard width, AI change made visible | Folded into Phase AG (D-097) |
+| 3, 7 | Landing prominence, Telegram polish | Scheduled Oct 29 |
+
