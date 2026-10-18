@@ -221,3 +221,10 @@
 - Never push during an AT run.
 - Delete files only with `node scripts/safe-rm.mjs`.
 - Admin calls: `node --env-file=.env scripts/admin.mjs '<json>'` (reset, freeze, sync_catalog, set_payout, connect_url, tg_photo).
+
+**Part 7 later (2026-10-18 evening, D-093/D-094):**
+- The final regression is all green (`docs/screenshots/final-regression.log`). Log in with PayPal is live; `connect-checks` passes 7/7.
+- When this machine has no interactive desktop, run the ATs with `AT_HEADLESS=1`.
+- `/api/health` shows `booted_at`.
+- Don't use `scripts/render-deploy.mjs` as is: its env PUT replaces all of Render's variables. For one key, use the single-key `PUT /services/{id}/env-vars/{key}` call.
+- Next: review v2 on the owner's "start review v2" (`docs/review-pack/REVIEW-V2.md`).

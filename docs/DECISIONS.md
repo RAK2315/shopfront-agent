@@ -1490,6 +1490,11 @@
   - Regression after the capture guard: approval 6/6, shop 4/4, phase4 7/7.
 - **Serves:** J1, J2, G1, D-009, D-073, D-084.
 
+- **Log in with PayPal, closed (2026-10-18 19:04 IST):**
+  - The cause of the rejection: the app's Return URL was a placeholder (`nativexo://paypalpay`), which the owner replaced. PayPal accepted the new one within about an hour.
+  - `PAYPAL_LIPP_ENABLED=1` is set on Render (single-key API update, then a deploy).
+  - `connect-checks` passes 7/7 on Render: C2 real sign-in as seller 2 (userinfo fields `user_id, sub, payer_id, verified_account, email…`); C3 replay refused; C4 an unverified email refused; C5 Fern & Loom verified by Log in with PayPal (payer id `B83JSV9ELHV74` = the merchant PayPal pays); C6 reconnected; C7 a paid order lands in seller 2's PayPal.
+  - D-093's open item is closed. The README limitation line was replaced by "live".
 ---
 
 ## Requirement updates

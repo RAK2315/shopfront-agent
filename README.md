@@ -88,6 +88,7 @@ Every row is an acceptance test run **against the deployed app**, with real PayP
 | Hack card | 13/13 real attacks blocked across 6 families; the price matches the DB; 0 checkouts in the DB | [hack](docs/screenshots/hack/), D-091 |
 | Telegram | Judge mode end to end: welcome, menus from the DB, a simulated buyer paid in PayPal → order ping → refund by policy or tap, photo → Publish tap, label → Add tracking tap, guardrails | [telegram](docs/screenshots/telegram/), D-092 |
 | Phase 9 | Each seller paid **directly into their own PayPal** (`payee`): a real capture paid seller 2; a shop with no verified PayPal is refused before any order; seller-side refunds closed by the verified webhook | [AT-9](docs/screenshots/phase-9/AT-9.md) |
+| Log in with PayPal | A real sign-in as seller 2 verifies Fern & Loom (payer id = the merchant PayPal pays); a replayed sign-in link is refused; an unverified email is refused before any order; the next paid order lands in seller 2's PayPal | [connect](docs/screenshots/connect/), D-092, D-094 |
 | Recovery | A verify outage gets 503 (PayPal retries); unprocessed webhooks are swept; a declined card's next capture gets a new `PayPal-Request-Id`. The decline uses PayPal's documented sandbox negative-testing header (`PayPal-Mock-Response`) on a real capture call | [RECOVERY](docs/screenshots/recovery/RECOVERY.md) |
 | Live, landing, mobile | 24 h counts from the DB, ids behind Details, live rows; the landing's pitch and doors; 13 routes × 3 phone widths with no sideways scroll | [live](docs/screenshots/live/), [landing](docs/screenshots/landing/), [mobile](docs/screenshots/mobile/) |
 
@@ -110,7 +111,7 @@ Every row is an acceptance test run **against the deployed app**, with real PayP
 | **Webhooks v1** | Signature verification, `PAYMENT.CAPTURE.*` (completed, pending, denied, refunded, reversed), `CHECKOUT.ORDER.APPROVED` |
 | **Catalog Products v1** | Listings mirrored into PayPal's catalog; description, category and image updated from the dashboard (PATCH) |
 | **Transaction Search v1** | The `[paypal]` figures (it can lag about 3 hours, so today's figures come from our DB) |
-| **Log in with PayPal** (Identity) | Verifying a seller's PayPal account before it's ever paid (built; switching on, see the limitations below) |
+| **Log in with PayPal** (Identity) | A seller connects their PayPal from the Studio's Get paid card; PayPal shares the account id, email and verification status, and only a verified account is ever paid |
 | **OAuth 2.0** | A server-side token with cache and refresh; the client id is the only PayPal value in the browser |
 
 Every POST carries a `PayPal-Request-Id`; every PayPal call's debug id is logged and shown on the timeline.
@@ -138,7 +139,7 @@ Badges say which source answered each AI step: "Live · Groq", "Live · Gemini",
   - Fern & Loom is paid **directly into its own PayPal** through the order's `payee`.
   - A shop without a verified PayPal account is refused before any order is created.
 - **What PayPal gates for apps that aren't approved partners:** partner onboarding (403), platform fees (422) and refunding another seller's payment from our app (403). So refunds for directly-paid sellers are a one-tap handoff to their own PayPal; our verified webhook marks them done. Debug ids are in `docs/DECISIONS.md` (D-075, D-076).
-- **Log in with PayPal** is built (a signed single-use state, a server-side code exchange, payer-id verification), but our sandbox app doesn't accept the Return URL yet. Its button stays hidden until it does, and Fern & Loom is verified by its first payment meanwhile.
+- **Log in with PayPal** is live for sellers on the sandbox. On the demo shop (Juniper Clay) the button only shows that the check works: it confirms the account but never reroutes the demo shop's payments.
 - **AG Grid Enterprise:** the dashboard runs on AG Grid Community, with our own grouping and drill-down rows, until an AG Grid + AG Charts Enterprise key is configured. The guard then switches Enterprise on, and never shows a watermark. AG Studio runs on its trial licence.
 - **Not built (cut for time):** saved-wallet reorders with PayPal Vault, and dispute handling.
 - **Listing photos** are public-domain museum pieces standing in for the sellers' work (credits below).
