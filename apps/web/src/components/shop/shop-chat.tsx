@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowUp, Bot, Cable, ChevronRight, CircleAlert, CircleCheck, ExternalLink, Gift, Home, LoaderCircle, Package, ShieldAlert, ShieldCheck, Store, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Bot, Cable, ChevronRight, CircleAlert, CircleCheck, ExternalLink, Gift, Home, LoaderCircle, Package, ShieldAlert, ShieldCheck, Store, Undo2 } from "lucide-react";
 import type { ShopAgentEvent } from "@/server/shop-agent";
 import type { ShopEvent } from "@/server/events";
 import { toTimelineItem } from "@/components/console/event-item";
@@ -93,9 +93,31 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
       /* storage unavailable: a fresh session each visit */
     }
   }, []);
+  // Review v2 #1: while a checkout waits for the buyer (and they haven't typed since), keep its top in view instead of
+  // the bottom of the chat, so the PayPal button is the next thing they see. Paid: show the confirmation.
+  const focusCheckout = useCallback(
+    (where: "top" | "bottom" = "top") => {
+      const box = scroller.current;
+      const card = box?.querySelector<HTMLElement>('[data-checkout-focus="true"]');
+      if (!box || !card) return false;
+      const top = card.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+      const target = where === "top" ? top - 12 : Math.max(top - 12, top + card.offsetHeight - box.clientHeight + 12);
+      box.scrollTo({ top: target, behavior: reduce ? "auto" : "smooth" });
+      return true;
+    },
+    [reduce],
+  );
+  const lastCheckoutId = useMemo(() => {
+    let i = items.length - 1;
+    while (i >= 0 && items[i]!.kind !== "checkout") i--;
+    if (i < 0 || items.slice(i).some((x) => x.kind === "user")) return null;
+    return (items[i] as Extract<Item, { kind: "checkout" }>).checkout.checkout_id;
+  }, [items]);
+  const focusPhase = lastCheckoutId ? pay[lastCheckoutId] : undefined;
   useEffect(() => {
+    if (lastCheckoutId && focusCheckout(focusPhase === "paid" ? "bottom" : "top")) return;
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: reduce ? "auto" : "smooth" });
-  }, [items, reduce]);
+  }, [items, reduce, lastCheckoutId, focusPhase, focusCheckout]);
 
   const push = (it: Item) => setItems((all) => [...all, it]);
 
@@ -214,6 +236,16 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
           </div>
         </div>
         <ProgressRail steps={steps} />
+        {lastCheckoutId && (focusPhase === "ready" || focusPhase === "error") && (
+          <button
+            type="button"
+            onClick={() => focusCheckout("top")}
+            className="inline-flex items-center gap-1.5 justify-self-start rounded-pill bg-ink px-3 py-1 text-sm font-medium text-canvas transition-colors hover:bg-ink-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            data-testid="your-turn"
+          >
+            <ArrowDown aria-hidden className="size-3.5" /> Your turn: approve the payment in PayPal
+          </button>
+        )}
       </header>
 
       <div ref={scroller} className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5" aria-live="polite" data-testid="chat-scroller">
@@ -226,6 +258,7 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
                   <ToolGroup calls={b.calls} />
                 ) : b.kind === "checkout" ? (
                   <CheckoutCard
+                    focus={b.checkout.checkout_id === lastCheckoutId}
                     checkout={b.checkout}
                     clientId={clientId}
                     testBuyer={testBuyer}
@@ -356,10 +389,11 @@ function ToolGroup({ calls }: { calls: ToolCall[] }) {
 function ProductCards({ products, onBuy, disabled }: { products: Product[]; onBuy: (p: Product) => void; disabled: boolean }) {
   if (!products.length) return <p className="text-sm text-ink-2">No listings matched.</p>;
   return (
-    <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0" data-testid="product-cards">
+    // Review v2 #1: compact, same-size cards (4:3 image, up to four across) so results never push the checkout down.
+    <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 xl:grid-cols-4" data-testid="product-cards">
       {products.map((p) => (
-        <li key={p.product_id} className="flex w-[min(13.5rem,72%)] shrink-0 snap-start flex-col overflow-hidden rounded-lg border border-line bg-surface sm:w-auto" data-testid="product-card">
-          <div className="relative aspect-[4/5] bg-surface-2">
+        <li key={p.product_id} className="flex w-[min(11rem,58%)] shrink-0 snap-start flex-col overflow-hidden rounded-lg border border-line bg-surface sm:w-auto" data-testid="product-card">
+          <div className="relative aspect-[4/3] bg-surface-2">
             {p.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
               <img src={p.image_url} alt={p.title} className="size-full object-cover" loading="lazy" />
@@ -370,20 +404,21 @@ function ProductCards({ products, onBuy, disabled }: { products: Product[]; onBu
             )}
             {p.in_stock === false && <span className="absolute left-2 top-2 rounded-pill bg-surface/90 px-2 py-0.5 text-xs font-medium text-ink-2">Sold out</span>}
           </div>
-          <div className="grid flex-1 content-start gap-1 p-3">
+          <div className="grid flex-1 content-start gap-0.5 p-2.5">
             {p.seller && (
-              <span className="inline-flex items-center gap-1 text-xs text-ink-2">
-                <Store aria-hidden className="size-3" /> {p.seller.display_name}
+              <span className="inline-flex min-w-0 items-center gap-1 truncate text-xs text-ink-2">
+                <Store aria-hidden className="size-3 shrink-0" /> {p.seller.display_name}
               </span>
             )}
-            <span className="font-display text-lg font-medium leading-snug">{p.title}</span>
-            <div className="mt-1 flex items-center justify-between gap-2">
-              <span className="text-md font-semibold tabular">${p.price_from?.value}</span>
+            <span className="line-clamp-2 font-display text-base font-medium leading-snug">{p.title}</span>
+            <div className="mt-0.5 flex items-center justify-between gap-2">
+              <span className="text-md font-semibold tabular" title="Price set by the shop">
+                ${p.price_from?.value}
+              </span>
               <span className="inline-flex items-center gap-1 text-xs text-ink-2">
-                <span className={cn("size-1.5 rounded-pill", p.in_stock === false ? "bg-muted" : "bg-success")} aria-hidden /> {p.in_stock === false ? "Out of stock" : "In stock"}
+                <span className={cn("size-1.5 rounded-pill", p.in_stock === false ? "bg-muted" : "bg-success")} aria-hidden /> {p.in_stock === false ? "Sold out" : "In stock"}
               </span>
             </div>
-            <span className="text-xs text-muted">Price set by the shop</span>
           </div>
           <div className="border-t border-line p-2">
             <Button variant="secondary" size="sm" className="w-full" onClick={() => onBuy(p)} disabled={disabled || p.in_stock === false} data-testid="buy-this">
@@ -397,12 +432,14 @@ function ProductCards({ products, onBuy, disabled }: { products: Product[]; onBu
 }
 
 function CheckoutCard({
+  focus,
   checkout: c,
   clientId,
   testBuyer,
   product,
   onPhase,
 }: {
+  focus: boolean;
   checkout: Checkout;
   clientId: string;
   testBuyer?: { email: string; password: string };
@@ -413,41 +450,41 @@ function CheckoutCard({
   const token = useMemo(() => new URL(c.pay_url).searchParams.get("t") ?? "", [c.pay_url]);
   const paid = phase === "paid";
   return (
-    <div className={cn("grid max-w-xl gap-4 rounded-lg border p-4 transition-colors duration-300", paid ? "border-success/35 bg-success-soft/40" : "border-line-strong bg-surface shadow-float")} data-testid="checkout-card" data-phase={phase}>
-      <div className="flex items-start gap-3">
+    // Review v2 #1: once it exists, the summary is the hero of the chat: full width, the total beside the item, the
+    // PayPal button straight under it, a clay ring while it waits for the buyer.
+    <div
+      className={cn(
+        "grid w-full max-w-2xl gap-4 rounded-lg border p-4 transition-colors duration-300 sm:p-5",
+        paid ? "border-success/35 bg-success-soft/40" : "border-clay/45 bg-surface shadow-float ring-4 ring-clay/10",
+      )}
+      data-testid="checkout-card"
+      data-phase={phase}
+      data-checkout-focus={focus ? "true" : undefined}
+    >
+      <p className={cn("text-xs font-semibold uppercase tracking-[0.08em]", paid ? "text-success" : "text-clay-strong")}>{paid ? "Paid" : "Next: approve this order in PayPal"}</p>
+      <div className="flex items-start gap-3 sm:gap-4">
         {product?.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
-          <img src={product.image_url} alt="" className="size-16 shrink-0 rounded-md object-cover" />
+          <img src={product.image_url} alt="" className="size-16 shrink-0 rounded-md object-cover sm:size-20" />
         ) : (
-          <div aria-hidden className="grid size-16 shrink-0 place-items-center rounded-md bg-surface-2 font-display text-2xl text-line-strong">
+          <div aria-hidden className="grid size-16 shrink-0 place-items-center rounded-md bg-surface-2 font-display text-2xl text-line-strong sm:size-20">
             {c.line_items[0]?.title[0]}
           </div>
         )}
         <div className="grid min-w-0 flex-1 gap-0.5">
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-ink-2">{paid ? "Paid" : "Your order, ready to approve"}</p>
-          <p className="font-display text-lg font-medium leading-snug">
-            {c.line_items.map((l) => `${l.quantity} × ${l.title}`).join(", ")}
-          </p>
+          <p className="font-display text-lg font-medium leading-snug sm:text-xl">{c.line_items.map((l) => `${l.quantity} × ${l.title}`).join(", ")}</p>
           {product?.seller && <p className="text-sm text-ink-2">from {product.seller.display_name}</p>}
+          <p className="text-sm text-ink-2 tabular" data-testid="checkout-breakdown">
+            Items ${c.totals.item_total} · Shipping ${c.totals.shipping}
+          </p>
+        </div>
+        <div className="grid shrink-0 justify-items-end">
+          <span className="font-display text-2xl font-semibold tabular sm:text-3xl" data-testid="checkout-total">
+            ${c.totals.total}
+          </span>
+          <span className="text-xs text-muted">total, set by the shop</span>
         </div>
       </div>
-      <dl className="grid gap-1 text-base">
-        <div className="flex justify-between text-ink-2">
-          <dt>Items</dt>
-          <dd className="tabular">${c.totals.item_total}</dd>
-        </div>
-        <div className="flex justify-between text-ink-2">
-          <dt>Shipping</dt>
-          <dd className="tabular">${c.totals.shipping}</dd>
-        </div>
-        <div className="mt-1 flex items-end justify-between border-t border-line pt-2">
-          <dt className="grid">
-            <span className="font-semibold text-ink">Total</span>
-            <span className="text-xs text-muted">set by the shop, not the agent</span>
-          </dt>
-          <dd className="font-display text-2xl font-semibold tabular">${c.totals.total}</dd>
-        </div>
-      </dl>
       <PayPalApprove
         checkoutId={c.checkout_id}
         token={token}

@@ -233,9 +233,9 @@ export function PayPalApprove({
             </p>
           )}
           {testBuyer && variant === "inline" && (
-            <details className="group text-sm text-ink-2" data-testid="test-buyer">
+            <details open className="group text-sm text-ink-2" data-testid="test-buyer">
               <summary className="cursor-pointer list-none font-medium text-ink-2 hover:text-ink [&::-webkit-details-marker]:hidden">
-                <span className="underline decoration-line-strong underline-offset-4 group-open:no-underline">Judging? Use the sandbox test buyer</span>
+                <span className="underline decoration-line-strong underline-offset-4 group-open:no-underline">Log in to PayPal with the sandbox test buyer</span>
               </summary>
               <div className="mt-2 flex flex-wrap gap-2">
                 <RequestId label="Email" value={testBuyer.email} max={44} />

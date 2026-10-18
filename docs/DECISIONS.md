@@ -1533,6 +1533,34 @@
 - **Serves:** J1 (technical depth: real PayPal reconciliation), J3 (reliability), D-002, D-007, D-022.
 ---
 
+## D-096: Review v2 fixes approved; Phase 11 (Vault reorder) re-added; Phase 12 only with time to spare (2026-10-18; owner)
+- **Owner's decision (verbatim intent):**
+  - "Build all 8 fixes, in this order: 1, 2, 5, 6, 4, 3, 7, 8. Each gets tests on Render, screenshots at 3 sizes, a commit and a push."
+  - After fix #1: run the full /shop flow through to the paid state headless, and give the owner a link to complete one real purchase.
+  - "RE-ADD Phase 11 (Vault reorder)", with about 16 days left.
+- **The fix list** (`docs/review-pack/FEEDBACK-V2.md`):
+  1. /shop checkout prominence;
+  2. /shop images and search accuracy;
+  5. dashboard AI change made visible;
+  6. Get paid onboarding clarity;
+  4. dashboard width;
+  3. landing prominence;
+  7. Telegram polish;
+  8. /shop live panel balance.
+- **Reverses part of D-079:** Phase 11 and Spike V are back.
+  - Spike V first, at most 1 day: PayPal wallet vaulting plus merchant-initiated orders in the sandbox for our US app.
+  - If go: build per PLAN Phase 11: consent screen, buyer-set cap, per-agent audit log, instant revoke, popup-free reorder within the cap, and the popup returning above the cap or after a revoke.
+    - It must work for both verified seller kinds (platform-paid and direct-paid), or the limits are documented.
+    - The reorders are added to the reconciliation check (D-095), and to the attack suite: cap bypass, revoked consent, replayed token.
+    - The visual: the cap filling up, and the reorder flowing through the live wire with no popup step.
+  - If no-go: log it, keep the phase cut, and tell the owner in 3 lines.
+  - The migration is renumbered to `0013` (0012 is `reconciliation_runs`).
+- **Phase 12** (dispute defense) is built only if Vault ships with time to spare, scoped to a 15-second demo beat. Otherwise it stays cut.
+- **Then:** update DEMO-SCRIPT.md for whatever ships, and prepare a short review v3 of the changed screens only, waiting for the owner's "start review v3".
+- **Feature freeze:** still the end of Nov 5 (D-079).
+- **Serves:** J1, J2, J4, P7, P8, R2, R3, G1.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

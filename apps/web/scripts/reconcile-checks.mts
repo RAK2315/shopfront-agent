@@ -100,7 +100,6 @@ const db = new pg.Client({ connectionString: e.DATABASE_URL });
 await db.connect();
 try {
   const r1 = await adminCall<Run>({ action: "reconcile" });
-  const r1Strays = r1.json.mismatches.filter((m) => m.checkoutId && STRAYS.includes(m.checkoutId)).length;
   record("R1 reconciliation run against PayPal", r1.status === 200 && r1.json.ok && r1.json.mismatches.length === expect, {
     matched: r1.json.matched,
     mismatches: r1.json.mismatches.map((m) => `${m.label}: ${m.checkoutId ?? "-"} / ${m.captureId ?? "-"}`),

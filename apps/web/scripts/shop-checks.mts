@@ -6,6 +6,9 @@
 //       popup → the card turns into the paid state → all 5 steps done; DB paid with a capture
 //   S4  unhappy: closing the PayPal popup → "Nothing was charged" message, PayPal step still open, checkout `created`
 //   S5  no sideways scroll at 390 / 1440 / 1920 with a checkout on screen; screenshots of each stage
+// Review v2 #1 (D-096): compact product cards (S2); when the checkout is ready the chat scrolls so the card's top and
+// the PayPal button are in view with no manual scroll, the waiting step is highlighted and "Your turn" brings the
+// card back (S3 at 1440 and 1920, S4 at phone size).
 // Usage: pnpm --filter web shop-checks -- --base https://shopfront-agent.onrender.com [--only S1,S2]
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -48,6 +51,18 @@ async function shots(page: Page, name: string) {
   await page.setViewportSize(vp);
   return overflow;
 }
+// The checkout card's top sits at the top of the chat and the PayPal button is fully visible, without scrolling.
+const checkoutInView = (page: Page) =>
+  page.evaluate(() => {
+    const box = document.querySelector("[data-testid=chat-scroller]")!.getBoundingClientRect();
+    const card = document.querySelector('[data-checkout-focus="true"]')?.getBoundingClientRect();
+    const btn = document.querySelector('[data-checkout-focus="true"] paypal-button')?.getBoundingClientRect();
+    return {
+      cardTop: Boolean(card && card.top >= box.top - 2 && card.top <= box.top + 80),
+      button: Boolean(btn && btn.height > 0 && btn.top >= box.top && btn.bottom <= box.bottom),
+      active: document.querySelector("[data-testid=progress-rail] li[aria-current=step]")?.getAttribute("data-step") ?? null,
+    };
+  });
 const rail = async (page: Page) => Object.fromEntries(await page.locator("[data-testid=progress-rail] li").evaluateAll((els) => els.map((el) => [el.getAttribute("data-step"), el.getAttribute("data-state")])));
 
 async function searchAndBuy(page: Page) {
@@ -78,7 +93,8 @@ try {
     const cards = page.getByTestId("product-card");
     const n = await cards.count();
     const imgs = await cards.locator("img").evaluateAll((els) => els.map((i) => ({ ok: (i as HTMLImageElement).complete && (i as HTMLImageElement).naturalWidth > 0, src: (i as HTMLImageElement).src.includes("/img/") })));
-    const firstText = await cards.first().innerText();
+    const firstText = (await cards.first().innerText()) + " " + ((await cards.first().locator("[title]").first().getAttribute("title")) ?? "");
+    const cardHeight = Math.max(...(await cards.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height))));
     const group = page.getByTestId("tool-group").first();
     const collapsed = !(await group.evaluate((d) => (d as HTMLDetailsElement).open));
     await group.locator("summary").click();
@@ -86,7 +102,7 @@ try {
     await group.locator("summary").click();
     const r = await rail(page);
     const overflow = await shots(page, "S2-results");
-    record("S2 image-led results + collapsed tool log", n >= 1 && imgs.length > 0 && imgs.every((i) => i.ok && i.src) && /set by the shop/i.test(firstText) && /in stock/i.test(firstText) && collapsed && chips >= 1 && r.search === "done" && r.found === "done" && Object.values(overflow).every((o) => o <= 0), { cards: n, imgs, collapsedByDefault: collapsed, chipsWhenOpen: chips, rail: r, overflow });
+    record("S2 image-led results + collapsed tool log", n >= 1 && imgs.length > 0 && imgs.every((i) => i.ok && i.src) && /set by the shop/i.test(firstText) && /in stock/i.test(firstText) && collapsed && chips >= 1 && r.search === "done" && r.found === "done" && cardHeight <= 340 && Object.values(overflow).every((o) => o <= 0), { cards: n, cardHeight, imgs, collapsedByDefault: collapsed, chipsWhenOpen: chips, rail: r, overflow });
   }
 
   // S3
@@ -102,7 +118,21 @@ try {
     await ck.locator('[data-phase="ready"]').waitFor({ timeout: 90_000 });
     const checkoutId = /\/pay\/(chk_[a-z0-9]{12})/.exec((await ck.getByTestId("pay-link").getAttribute("href")) ?? "")?.[1];
     const thumb = await ck.locator("img").first().evaluate((i) => (i as HTMLImageElement).naturalWidth > 0).catch(() => false);
+    await page.waitForTimeout(1500);
+    const focus1440 = await checkoutInView(page);
+    const yourTurn = await page.getByTestId("your-turn").isVisible();
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.getByTestId("chat-scroller").evaluate((el) => el.scrollTo({ top: 0 }));
+    await page.getByTestId("your-turn").click();
+    await page.waitForTimeout(1200);
+    const focus1920 = await checkoutInView(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.getByTestId("your-turn").click();
+    await page.waitForTimeout(1200);
+    record("S3a checkout in view without scrolling; waiting step highlighted; Your turn brings it back", focus1440.cardTop && focus1440.button && focus1440.active === "paypal" && yourTurn && focus1920.cardTop && focus1920.button, { focus1440, yourTurn, focus1920 });
     const overflowCheckout = await shots(page, "S3-checkout-card");
+    await page.getByTestId("your-turn").click();
+    await page.waitForTimeout(1200);
     const popupP = page.waitForEvent("popup", { timeout: 20_000 });
     await ck.locator("paypal-button").click();
     const popup = await popupP;
@@ -118,7 +148,7 @@ try {
 
   // S4: unhappy path — close the popup
   {
-    const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const p2 = await ctx2.newPage();
     await p2.goto(`${base}/shop`, { waitUntil: "load" });
     await searchAndBuy(p2);
@@ -126,6 +156,10 @@ try {
     const ck = p2.getByTestId("checkout-card").last();
     await ck.locator('[data-phase="ready"]').waitFor({ timeout: 90_000 });
     const checkoutId = /\/pay\/(chk_[a-z0-9]{12})/.exec((await ck.getByTestId("pay-link").getAttribute("href")) ?? "")?.[1];
+    await p2.waitForTimeout(1500);
+    const focusMobile = await checkoutInView(p2);
+    await p2.screenshot({ path: join(out, "S4-checkout-focus-mobile.png") });
+    record("S4a phone: the checkout scrolls into view by itself", focusMobile.cardTop && focusMobile.button, focusMobile);
     const popupP = p2.waitForEvent("popup", { timeout: 20_000 });
     await ck.locator("paypal-button").click();
     const popup = await popupP;
