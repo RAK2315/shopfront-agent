@@ -53,7 +53,7 @@ try {
     const mcp = new Client({ name: "review2-checks", version: "1.0.0" });
     await mcp.connect(new StreamableHTTPClientTransport(new URL(`${base}/mcp`)));
     const search = async (query: string) =>
-      (JSON.parse((await mcp.callTool({ name: "search_products", arguments: { query, limit: 10 } })).content[0].text) as { results: Array<{ title: string }> }).results.map((r) => r.title);
+      (JSON.parse(((await mcp.callTool({ name: "search_products", arguments: { query, limit: 10 } })) as { content: Array<{ text: string }> }).content[0]!.text) as { results: Array<{ title: string }> }).results.map((r) => r.title);
     const mug = await search("Find me a handmade blue mug under $40 as a gift");
     const home = await search("A vase or table linens for a housewarming, under $60");
     const towel = await search("tea towel");

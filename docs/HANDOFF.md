@@ -218,7 +218,7 @@
 - `reconcile-checks` (the badge) and `reconcile` (the bare check). Every suite above also ends with `reconcile --settle` by itself (the preload, D-095); `AT_RECONCILE=0` skips it.
 
 **Habits from this run:**
-- Run `pnpm typecheck 2>&1 | grep "error TS"`, because `pnpm -s typecheck` hides errors and a Render build failed that way. Run `pnpm --filter web build` before pushing.
+- Run `pnpm typecheck 2>&1 | grep "error TS"`, because `pnpm -s typecheck` hides errors and a Render build failed that way. Run `pnpm --filter web build` before pushing **and check its exit code**: `next build` also type-checks `scripts/`, and a grep for "Compiled successfully" hides a later type-check failure (a Render build failed that way on 2026-10-18).
 - `docs/**` pushes no longer deploy (Render build filter).
 - Never push during an AT run.
 - Delete files only with `node scripts/safe-rm.mjs`.
