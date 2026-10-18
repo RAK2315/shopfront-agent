@@ -12,6 +12,8 @@ export interface SellerOrder {
   items: string;
   buyerCountry: string | null;
   createdAt: string;
+  /** A real sandbox order made by a test run (D-070); shown to the demo seller with a "Test run" badge (D-087). */
+  isTest: boolean;
   paypalOrderId: string | null;
   captureId: string | null;
   refundedCents: number;
@@ -79,6 +81,7 @@ export async function sellerOrders(sellerId: string) {
       items: itemText(c.id),
       buyerCountry: c.buyerCountry,
       createdAt: c.createdAt.toISOString(),
+      isTest: c.isTest,
       paypalOrderId: c.paypalOrderId,
       captureId: cap?.paypalCaptureId ?? null,
       refundedCents: cap?.refundedCents ?? 0,

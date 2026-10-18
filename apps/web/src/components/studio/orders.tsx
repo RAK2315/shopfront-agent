@@ -1,5 +1,6 @@
 "use client";
 
+import { TestRunBadge } from "@/components/studio/test-orders-toggle";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -236,6 +237,7 @@ export function OrderList({ orders }: { orders: SellerOrder[] }) {
               <div className="flex flex-wrap items-center gap-1.5">
                 <StatusPill status={o.status} />
                 <ConfirmationBadge confirmation={o.confirmation} />
+                {o.isTest && <TestRunBadge />}
                 {o.buyerCountry && <Badge>{o.buyerCountry}</Badge>}
                 {o.refundedCents > 0 && (
                   <Badge tone="neutral">

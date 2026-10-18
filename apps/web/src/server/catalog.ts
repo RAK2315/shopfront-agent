@@ -292,7 +292,9 @@ async function syncToPayPalCatalog(seller: Seller, p: typeof schema.products.$in
     }
     const { debugId } = await paypal.updateCatalogProduct(p.paypalCatalogId, [
       { op: "replace", path: "/description", value: p.description.slice(0, 256) || p.title },
-      ...(img ? [{ op: "replace" as const, path: "/image_url", value: imageUrl(img.imageSha256) }] : []),
+      // "add", not "replace": PayPal answers INVALID_PATCH_PATH ("The field does not exist") when the entry was created
+      // without an image, and JSON Patch "add" also overwrites an existing value (D-087, verified on the sandbox).
+      ...(img ? [{ op: "add" as const, path: "/image_url", value: imageUrl(img.imageSha256) }] : []),
     ]);
     await recordEvent(db, { actor: "paypal", kind: "catalog_synced", sellerId: seller.id, summary: `PayPal catalog entry updated · “${p.title}”`, data: { productId: p.id, catalogId: p.paypalCatalogId, debugId } });
     return { ok: true as const, catalogId: p.paypalCatalogId };
