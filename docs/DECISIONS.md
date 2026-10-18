@@ -100,6 +100,7 @@
 | D-089 | 2026-10-18 | Dashboard v2 (AG Grid Best Use): an Overview tab (Ask bar → schema-checked view state, KPI cards, orders grid with grouping/drill-down/live rows, linked AG Charts chart, listings grid with PayPal catalog write-back) and a Builder tab (AG Studio + its agents); Enterprise only behind the BOTH-key guard | ACCEPTED | P9, J1, J2, J5 |
 | D-090 | 2026-10-18 | Studio editor, landing, live console and mobile pass (walkthrough #9, #6, #7, #11) | ACCEPTED | J2, J5 |
 | D-091 | 2026-10-18 | Phase 13 lite: 13 real attacks with a proof-first hack card; checkouts counted in the DB | ACCEPTED | J3, G1, R2 |
+| D-092 | 2026-10-18 | Phase 9 screens + Log in with PayPal (built; button gated until PayPal accepts the Return URL) and the full Phase 10 Telegram copilot incl. judge mode | ACCEPTED | J1, J3, J4, G1, P7 |
 
 ---
 
@@ -1394,6 +1395,45 @@
   - The agent prompt-injection still follows, as before.
 - **AT:** `hack-checks` 3/3 on Render: 13/13 blocked across 6 families, price = DB, 0 checkouts in the DB, the UI matches, no $0 checkout from the prompt version, no overflow.
 - **Serves:** J3, G1, R2, D-002.
+
+---
+
+## D-092: Phase 9 screens, Log in with PayPal, and the Phase 10 copilot (2026-10-18; walkthrough #10, #8)
+
+### Phase 9 screens + Log in with PayPal (D-084 built)
+- **Get paid card** in the Studio. It shows where the shop's money goes:
+  - `platform`: "the platform's sandbox account (demo shop)", with why;
+  - `verified`: straight to your PayPal, showing the merchant id;
+  - `none`/`unverified`: can't take payments yet.
+- **"Paid directly to …" lines:** on `/pay`, on storefronts and in the live wire's `order_created` summary ("paid directly to Fern & Loom's PayPal" / "paid to the Shopfront sandbox account").
+- **Orders:** a `handoff` refund shows a "Refund it in your PayPal ↗" link to the capture's page.
+- **Log in with PayPal flow:**
+  - `GET /api/seller/paypal/connect` → `https://www.sandbox.paypal.com/connect` with `scope=openid email https://uri.paypal.com/services/paypalattributes`.
+  - The `state` is an HMAC-signed, 10-minute, single-use nonce (a replay is refused).
+  - `GET /api/seller/paypal/return` exchanges the code server-side (`grant_type=authorization_code`, Basic auth) and reads userinfo: `/v1/identity/oauth2/userinfo?schema=paypalv1.1` (for `payer_id`), falling back to the documented `/v1/identity/openidconnect/userinfo`. The user token is used once and never stored.
+  - A non-platform seller becomes `verified` with that payer id. The platform demo shop only records that the check passed (`payout_identity_checked`) and is never rerouted.
+- **Routing rule (D-084):** `payeeRoute` pays only `verified` sellers. An `unverified` email is now `not_ready` → `SELLER_NOT_READY` before any order exists (unit test updated).
+- **Blocked on the PayPal side (owner):**
+  - On Render, PayPal's `/connect` page answered **"invalid client_id or redirect_uri"**. The client id is the app's own (the same one the JS SDK uses), so the Return URL isn't registered for this sandbox app yet.
+  - **Honest fallback:** the connect button is hidden behind `PAYPAL_LIPP_ENABLED` (default `0`), and the card says Log in with PayPal is being switched on. Fern & Loom stays verified by its first capture (D-083). Unverified sellers can't sell.
+  - OWNER-TODO #4 has the exact fix. `connect-checks` (C2–C6: real sign-in as sandbox seller 2, replay refusal, an unverified email refused, Fern verified with payer id = merchant `B83JSV9ELHV74`, "paid directly" everywhere) runs once it's fixed. C1 passed.
+
+### Phase 10: the seller copilot on Telegram (PLAN Phase 10, D-072/D-073/D-082)
+- **Outbound:** `server/telegram-api.ts` sends Telegram HTML with inline buttons. Every message is logged as a `telegram_sent` event (hashed chat id, short text, button labels), so the live wire shows the copilot working and ATs can read what the bot said. A dead chat never breaks a sale.
+- **Welcome card** after `/start <code>` or `/start judge`: the connected shop, what I do (5 jobs), payouts or judge-mode note; buttons Orders · Pending refunds · Shop status · Sales this week (+ Simulate a buyer in judge mode).
+- **Menus are read-only and answered by code:** latest orders, pending refunds (each re-sent with Approve/Decline), shop status (listings, drafts, payout), and sales (the `[db]` and `[paypal]` summary lines + top product). `/orders /refunds /status /sales` and "how are sales?" work too.
+- **Order pings:** pushed from the capture path when PayPal confirms: product photo, amount, who was paid, and "send me the label photo". In judge mode they add "Simulate a refund request".
+- **Refund approvals:** a refund that needs the seller pings Approve/Decline. These are single-use, seller-scoped, expiring action rows (D-072) running `decideRefundAsSeller`.
+- **Photo → listing:** a photo (or the caption) → the same Gemini draft as the Studio → a draft card with the photo, the AI's price guess and "Publish at $X" (a `publish` action whose handler reads the price from the draft row, never the button) or "Set my price" (reply with a number, parsed by `parsePriceInput`). Publish = `approveProduct` = live + PayPal catalog.
+- **Label photo → tracking:** the same label reader → "Add tracking" to the oldest paid unshipped order (an `add_tracking` action; the handler re-reads the label from the cache) → `addTracking` → PayPal `/track` + the buyer note.
+- **Judge mode:**
+  - `/start judge` links to `judge_demo`, the isolated practice shop (`test_only`, D-073).
+  - "Simulate a buyer" makes a real practice checkout via the same `createCheckout` and sends a PayPal link; the judge approves as the sandbox buyer.
+  - "Simulate a refund" uses the real MCP refund path (the order token is held in memory for the session).
+- **Studio:** a "Your seller copilot on Telegram" card links to the judge mode.
+- **Test hook:** `tg_photo` (admin token) hands a photo to the same `onPhoto` as the webhook, because a made-up chat can't upload to Telegram.
+- **AT:** `telegram-flow-checks` F1–F7 plus the earlier `telegram-checks` T1–T6 as a regression (results in PROGRESS).
+- **Serves:** J1, J3, J4, G1, P7, D-002, D-072, D-073.
 
 ---
 

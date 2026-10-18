@@ -96,3 +96,17 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/hack/`.
 - **Risks:** the hack route is rate-limited; repeated judge clicks may hit the limit (it answers 429 cleanly).
 - **Next:** #10.
+
+## #10: Phase 9 screens + Log in with PayPal (2026-10-18)
+- **Done:**
+  - The Get paid card; "paid directly to …" lines on `/pay`, storefronts and the live wire.
+  - A refund handoff link in Orders.
+  - Log in with PayPal end to end in code: a signed single-use state, a server-side code exchange, payer-id verification. The platform shop is only checked, never rerouted.
+  - Only verified payees are routed (D-084, D-092).
+- **Tests:**
+  - `connect-checks` C1 passed (the card).
+  - C2 stopped at PayPal's own page, "invalid client_id or redirect_uri": the sandbox app doesn't accept our Return URL yet (OWNER-TODO #4). C3–C6 run once that's fixed.
+  - Unit test: an unverified email is no longer routed.
+- **Screenshots:** `docs/screenshots/connect/` (C1, and PayPal's error page as evidence).
+- **Risks:** until the Return URL is accepted the connect button is hidden (`PAYPAL_LIPP_ENABLED=0`) and verification falls back to the first payment (D-083). A PayPal-side configuration, not code.
+- **Next:** #8 + Phase 10.

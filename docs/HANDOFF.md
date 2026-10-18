@@ -185,3 +185,39 @@
 - **Screenshots:** `MSYS_NO_PATHCONV=1 pnpm --filter web screens -- --base <url> --out <dir> [--video] [--seller juniper_clay] [--settle 9000] <paths>`.
 - **Re-record replay transcripts:** `pnpm --filter web record-demo -- --base <url>`.
 - **Admin bearer token:** `HMAC-SHA256(SESSION_SECRET, "admin:demo-reset")`, base64url. Never print it.
+
+---
+
+## Part 7: autonomous run to feature-complete (2026-10-18, D-085…D-092)
+
+**The owner's instruction (D-085):**
+- Build every remaining item in order, each with ATs on Render, screenshots, a commit, DECISIONS and a 5-line PROGRESS report. Don't stop between items.
+- Stop only for irreversible decisions, feature cuts, impossible PayPal capabilities, or security issues.
+- Owner waits go to `docs/OWNER-TODO.md`.
+
+**Done (see `docs/PROGRESS.md`):**
+- #13/#12 the approval bug and dead ends (D-086);
+- #1 photos and #2 demo history (D-087);
+- #4 /shop (D-088);
+- #3 the dashboard (D-089);
+- #9 studio, #6 landing, #7 live and #11 mobile (D-090);
+- #5 the hack card (D-091);
+- #10 Phase 9 screens + Log in with PayPal, built but gated (D-092; owner Return URL, OWNER-TODO #4);
+- #8 + Phase 10, the Telegram copilot (D-092).
+
+**Remaining:**
+- the `telegram-flow-checks` result;
+- #13 README (written, commit pending);
+- #14 the final regression: every AT, the isolation checks, the security suite, a fresh clone, `final-screens`.
+
+**AT scripts (all under `apps/web/scripts`, run as `pnpm --filter web <name> -- --base https://shopfront-agent.onrender.com`):**
+- `approval-checks`, `shop-checks`, `dashboard-checks`, `studio-checks`, `landing-checks`, `live-checks`, `mobile-checks`, `hack-checks`;
+- `telegram-flow-checks`, `connect-checks`, `final-screens`;
+- plus the older `phase2/4/5/6/9-checks`, `recovery-checks`, `telegram-checks`, `fixes-checks`, `lane-checks`.
+
+**Habits from this run:**
+- Run `pnpm typecheck 2>&1 | grep "error TS"`, because `pnpm -s typecheck` hides errors and a Render build failed that way. Run `pnpm --filter web build` before pushing.
+- `docs/**` pushes no longer deploy (Render build filter).
+- Never push during an AT run.
+- Delete files only with `node scripts/safe-rm.mjs`.
+- Admin calls: `node --env-file=.env scripts/admin.mjs '<json>'` (reset, freeze, sync_catalog, set_payout, connect_url, tg_photo).
