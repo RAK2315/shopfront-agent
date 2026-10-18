@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SellerNav } from "@/components/studio/seller-nav";
+import { SiteNav } from "@/components/site/site-nav";
 import { TestOrdersToggle } from "@/components/studio/test-orders-toggle";
 import { DashboardClient, DashboardV2Client } from "@/components/dashboard/dashboard-client";
 import { PRESET_VERSION } from "@/components/dashboard/preset";
@@ -51,7 +52,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
     const data = await dashboardData(seller.id);
     const saved = seller.dashboardState as { preset?: string; state?: unknown } | null;
     return (
-      <main className="grid h-dvh grid-rows-[auto_minmax(0,1fr)] bg-canvas">
+      <main className="grid h-dvh grid-rows-[auto_auto_minmax(0,1fr)] bg-canvas">
+        <SiteNav tone="bar" />
         {header}
         <div className="min-h-0 p-2">
           <DashboardClient initialData={data} savedState={saved?.preset === PRESET_VERSION ? saved.state : null} />
@@ -62,6 +64,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
   const [orders, listings] = await Promise.all([ordersGrid(seller.id), listingsGrid(seller.id)]);
   return (
     <main className="min-h-dvh bg-canvas">
+      <SiteNav tone="bar" />
       {header}
       <DashboardV2Client initial={{ orders, kpis: kpisFrom(orders), listings }} />
     </main>

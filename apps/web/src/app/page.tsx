@@ -223,7 +223,8 @@ export default async function Home() {
             Honest scope: PayPal sandbox only, no real money. Juniper Clay is paid into the platform&apos;s sandbox account; Fern &amp; Loom is paid directly into its own PayPal account. Free-tier AI (Gemini, Groq), so a first answer after a quiet spell can take a moment. Listing photos are public-domain museum pieces standing in for the sellers&apos; work.
           </p>
           <p>
-            Built for <span className="text-ink">Build What&apos;s Next with PayPal and AI</span> · <Link href="/design" className="underline-offset-4 hover:underline">Design system</Link>
+            Built for <span className="text-ink">Build What&apos;s Next with PayPal and AI</span> · <Link href="/design" className="underline-offset-4 hover:underline">Design system</Link> ·{" "}
+            <Link href="/privacy" className="underline-offset-4 hover:underline">Privacy</Link> · <Link href="/terms" className="underline-offset-4 hover:underline">Terms</Link>
           </p>
         </div>
       </footer>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SellerNav } from "@/components/studio/seller-nav";
+import { SiteNav } from "@/components/site/site-nav";
 import { redirect } from "next/navigation";
 import { OrderList, RefundQueue } from "@/components/studio/orders";
 import { TestOrdersToggle } from "@/components/studio/test-orders-toggle";
@@ -17,6 +18,8 @@ export default async function OrdersPage() {
   if (!seller) redirect("/studio");
   const [{ orders, refunds }, testSwitch] = await Promise.all([sellerOrders(seller.id), testOrdersSwitch(seller.id)]);
   return (
+    <>
+    <SiteNav tone="bar" />
     <main className="mx-auto grid min-h-dvh max-w-[60rem] content-start gap-10 px-4 py-6 sm:px-6 lg:py-10">
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
         <div className="grid gap-1">
@@ -36,5 +39,6 @@ export default async function OrdersPage() {
       <RefundQueue refunds={refunds} />
       <OrderList orders={orders} />
     </main>
+    </>
   );
 }

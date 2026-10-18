@@ -8,6 +8,7 @@ const RESULT: Record<string, { ok: boolean; text: string }> = {
   connected: { ok: true, text: "Connected. PayPal confirmed your account, so orders now pay you directly." },
   checked: { ok: true, text: "PayPal confirmed the account. This demo shop still pays into the platform account, so nothing was rerouted." },
   cancelled: { ok: false, text: "You left PayPal before connecting. Nothing changed." },
+  account_unverified: { ok: false, text: "PayPal says this account isn't verified yet. Verify it in PayPal, then connect again; until then this shop isn't paid." },
   expired: { ok: false, text: "That PayPal sign-in link expired or was already used. Start again." },
   invalid: { ok: false, text: "PayPal didn't send the details back. Start again." },
   failed: { ok: false, text: "PayPal didn't share the account id. Allow “PayPal account ID” when asked, then try again." },

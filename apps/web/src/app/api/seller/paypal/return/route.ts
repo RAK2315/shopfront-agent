@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   if (!code || !state) return go("invalid");
   try {
     const r = await completeConnect(code, state);
-    return go(r.kind === "verified" ? "connected" : "checked");
+    return go(r.kind === "verified" ? "connected" : r.kind === "account_unverified" ? "account_unverified" : "checked");
   } catch (e) {
     console.error("paypal connect failed", e instanceof Error ? e.message : e);
     return go(e instanceof ShopError && e.code === "FORBIDDEN" ? "expired" : "failed");

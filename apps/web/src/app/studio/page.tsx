@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SellerNav } from "@/components/studio/seller-nav";
+import { SiteNav } from "@/components/site/site-nav";
 import { eq, schema } from "@shopfront/db";
 import { SellerSignIn } from "@/components/studio/sign-in";
 import { Studio } from "@/components/studio/studio";
@@ -23,7 +24,9 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
   if (!seller) {
     const [demo] = await services().db.select().from(schema.sellers).where(eq(schema.sellers.handle, DEMO_SELLER_HANDLES[0]));
     return (
-      <main className="mx-auto grid min-h-dvh max-w-[44rem] content-center gap-6 px-5 py-16">
+      <>
+      <SiteNav tone="bar" />
+      <main className="mx-auto grid min-h-[calc(100dvh-3.5rem)] max-w-[44rem] content-center gap-6 px-5 py-16">
         <Link href="/" className="w-fit font-display text-lg font-semibold text-ink-2 hover:text-ink">
           Shopfront
         </Link>
@@ -35,12 +38,15 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
         {demo && <SellerSignIn handle={demo.handle} displayName={demo.displayName} />}
         <p className="text-sm text-muted">Sandbox only: no real money moves.</p>
       </main>
+      </>
     );
   }
 
   const [drafts, live, card, bot] = await Promise.all([sellerProducts(seller.id, ["draft"]), sellerProducts(seller.id, ["approved"]), payoutCard(seller.id), botUsername().catch(() => null)]);
   const result = (await searchParams).paypal;
   return (
+    <>
+    <SiteNav tone="bar" />
     <main className="mx-auto grid min-h-dvh max-w-[76rem] content-start gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
         <div className="grid gap-1">
@@ -56,5 +62,6 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
       <TelegramCard judgeLink={bot ? `https://t.me/${bot}?start=judge` : null} />
       <Studio seller={{ handle: seller.handle, displayName: seller.displayName }} initialDrafts={drafts} initialLive={live} mcpUrl={appUrl("/mcp")} />
     </main>
+    </>
   );
 }

@@ -13,6 +13,7 @@ import { services } from "./services";
 
 export const RETURN_PATH = "/api/seller/paypal/return";
 const STATE_TTL_MS = 10 * 60_000;
+// Email, PayPal account ID (payer id) and account verification status, as enabled on the app (owner, 2026-10-18).
 const SCOPES = ["openid", "email", "https://uri.paypal.com/services/paypalattributes"];
 const used = new Set<string>(); // single instance (D-022): a replayed state is refused
 
@@ -72,7 +73,7 @@ async function identity(code: string): Promise<PayPalIdentity> {
   throw new ShopError("UPSTREAM_ERROR", "PayPal didn't share the account details.");
 }
 
-export type ConnectOutcome = { kind: "verified" | "demo_verified"; sellerId: string; merchantId: string; email: string | null };
+export type ConnectOutcome = { kind: "verified" | "demo_verified" | "account_unverified"; sellerId: string; merchantId: string; email: string | null };
 
 /** The return leg: check the state, exchange the code, read the account, then verify the seller (or, for the
  * platform demo shop, only record that the check passed). */
@@ -89,6 +90,13 @@ export async function completeConnect(code: string, state: string): Promise<Conn
   if (s.payoutStatus === "platform") {
     await recordEvent(db, { actor: "paypal", kind: "payout_identity_checked", sellerId: s.id, summary: `Log in with PayPal confirmed account ${id.payerId} · this demo shop stays on the platform account`, data: { merchantId: id.payerId, email: masked, verifiedAccount: id.verifiedAccount, fields: id.fields }, isTest: true });
     return { kind: "demo_verified", sellerId: s.id, merchantId: id.payerId, email: masked };
+  }
+  // Account verification status is an extra signal (owner, 2026-10-18): PayPal saying the account itself is not
+  // verified keeps the seller unpaid until they verify it in PayPal and connect again. Unknown (not shared) is allowed.
+  if (id.verifiedAccount === false) {
+    await db.update(schema.sellers).set({ paypalMerchantId: id.payerId, payoutEmail: id.email?.toLowerCase() ?? s.payoutEmail, payoutStatus: "unverified", payoutVerifiedAt: null }).where(eq(schema.sellers.id, s.id));
+    await recordEvent(db, { actor: "paypal", kind: "payout_account_unverified", sellerId: s.id, summary: `PayPal account ${id.payerId} isn't verified by PayPal yet · not paid until it is`, data: { merchantId: id.payerId, email: masked, verifiedAccount: false, fields: id.fields } });
+    return { kind: "account_unverified", sellerId: s.id, merchantId: id.payerId, email: masked };
   }
   await db.update(schema.sellers).set({ paypalMerchantId: id.payerId, payoutEmail: id.email?.toLowerCase() ?? s.payoutEmail, payoutStatus: "verified", payoutVerifiedAt: new Date() }).where(eq(schema.sellers.id, s.id));
   await recordEvent(db, { actor: "paypal", kind: "payout_verified", sellerId: s.id, summary: `Seller's PayPal verified by Log in with PayPal · merchant ${id.payerId}`, data: { merchantId: id.payerId, email: masked, via: "log_in_with_paypal", verifiedAccount: id.verifiedAccount, fields: id.fields } });

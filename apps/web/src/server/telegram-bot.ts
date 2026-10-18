@@ -1,5 +1,5 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { centsToValue, injectionFlags, parsePriceInput, STATUS_LABEL, type CheckoutStatus } from "@shopfront/core";
 import { and, asc, desc, eq, inArray, schema } from "@shopfront/db";
 import { draftFromPhoto } from "./catalog";
@@ -11,6 +11,7 @@ import { services } from "./services";
 import { shop } from "./shop";
 import { chatsFor, esc, send, type Button } from "./telegram-api";
 import { createChatAction } from "./telegram";
+import { newOrderToken } from "./tokens";
 import { readLabel } from "./tracking";
 
 // The seller copilot on Telegram (Phase 10, walkthrough #8, D-092): order pings, refund approvals, photo → listing,
@@ -25,7 +26,6 @@ const usd = (cents: number) => `$${centsToValue(cents)}`;
 // Short references for button data (Telegram allows 64 bytes): photo hashes and simulated orders' tokens.
 // In memory on purpose: single instance (D-022), and a lost reference only means "send it again".
 const refs = new Map<string, { sha: string; chatId: number; at: number }>();
-const simTokens = new Map<string, { token: string; at: number }>();
 const pendingPrice = new Map<number, { productId: string; at: number }>();
 const ref = (sha: string, chatId: number) => {
   const id = randomBytes(5).toString("base64url");
@@ -154,6 +154,19 @@ export async function help(chatId: number, s: Seller) {
   return send(chatId, ["Send me a <b>product photo</b> for a new listing, or a <b>shipping label</b> photo to add tracking.", "Or tap a button below. Commands: /orders /refunds /status /sales"].join("\n"), { sellerId: s.id, kind: "help", buttons: MAIN_MENU(s.testOnly), isTest: s.testOnly });
 }
 
+const SIM_CLIENT = "telegram-judge-sim";
+
+/** The buyer's token for a simulated practice order, re-derived from the checkout row (never stored). Only for orders
+ * this bot created on the isolated test_only practice shop. */
+async function simToken(sellerId: string, checkoutId: string): Promise<string | null> {
+  const [c] = await services()
+    .db.select({ sellerId: schema.checkouts.sellerId, client: schema.checkouts.mcpClientName, crid: schema.checkouts.clientRequestId })
+    .from(schema.checkouts)
+    .where(eq(schema.checkouts.id, checkoutId));
+  if (!c || c.sellerId !== sellerId || c.client !== SIM_CLIENT || !c.crid) return null;
+  return newOrderToken(checkoutId, c.crid);
+}
+
 /** Judge mode: the buyer's agent places a real sandbox order on the practice shop; the judge approves it in PayPal. */
 export async function simulateBuy(chatId: number, sellerId: string, variantId: string) {
   const s = await seller(sellerId);
@@ -162,8 +175,9 @@ export async function simulateBuy(chatId: number, sellerId: string, variantId: s
   const [v] = await db.select({ id: schema.variants.id }).from(schema.variants).innerJoin(schema.products, eq(schema.products.id, schema.variants.productId)).where(and(eq(schema.variants.id, variantId), eq(schema.products.sellerId, s.id)));
   if (!v) return;
   await db.update(schema.variants).set({ stock: 50 }).where(eq(schema.variants.id, v.id));
-  const ck = await shop.createCheckout({ items: [{ variant_id: v.id, quantity: 1 }] }, { clientName: "telegram-judge-sim", requestId: `tg-sim-${Date.now()}` });
-  simTokens.set(ck.checkout_id, { token: ck.order_token, at: Date.now() });
+  // A client_request_id makes the order token re-derivable server-side (tokens.ts), so "Simulate a refund" works after
+  // a restart (Render free sleeps) without the token ever being stored.
+  const ck = await shop.createCheckout({ items: [{ variant_id: v.id, quantity: 1 }], client_request_id: randomUUID() }, { clientName: SIM_CLIENT, requestId: `tg-sim-${Date.now()}` });
   const lines = [`🧾 <b>Order ready · $${ck.totals.total}</b>`, ck.line_items.map((l) => `${l.quantity} × ${esc(l.title)}`).join(", "), "", "Approve it in PayPal as the buyer. Use the <b>sandbox test buyer</b> shown on the page; no real money moves.", "Your order ping arrives here when PayPal confirms the payment."];
   return send(chatId, lines.join("\n"), { sellerId, checkoutId: ck.checkout_id, kind: "simulated_order", isTest: true, buttons: [[{ text: "Approve in PayPal (as the buyer)", url: ck.pay_url }]] });
 }
@@ -172,9 +186,9 @@ export async function simulateBuy(chatId: number, sellerId: string, variantId: s
 export async function simulateRefund(chatId: number, sellerId: string, checkoutId: string) {
   const s = await seller(sellerId);
   if (!s?.testOnly) return;
-  const sim = simTokens.get(checkoutId);
-  if (!sim) return send(chatId, "I can only simulate a refund on an order made with <b>Simulate a buyer</b> in this session. Simulate a new one.", { sellerId, kind: "simulated_refund", isTest: true });
-  const r = await requestRefund({ checkout_id: checkoutId, order_token: sim.token, reason_code: "damaged", details: "It arrived with a chipped rim (practice refund)." });
+  const token = await simToken(s.id, checkoutId);
+  if (!token) return send(chatId, "I can only simulate a refund on a practice order made with <b>Simulate a buyer</b>. Simulate a new one.", { sellerId, kind: "simulated_refund", isTest: true });
+  const r = await requestRefund({ checkout_id: checkoutId, order_token: token, reason_code: "damaged", details: "It arrived with a chipped rim (practice refund)." });
   // A refund that needs the seller pings itself (pingRefundRequest); an automatic one is reported here.
   if (r.decision === "auto_approve") await send(chatId, `✅ <b>Refunded automatically · ${usd(Math.round(Number(r.amount.value) * 100))}</b>\nInside your policy, so no tap was needed. PayPal sent the money back to the buyer.`, { sellerId, checkoutId, kind: "refund_auto", isTest: true });
   return r;
@@ -199,7 +213,7 @@ export async function pingOrderPaid(checkoutId: string) {
   const paidTo = c.payeeMerchantId || c.payeeEmail ? "straight to your PayPal" : "to the Shopfront sandbox account";
   const html = [`🛍️ <b>New order · ${usd(c.totalCents)}</b>`, esc(items), `Paid in PayPal ${paidTo}. ✅ Payment confirmed.`, "", "📦 When it's packed, send me a photo of the shipping label and I'll add tracking to the PayPal order."].join("\n");
   const buttons: Button[][] = [[{ text: "Open the order", url: appUrl("/studio/orders") }]];
-  if (s?.testOnly && simTokens.has(c.id)) buttons.push([{ text: "🧪 Simulate a refund request", data: `m:simrefund:${c.id}` }]);
+  if (s?.testOnly && c.mcpClientName === SIM_CLIENT) buttons.push([{ text: "🧪 Simulate a refund request", data: `m:simrefund:${c.id}` }]);
   for (const chatId of chats) await send(chatId, html, { sellerId: c.sellerId, checkoutId: c.id, kind: "order_ping", buttons, photoUrl: img ? imageUrl(img.sha) : undefined, isTest: c.isTest });
 }
 

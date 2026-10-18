@@ -1,7 +1,8 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { and, eq, inArray, notInArray, schema } from "@shopfront/db";
+import { and, eq, inArray, notInArray, schema, sql } from "@shopfront/db";
 import { mirrorMissingToCatalog } from "./catalog";
+import { DEMO_RESTOCK_TO, DEMO_SHOP_HANDLES } from "./payments";
 import { env } from "./env";
 import { recordEvent } from "./events";
 import { services } from "./services";
@@ -74,8 +75,14 @@ export async function resetDemo() {
         .where(eq(schema.products.id, p.id));
     }
     for (const v of data.variants) {
-      await tx.update(schema.variants).set({ priceCents: v.priceCents, stock: v.stock, active: v.active, options: v.options }).where(eq(schema.variants.id, v.id));
+      // At least DEMO_RESTOCK_TO in stock after a reset: a judge never sees "out of stock".
+      await tx.update(schema.variants).set({ priceCents: v.priceCents, stock: Math.max(v.stock, DEMO_RESTOCK_TO), active: v.active, options: v.options }).where(eq(schema.variants.id, v.id));
     }
+    // The other demo shops (Fern & Loom, the judge practice shop) are restocked too; their catalogs aren't frozen.
+    await tx.execute(sql`
+      update ${schema.variants} v set stock = greatest(v.stock, ${DEMO_RESTOCK_TO})
+      from ${schema.products} p, ${schema.sellers} s
+      where p.id = v.product_id and s.id = p.seller_id and v.active and s.handle = any(${DEMO_SHOP_HANDLES as unknown as string[]})`);
     await tx
       .update(schema.sellers)
       .set({ refundPolicy: data.refundPolicy as never, bio: data.bio, dashboardState: null, demoResetAt: new Date() })
