@@ -57,6 +57,7 @@ export function PayPalApprove({
   clientId,
   amount,
   initialStatus,
+  initialMessage = null,
   testBuyer,
 }: {
   checkoutId: string;
@@ -65,11 +66,13 @@ export function PayPalApprove({
   clientId: string;
   amount: string;
   initialStatus: CheckoutStatus;
+  /** Shown on arrival, e.g. after the buyer cancelled on PayPal's own page (redirect flow). */
+  initialMessage?: string | null;
   testBuyer?: { email: string; password: string };
 }) {
   const alreadyPaid = ["paid", "shipped", "partially_refunded", "refunded"].includes(initialStatus);
   const [phase, setPhase] = useState<Phase>(alreadyPaid ? "paid" : "loading");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(initialMessage);
   const [status, setStatus] = useState<Status | null>(null);
   const sessionRef = useRef<PayPalSession | null>(null);
   const buttonRef = useRef<HTMLElement | null>(null);

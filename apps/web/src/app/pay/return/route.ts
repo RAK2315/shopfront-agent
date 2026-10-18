@@ -21,6 +21,7 @@ export async function GET(req: Request) {
   return new Response(null, { status: 303, headers: { location: `/pay/${checkout}?t=${encodeURIComponent(t!)}`, "cache-control": "no-store", "referrer-policy": "no-referrer" } });
 }
 
+/** Same page as a bad pay link: it never says which check failed. */
 function bad() {
-  return new Response("This return link is not valid for any order.", { status: 400, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
+  return new Response(null, { status: 303, headers: { location: "/pay/link-invalid", "cache-control": "no-store", "referrer-policy": "no-referrer" } });
 }

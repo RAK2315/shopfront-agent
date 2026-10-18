@@ -93,6 +93,7 @@ export default async function PayPage({ params, searchParams }: PageProps<"/pay/
               clientId={env().PAYPAL_CLIENT_ID}
               amount={centsToValue(ck.totalCents)}
               initialStatus={ck.status as CheckoutStatus}
+              initialMessage={sp.cancelled === "1" && ck.status === "created" ? "You left PayPal before approving. Nothing was charged; you can approve again below." : null}
               testBuyer={env().SANDBOX_BUYER_EMAIL && env().SANDBOX_BUYER_PASSWORD ? { email: env().SANDBOX_BUYER_EMAIL, password: env().SANDBOX_BUYER_PASSWORD } : undefined}
             />
           )}
