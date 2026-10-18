@@ -34,6 +34,8 @@ export type MismatchKind = 'capture_without_paid_order' | 'paid_order_without_ca
 
 /** PayPal authorization states in which our `authorized` order is still a live hold (D-098). */
 export const LIVE_AUTHORIZATION_STATUSES: ReadonlySet<string> = new Set(['CREATED', 'PENDING']);
+/** Holds PayPal released (a seller void in their own PayPal, or the 29-day expiry): the order just closes, nothing moved. */
+export const RELEASED_AUTHORIZATION_STATUSES: ReadonlySet<string> = new Set(['VOIDED', 'EXPIRED']);
 
 export interface Mismatch {
   kind: MismatchKind;
@@ -121,9 +123,10 @@ export function reconcileLedger(input: LedgerInput): LedgerResult {
   for (const o of input.paidWithoutCaptureRow) {
     mismatches.push({ kind: 'paid_order_without_capture', checkoutId: o.checkoutId, sellerId: o.sellerId, orderStatus: o.orderStatus, amountCents: o.totalCents, isTest: o.isTest, detail: `The order is ${o.orderStatus.replace(/_/g, ' ')} but no PayPal capture is recorded` });
   }
-  // 3. An order we hold as authorized whose authorization PayPal no longer holds (voided, expired or captured elsewhere).
+  // 3. An order we hold as authorized whose hold PayPal reports in a state we didn't record: captured without our
+  // capture, denied, or unknown. (Released holds are closed by the server before this runs; they are lifecycle.)
   for (const a of input.authorizations ?? []) {
-    if (LIVE_AUTHORIZATION_STATUSES.has(a.paypalStatus)) continue;
+    if (LIVE_AUTHORIZATION_STATUSES.has(a.paypalStatus) || RELEASED_AUTHORIZATION_STATUSES.has(a.paypalStatus)) continue;
     mismatches.push({ kind: 'authorization_mismatch', checkoutId: a.checkoutId, sellerId: a.sellerId, orderStatus: 'authorized', amountCents: a.amountCents, isTest: a.isTest, detail: `The order is authorized but PayPal reports its authorization ${a.authorizationId} as ${a.paypalStatus}` });
   }
   return { matched, matchedBySeller, mismatches, explained };

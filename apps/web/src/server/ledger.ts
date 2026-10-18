@@ -2,6 +2,7 @@ import "server-only";
 import {
   MISMATCH_LABEL,
   MONEY_CAPTURE_STATUSES,
+  RELEASED_AUTHORIZATION_STATUSES,
   PAID_STATUSES,
   centsToValue,
   mismatchKey,
@@ -136,6 +137,13 @@ async function reconcile(trigger: Trigger): Promise<ReconciliationRun> {
     try {
       const { data } = await paypal.getAuthorization(h.authorizationId, { context: { checkoutId: h.checkoutId } });
       authorizations.push({ ...h, paypalStatus: data.status });
+      // A hold PayPal released (seller void in their PayPal, or the 29-day expiry) closes the order: no money moved.
+      if (RELEASED_AUTHORIZATION_STATUSES.has(data.status)) {
+        const { releaseHold } = await import("./cart");
+        const r = await releaseHold(h.checkoutId, "system");
+        if (r.changed)
+          await recordEvent(db, { actor: "server", kind: "hold_released", checkoutId: h.checkoutId, sellerId: h.sellerId, isTest: h.isTest, summary: `Reconciliation · PayPal reports the hold ${data.status} · order closed, stock returned, nothing charged`, data: { authorizationId: h.authorizationId, runTrigger: trigger } });
+      }
     } catch (e) {
       if (isPayPalApiError(e) && e.status === 404) authorizations.push({ ...h, paypalStatus: "NOT_FOUND" });
     }

@@ -59,10 +59,10 @@ describe('reconcileLedger (D-095)', () => {
     expect(run({ ours: [cap()], paypal: [{ captureId: 'CAP1', amountCents: 3000, source: 'transaction_search' }] }).mismatches[0]?.kind).toBe('amount_mismatch');
   });
 
-  it('an authorized order whose hold PayPal no longer has → flagged; a live hold is fine (D-098)', () => {
+  it('an authorized order whose hold PayPal captured without us, or does not know → flagged; live or released holds are not (D-098)', () => {
     const a = { checkoutId: 'chk_9', sellerId: 'sel_1', authorizationId: 'AUTH1', amountCents: 1200, isTest: false };
-    expect(run({ authorizations: [{ ...a, paypalStatus: 'CREATED' }] }).mismatches).toEqual([]);
-    expect(run({ authorizations: [{ ...a, paypalStatus: 'VOIDED' }] }).mismatches).toEqual([expect.objectContaining({ kind: 'authorization_mismatch', checkoutId: 'chk_9' })]);
+    for (const ok of ['CREATED', 'PENDING', 'VOIDED', 'EXPIRED']) expect(run({ authorizations: [{ ...a, paypalStatus: ok }] }).mismatches).toEqual([]);
+    for (const bad of ['CAPTURED', 'DENIED', 'NOT_FOUND']) expect(run({ authorizations: [{ ...a, paypalStatus: bad }] }).mismatches).toEqual([expect.objectContaining({ kind: 'authorization_mismatch', checkoutId: 'chk_9' })]);
   });
 
   it('a declined capture on a declined order is not money and not a mismatch', () => {
