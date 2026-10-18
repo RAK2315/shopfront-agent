@@ -144,6 +144,8 @@ export async function requestRefund(input: RequestRefundInput): Promise<RefundRe
     );
   }
   await publishMessage(c.id, "refund", { reason: input.reason_code, amountCents: d.amountCents, outcome: "review" });
+  // Ask the seller in Telegram, with Approve / Decline buttons (Phase 10, D-092). Never blocks the request.
+  void import("./telegram-bot").then((m) => m.pingRefundRequest(row!.id)).catch((e) => console.error("[telegram] refund ping failed", e instanceof Error ? e.message : e));
   return view(row!, d.explanation);
 }
 

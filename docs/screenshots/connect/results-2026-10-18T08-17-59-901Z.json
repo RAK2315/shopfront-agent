@@ -1,0 +1,14 @@
+[
+  {
+    "id": "C1 demo shop's Get paid card: platform account, explained",
+    "ok": true,
+    "detail": {
+      "status": "platform"
+    }
+  },
+  {
+    "id": "run",
+    "ok": false,
+    "detail": "locator.waitFor: Timeout 45000ms exceeded."
+  }
+]

@@ -98,6 +98,8 @@
 | D-087 | 2026-10-18 | CC0 museum photos for every seeded listing (two more Fern & Loom listings); the demo seller's "Include test orders" switch + "Test run" badge; real sandbox demo history; PayPal catalog `image_url` patched with `add` | ACCEPTED | J2, J5, S6.4 |
 | D-088 | 2026-10-18 | `/shop` rebuild: purchase rail, image-led cards, the PayPal button inline in the chat's checkout card, collapsed MCP log, suggestion cards, site nav, mobile live-wire sheet | ACCEPTED | J2, J5, P1 |
 | D-089 | 2026-10-18 | Dashboard v2 (AG Grid Best Use): an Overview tab (Ask bar → schema-checked view state, KPI cards, orders grid with grouping/drill-down/live rows, linked AG Charts chart, listings grid with PayPal catalog write-back) and a Builder tab (AG Studio + its agents); Enterprise only behind the BOTH-key guard | ACCEPTED | P9, J1, J2, J5 |
+| D-090 | 2026-10-18 | Studio editor, landing, live console and mobile pass (walkthrough #9, #6, #7, #11) | ACCEPTED | J2, J5 |
+| D-091 | 2026-10-18 | Phase 13 lite: 13 real attacks with a proof-first hack card; checkouts counted in the DB | ACCEPTED | J3, G1, R2 |
 
 ---
 
@@ -1334,6 +1336,64 @@
   - The "AI Toolkit" is our own NL → grid-state route (the same guard and output-only contract as PLAN item 4).
 - **AT:** `dashboard-checks` G0–G6 (results in PROGRESS). AT-5 must still pass on the Builder tab.
 - **Serves:** P9 (the AG Grid prize), J1, J2, J5, D-002, D-016, D-074.
+
+---
+
+## D-090: Studio editor, landing, live console, mobile pass (2026-10-18; walkthrough #9, #6, #7, #11)
+
+- **Studio (#9):**
+  - A 3-step rail (Upload → Review AI draft → Publish to shop + PayPal) driven by what happened in the session.
+  - A drop zone that shows real listing photos and reacts on drag.
+  - Every AI-filled field carries an "AI" marker; a legend explains the marker, the amber "check it" state and "only you set the price".
+  - Fields are grouped (The basics / Details).
+  - **The price sits in its own bordered block:** "Your price · you decide", with the AI's guess as a hint and Confirm required before Publish.
+  - A success panel replaces the toast: live in the shop, the PayPal catalog id, "See it in your shop", "Ask an agent to buy it".
+  - On phones the Publish bar is sticky. The card uses `overflow-clip`; `overflow-hidden` broke the sticky bar.
+- **Landing (#6), owner's list:**
+  - The headline is "Your storefront, ready for AI agents."; the CTAs are "Try buyer demo" (primary) and "Sell with Shopfront" (secondary); a slim site nav (`components/site/site-nav.tsx`, also on `/shop` and `/live`).
+  - A plain-English line, two proof lines, and the live feed on the right.
+  - A 4-step strip (the seller → the buyer's agent → the buyer → the seller's agent) built from real listings and photos.
+  - The guardrail panel and a developer card with the copyable MCP endpoint, `/llms.txt`, the live wire and a storefront.
+  - **Honest-scope footer updated:** Fern & Loom is paid directly, Juniper Clay into the platform account, and the photos are museum pieces.
+  - The old 5-paragraph loop and the route list are gone; the nav covers routes.
+- **Live console (#7):**
+  - A 24-hour KPI strip (agent steps, MCP calls, payments captured, attacks blocked) from the database (`liveStats`), counted up live.
+  - A "Group by checkout" view; clicking a checkout still follows only its events (the `phase2-checks` contract).
+  - **Shared timeline rows (also on `/shop`, the landing and the dashboard):**
+    - ids, latency and model sit behind a per-row "Details · N" toggle (still copyable);
+    - PayPal rows are larger and keep their one key id (Capture, Refund or Order) in view;
+    - "Answered before" / replay badges stay visible (honesty);
+    - relative times, with the exact time in the tooltip;
+    - one accent rule per system: agent clay, MCP stone, PayPal blue, webhook green.
+- **Mobile (#11):**
+  - `/pay` padding tightened (PayPal's button has a minimum width).
+  - Landing grid tracks are pinned to `minmax(0,1fr)`.
+  - The chat panel can't widen (found by the inner-overflow check).
+  - The site nav has a sheet menu; `/shop` has a live-wire bottom sheet.
+  - `mobile-checks`: 13 routes × 360/390/430 px = 39 combinations with no sideways scroll, on the page or inside the chat.
+  - **Deviation:** no sticky PayPal button on `/pay`. It's PayPal's web component inside its card, and the page is short enough that it sits near the fold on a phone.
+- **ATs on Render:** `studio-checks` 5/5, `landing-checks` 5/5, `live-checks` 5/5, `mobile-checks` M1 39/39 (see PROGRESS).
+- **Serves:** J2, J5, D-078.
+
+---
+
+## D-091: Phase 13 lite, the hack card with 13 real attacks (2026-10-18; walkthrough #5; D-079)
+
+- **The attacks:** `/api/shop/hack` runs 13 real attacks against the public endpoints:
+  - price tampering ×4: `price: 0`, total + discount, a currency switch, `price_cents`;
+  - quantity tricks ×3: −3, 0.5, 10,000;
+  - a fake variant id;
+  - stolen tokens ×3: refund someone else's order, a $500 `amount` field, read someone else's status;
+  - **a forged PayPal "payment completed" webhook**, sent to our real webhook route and rejected by PayPal's own signature check;
+  - 11 line items.
+- **Honesty fix:** "Checkouts created" used to be the literal 0. It is now **counted in the database** for the attacker's client name (`x-shopfront-client: price-hacker-demo`).
+- **The card is proof first:**
+  - three big numbers: Attacks blocked N/N, Price unchanged, Checkouts created;
+  - one chip per attack, grouped by family, settling red → green;
+  - "What the server answered" on expand.
+  - The agent prompt-injection still follows, as before.
+- **AT:** `hack-checks` 3/3 on Render: 13/13 blocked across 6 families, price = DB, 0 checkouts in the DB, the UI matches, no $0 checkout from the prompt version, no overflow.
+- **Serves:** J3, G1, R2, D-002.
 
 ---
 

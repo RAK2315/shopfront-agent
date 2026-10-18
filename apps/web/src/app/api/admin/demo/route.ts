@@ -2,6 +2,8 @@ import { z } from "zod";
 import { eq, schema } from "@shopfront/db";
 import { resyncCatalog } from "@/server/catalog";
 import { connectUrl } from "@/server/paypal-connect";
+import { linkedSeller } from "@/server/telegram";
+import { onPhoto } from "@/server/telegram-bot";
 import { freezeDemoCatalog, isAdmin, resetDemo } from "@/server/demo";
 import { runHandoffCheck } from "@/server/handoff";
 import { setPayoutAccount } from "@/server/payouts";
@@ -20,6 +22,9 @@ const Body = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("sync_catalog"), handle: z.string().regex(/^[a-z0-9_]{2,40}$/) }),
   // AT for D-084: a Log in with PayPal link for a seller that can't sign in to the demo studio (fern_and_loom).
   z.strictObject({ action: z.literal("connect_url"), handle: z.string().regex(/^[a-z0-9_]{2,40}$/) }),
+  // AT for Phase 10 (D-092): a photo "sent" by a linked test chat, handed to the same onPhoto the webhook uses (a fake
+  // chat can't upload a file to Telegram). The chat must already be linked; the seller comes from that link.
+  z.strictObject({ action: z.literal("tg_photo"), chat_id: z.number().int(), image_base64: z.string().max(4_000_000), caption: z.string().max(200).optional() }),
 ]);
 
 // Judge mode (D-011): nightly reset (cron-job.org calls this with the bearer token) or freeze the current catalog.
@@ -33,6 +38,12 @@ export async function POST(req: Request) {
     if (b.action === "reset") return Response.json(await resetDemo());
     if (b.action === "freeze") return Response.json(await freezeDemoCatalog());
     if (b.action === "handoff_check") return Response.json(await runHandoffCheck(b.refund_request_id));
+    if (b.action === "tg_photo") {
+      const link = await linkedSeller(b.chat_id);
+      if (!link) return Response.json({ error: { code: "NOT_FOUND", message: "That chat isn't linked." } }, { status: 404 });
+      await onPhoto(b.chat_id, link.sellerId, Buffer.from(b.image_base64, "base64"), b.caption);
+      return Response.json({ ok: true });
+    }
     const [s] = await services().db.select().from(schema.sellers).where(eq(schema.sellers.handle, b.handle));
     if (!s) return Response.json({ error: { code: "NOT_FOUND", message: "No such seller." } }, { status: 404 });
     if (b.action === "sync_catalog") return Response.json(await resyncCatalog(s));

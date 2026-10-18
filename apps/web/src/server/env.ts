@@ -7,6 +7,8 @@ const Env = z.object({
   PAYPAL_CLIENT_ID: z.string().min(10),
   PAYPAL_CLIENT_SECRET: z.string().min(10),
   PAYPAL_WEBHOOK_ID: z.string().optional().default(""),
+  // Log in with PayPal (D-084) shows its button only once the sandbox app accepts our Return URL (OWNER-TODO #4).
+  PAYPAL_LIPP_ENABLED: z.enum(["0", "1"]).optional().default("0"),
   GEMINI_API_KEY: z.string().optional().default(""),
   GEMINI_MODEL: z.string().default("gemini-3.5-flash-lite"),
   GROQ_API_KEY: z.string().optional().default(""),

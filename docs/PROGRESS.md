@@ -61,3 +61,38 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/dashboard/`.
 - **Risks:** Community until the owner's `BOTH` key arrives (OWNER-TODO #1); with it, the guard switches Enterprise on by itself. AT-5 is re-run on the Builder tab in the final regression.
 - **Next:** #9.
+
+## #9: studio editor (2026-10-18)
+- **Done:** a step rail, a drop zone with real photos, AI markers and a legend, grouped fields, a must-confirm price block, a success panel, a sticky Publish on phones (D-090).
+- **Tests:** `studio-checks` 5/5 on Render (real Gemini draft from a fresh photo, AI markers, Publish locked until the price is confirmed, $0 refused, publish → live in the storefront and PayPal's catalog). The demo reset archived the test listing.
+- **Screenshots:** `docs/screenshots/studio/`.
+- **Risks:** the vision call takes about 5–10 s on the free tier; the rail shows progress meanwhile.
+- **Next:** #6.
+
+## #6: landing (2026-10-18)
+- **Done:** the owner's headline and CTAs, site nav, a 4-step strip from real listings, a developer MCP card, the honest-scope footer updated (D-090).
+- **Tests:** `landing-checks` 5/5 on Render (pitch, doors, strip photos, developer card + feed, nav + phone menu, no overflow at 3 sizes, after one fix for 38 px on mobile).
+- **Screenshots:** `docs/screenshots/landing/`.
+- **Risks:** the hero feed shows public events only, so a quiet sandbox shows older events.
+- **Next:** #7.
+
+## #7: live console (2026-10-18)
+- **Done:** a 24 h KPI strip counted live, group-by-checkout, site nav; shared timeline rows with ids behind Details, PayPal emphasis, relative time and per-system accents (D-090).
+- **Tests:** `live-checks` 5/5 on Render (KPIs from the DB, ids hidden until Details, a new public MCP call slides in and counts up, grouping + follow one checkout, no overflow).
+- **Screenshots:** `docs/screenshots/live/`.
+- **Risks:** none known.
+- **Next:** #11.
+
+## #11: mobile pass (2026-10-18)
+- **Done:** `/pay` padding, the sticky studio Publish, landing and chat grid tracks, the nav sheet menu, the live-wire sheet (D-090).
+- **Tests:** `mobile-checks` on Render: 13 routes × 360/390/430 = 39/39 with no sideways scroll (page and chat panel).
+- **Screenshots:** `docs/screenshots/mobile/` (every route at 390 px).
+- **Risks:** the M2 tap-target count is informational and over-counts id chips; the main actions (Ask, Pay, Publish, Buy) are 44 px.
+- **Next:** #5.
+
+## #5: hack card + 13 attacks, Phase 13 lite (2026-10-18)
+- **Done:** 13 real attacks in 6 families, including a forged PayPal webhook; checkouts counted in the DB; a proof-first card (D-091).
+- **Tests:** `hack-checks` 3/3 on Render.
+- **Screenshots:** `docs/screenshots/hack/`.
+- **Risks:** the hack route is rate-limited; repeated judge clicks may hit the limit (it answers 429 cleanly).
+- **Next:** #10.

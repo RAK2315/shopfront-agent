@@ -2,10 +2,12 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { ACTION_ID_RE, CHAT_ACTION_TTL_MS, checkChatAction, LINK_CODE_TTL_MS, newId, type ChatActionCheck, type ChatActionKind, type StartPayload } from "@shopfront/core";
 import { and, eq, gt, isNull, schema } from "@shopfront/db";
-import { env } from "./env";
+import { approveProduct } from "./catalog";
+import { appUrl, env } from "./env";
 import { recordEvent } from "./events";
 import { decideRefundAsSeller } from "./refunds";
 import { services } from "./services";
+import { addTracking, readLabel } from "./tracking";
 
 // Phase 10 backend (D-072, PLAN Phase 10): exactly-once updates, one-time linking, and the button-action executor.
 // The chat model never moves money (D-002): every catalog or money change is a tap on an action row made here by code.
@@ -38,7 +40,7 @@ export async function createLinkCode(sellerId: string, now = new Date()) {
 
 let username: string | null = null;
 /** The bot's @username from getMe (cached), so the deep link never hard-codes it. */
-async function botUsername(): Promise<string | null> {
+export async function botUsername(): Promise<string | null> {
   if (username) return username;
   if (!env().TELEGRAM_BOT_TOKEN) return null;
   const r = await fetch(`https://api.telegram.org/bot${env().TELEGRAM_BOT_TOKEN}/getMe`);
@@ -118,8 +120,34 @@ const HANDLERS: Partial<Record<ChatActionKind, Handler>> = {
     const r = await decideRefundAsSeller(sellerId, p.refundRequestId!, false);
     return { refundRequestId: p.refundRequestId, status: r.status };
   },
-  // confirm_price, publish and add_tracking are wired in the Phase 10 build (Oct 25–29) to the same server
-  // functions the web studio uses; until then a tap on one is refused as unavailable.
+  // Phase 10 (D-092): the same server functions the web Studio uses. The tap is the seller's confirmation of the price
+  // shown on the button; the handler reads that price from the draft row, never from the button.
+  publish: async (sellerId, p) => {
+    const { db } = services();
+    const [s] = await db.select().from(schema.sellers).where(eq(schema.sellers.id, sellerId));
+    const [prod] = await db.select().from(schema.products).where(and(eq(schema.products.id, p.productId!), eq(schema.products.sellerId, sellerId), eq(schema.products.status, "draft")));
+    if (!s || !prod) throw new Error("That draft is no longer waiting.");
+    const vars = await db.select().from(schema.variants).where(eq(schema.variants.productId, prod.id));
+    if (vars.some((v) => v.priceCents < 100)) throw new Error("Set a price first.");
+    const r = await approveProduct(s, prod.id, {
+      title: prod.title,
+      description: prod.description,
+      category: prod.category,
+      attributes: prod.attributes,
+      variants: vars.map((v) => ({ id: v.id, price_cents: v.priceCents, stock: Math.max(1, v.stock) })),
+      price_confirmed: true,
+    });
+    return { productId: prod.id, title: prod.title, url: appUrl(`/s/${s.handle}/${prod.id}`), catalogId: r.sync.catalogId ?? null };
+  },
+  add_tracking: async (sellerId, p) => {
+    const { db } = services();
+    const [s] = await db.select().from(schema.sellers).where(eq(schema.sellers.id, sellerId));
+    if (!s) throw new Error("Seller not found.");
+    const label = await readLabel(p.shipmentDraftId!, `tg:${sellerId}`);
+    if (!label.trackingNumber) throw new Error("The label has no readable tracking number.");
+    const ship = await addTracking(s, p.checkoutId!, { carrier: label.carrier, tracking_number: label.trackingNumber, source: "label_photo" });
+    return { checkoutId: p.checkoutId, carrier: label.carrier, trackingNumber: label.trackingNumber, shipment: ship };
+  },
 };
 
 export type TapResult = { ok: true; kind: ChatActionKind; result: Record<string, unknown> } | { ok: false; reason: Exclude<ChatActionCheck, { ok: true }>["reason"] | "unlinked" | "unavailable" | "failed"; message?: string };

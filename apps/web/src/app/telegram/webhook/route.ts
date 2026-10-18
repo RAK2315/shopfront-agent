@@ -1,34 +1,24 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
 import { after } from "next/server";
 import { ACTION_ID_RE, parseStart } from "@shopfront/core";
 import { env } from "@/server/env";
 import { claimUpdate, linkChat, linkedSeller, markUpdateProcessed, runChatAction, type TapResult } from "@/server/telegram";
+import { esc, send, tg } from "@/server/telegram-api";
+import { onMenuTap, onPhoto, onText, welcome } from "@/server/telegram-bot";
 
 export const dynamic = "force-dynamic";
 
-// Telegram webhook (PLAN Phase 10; replaces the Spike T route, D-076). Verified by Telegram's secret-token header,
-// deduped on update_id in the database, answered 200 at once (Render cold starts, D-076), work in after().
-// So far: linking (/start <code>, /start judge) and button taps through the action executor. The five seller jobs
-// (photo → listing, order pings, label → tracking, refund approval, questions) arrive in the Phase 10 build.
-// The file URL contains the bot token, so it is never logged or echoed.
+// Telegram webhook (Phase 10, D-082, D-092). Verified by Telegram's secret-token header, deduped on update_id in the
+// database, answered 200 at once (Render cold starts, D-076), work in after(). Linking, the five seller jobs (order
+// pings and refund approvals are pushed from the payment and refund paths), photo → listing, label → tracking,
+// questions, and judge mode. The file URL contains the bot token, so it is never logged or echoed.
 
 type TgPhoto = { file_id: string; file_size?: number; width: number; height: number };
 type Update = {
   update_id: number;
-  message?: { message_id: number; date: number; chat: { id: number }; text?: string; photo?: TgPhoto[] };
+  message?: { message_id: number; date: number; chat: { id: number }; text?: string; caption?: string; photo?: TgPhoto[] };
   callback_query?: { id: string; data?: string; message?: { message_id: number; chat: { id: number } } };
 };
-
-async function tg<T = unknown>(method: string, body: Record<string, unknown>): Promise<T> {
-  const r = await fetch(`https://api.telegram.org/bot${env().TELEGRAM_BOT_TOKEN}/${method}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const j = (await r.json()) as { ok: boolean; result?: T; description?: string };
-  if (!j.ok) throw new Error(`telegram ${method}: ${j.description ?? r.status}`);
-  return j.result as T;
-}
 
 function secretOk(req: Request) {
   const want = Buffer.from(env().TELEGRAM_WEBHOOK_SECRET);
@@ -36,7 +26,7 @@ function secretOk(req: Request) {
   return want.length > 0 && got.length === want.length && timingSafeEqual(got, want);
 }
 
-const NOT_LINKED = "This chat isn't linked to a shop yet. Open the Connect Telegram link in your Shopfront Studio, or the judge-mode link in the README.";
+const NOT_LINKED = "👋 This chat isn't linked to a shop yet.\nSellers: open <b>Connect Telegram</b> in your Shopfront Studio.\nJudges: use the judge-mode link in the README to try a practice shop.";
 
 const TAP_TEXT: Record<Exclude<TapResult, { ok: true }>["reason"], string> = {
   unknown: "That button isn't valid.",
@@ -45,9 +35,17 @@ const TAP_TEXT: Record<Exclude<TapResult, { ok: true }>["reason"], string> = {
   used: "Already done.",
   expired: "That button has expired.",
   unlinked: "Link this chat to your shop first.",
-  unavailable: "That action isn't available yet.",
+  unavailable: "That action isn't available.",
   failed: "That didn't go through. Nothing was changed by this tap.",
 };
+
+async function tapFollowUp(chatId: number, sellerId: string, r: Extract<TapResult, { ok: true }>) {
+  const x = r.result as Record<string, string | null | undefined>;
+  if (r.kind === "approve_refund") return send(chatId, x.status === "handoff" ? "✅ <b>Refund approved.</b> This shop is paid directly, so send it from your PayPal; I'll mark it done when PayPal confirms." : "✅ <b>Refund approved and sent.</b> PayPal returned the money to the buyer.", { sellerId, kind: "refund_done" });
+  if (r.kind === "decline_refund") return send(chatId, "Refund declined. The buyer's agent sees your decision on the order page.", { sellerId, kind: "refund_declined" });
+  if (r.kind === "publish") return send(chatId, `🎉 <b>${esc(x.title ?? "Your listing")} is live.</b>\nIn your storefront now, ${x.catalogId ? "mirrored to PayPal's catalog, " : ""}and AI shopping agents can find it over MCP.`, { sellerId, kind: "published", buttons: x.url ? [[{ text: "See it in your shop", url: x.url }]] : undefined });
+  if (r.kind === "add_tracking") return send(chatId, `🚚 <b>Tracking added:</b> ${esc(x.carrier ?? "")} ${esc(x.trackingNumber ?? "")}\nIt's on the PayPal order, and the buyer has a note on their order page.`, { sellerId, checkoutId: x.checkoutId ?? undefined, kind: "tracking_added" });
+}
 
 async function handle(u: Update) {
   if (u.message) {
@@ -56,40 +54,36 @@ async function handle(u: Update) {
     const link = await linkedSeller(chat_id);
     if (start && !(start.kind === "none" && link)) {
       const r = await linkChat(chat_id, start);
-      const text = r.ok
-        ? `Linked to ${r.displayName}${r.isDemo ? " (judge mode: an isolated demo shop, sandbox only)" : ""}. Order pings, refund approvals and photo listings will arrive here.`
-        : r.reason === "expired_or_used"
-          ? "That link has expired or was already used. Make a new one in your Studio."
-          : NOT_LINKED;
-      await tg("sendMessage", { chat_id, text });
-      return;
+      if (r.ok) return welcome(chat_id, r.sellerId);
+      return send(chat_id, r.reason === "expired_or_used" ? "That link has expired or was already used. Make a new one in your Studio." : NOT_LINKED, { kind: "link_failed" });
     }
-    if (!link) {
-      await tg("sendMessage", { chat_id, text: NOT_LINKED });
-      return;
-    }
+    if (!link) return send(chat_id, NOT_LINKED, { kind: "not_linked" });
     if (u.message.photo?.length) {
-      // Proven in Spike T: the photo is downloaded server-side. Listings from photos arrive in the Phase 10 build.
       const biggest = u.message.photo.reduce((a, b) => (b.width * b.height > a.width * a.height ? b : a));
       const file = await tg<{ file_path?: string }>("getFile", { file_id: biggest.file_id });
       const bytes = Buffer.from(await (await fetch(`https://api.telegram.org/file/bot${env().TELEGRAM_BOT_TOKEN}/${file.file_path}`)).arrayBuffer());
-      const sha = createHash("sha256").update(bytes).digest("hex");
-      await tg("sendMessage", { chat_id, text: `Got your photo (${biggest.width}×${biggest.height}, sha256 ${sha.slice(0, 12)}…). Listings from photos are coming soon.` });
-      return;
+      return onPhoto(chat_id, link.sellerId, bytes, u.message.caption);
     }
-    await tg("sendMessage", { chat_id, text: "Got it. Questions and listings from photos are coming soon; order pings and refund approvals will arrive here." });
-    return;
+    return onText(chat_id, link.sellerId, u.message.text ?? "");
   }
   if (u.callback_query) {
     const q = u.callback_query;
     const chatId = q.message?.chat.id;
     const data = q.data ?? "";
+    if (chatId !== undefined && data.startsWith("m:")) {
+      await tg("answerCallbackQuery", { callback_query_id: q.id }).catch(() => {});
+      const link = await linkedSeller(chatId);
+      if (!link) return send(chatId, NOT_LINKED, { kind: "not_linked" });
+      return onMenuTap(chatId, link.sellerId, data);
+    }
     const r: TapResult = chatId !== undefined && ACTION_ID_RE.test(data) ? await runChatAction(data, chatId) : { ok: false, reason: "unknown" };
-    await tg("answerCallbackQuery", { callback_query_id: q.id, text: r.ok ? "Done" : TAP_TEXT[r.reason] });
-    if (r.ok && q.message) {
-      const what = r.kind === "approve_refund" ? "Refund approved" : r.kind === "decline_refund" ? "Refund declined" : "Done";
-      await tg("editMessageReplyMarkup", { chat_id: q.message.chat.id, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } }).catch(() => {});
-      await tg("sendMessage", { chat_id: q.message.chat.id, text: `✓ ${what}` });
+    await tg("answerCallbackQuery", { callback_query_id: q.id, text: r.ok ? "Done" : TAP_TEXT[r.reason] }).catch(() => {});
+    if (r.ok && q.message && chatId !== undefined) {
+      await tg("editMessageReplyMarkup", { chat_id: chatId, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } }).catch(() => {});
+      const link = await linkedSeller(chatId);
+      if (link) await tapFollowUp(chatId, link.sellerId, r);
+    } else if (!r.ok && r.reason === "failed" && chatId !== undefined) {
+      await send(chatId, `⚠️ ${esc(r.message ?? TAP_TEXT.failed)}`, { kind: "tap_failed" });
     }
   }
 }

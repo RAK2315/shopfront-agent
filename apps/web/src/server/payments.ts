@@ -187,6 +187,8 @@ export async function settleFromOrder(
       summary: cap.status === "COMPLETED" ? `Payment captured — order marked PAID (via ${via === "poll" ? "fallback check" : "capture response"})` : `Capture ${cap.status.toLowerCase()}`,
       data: { orderId: order.id, captureId: cap.id, debugId: meta.debugId, paypalRequestId: meta.requestId, trigger: meta.trigger },
     });
+    // The seller copilot pings the seller's Telegram (Phase 10, D-092). Never blocks or fails the capture.
+    if (cap.status === "COMPLETED") void import("./telegram-bot").then((m) => m.pingOrderPaid(checkoutId)).catch((e) => console.error("[telegram] order ping failed", e instanceof Error ? e.message : e));
   }
   const [c] = await db.select({ status: schema.checkouts.status }).from(schema.checkouts).where(eq(schema.checkouts.id, checkoutId));
   return { ok: cap.status !== "DECLINED", status: c!.status as CheckoutStatus, captureId: cap.id, captureStatus: cap.status } as CaptureOutcome;

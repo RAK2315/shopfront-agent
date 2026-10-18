@@ -17,7 +17,7 @@ const RESULT: Record<string, { ok: boolean; text: string }> = {
  * "Get paid" (Phase 9 screens + Log in with PayPal, D-084, walkthrough #10). Where this shop's money goes, verified
  * by PayPal itself. Server component: the button is a plain link to our connect route (PayPal's own sign-in page).
  */
-export function GetPaidCard({ card, result }: { card: Card; result?: string }) {
+export function GetPaidCard({ card, result, connectEnabled }: { card: Card; result?: string; connectEnabled: boolean }) {
   const r = result ? RESULT[result] : undefined;
   const direct = card.status === "verified";
   const platform = card.status === "platform";
@@ -50,6 +50,7 @@ export function GetPaidCard({ card, result }: { card: Card; result?: string }) {
           )}
         </div>
       </div>
+      {connectEnabled ? (
       <a
         href="/api/seller/paypal/connect"
         className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-paypal px-4 text-base font-semibold text-white transition-colors hover:bg-paypal-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paypal-bright"
@@ -57,6 +58,11 @@ export function GetPaidCard({ card, result }: { card: Card; result?: string }) {
       >
         <LogIn aria-hidden className="size-4" /> {direct ? "Reconnect PayPal" : platform ? "Try Log in with PayPal" : "Connect with PayPal"}
       </a>
+      ) : (
+        <p className="max-w-[16rem] text-xs text-muted" data-testid="connect-pending">
+          Connecting a PayPal account uses Log in with PayPal, which is being switched on for this sandbox app.
+        </p>
+      )}
     </section>
   );
 }

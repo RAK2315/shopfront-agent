@@ -5,9 +5,11 @@ import { eq, schema } from "@shopfront/db";
 import { SellerSignIn } from "@/components/studio/sign-in";
 import { Studio } from "@/components/studio/studio";
 import { GetPaidCard } from "@/components/studio/get-paid-card";
+import { TelegramCard } from "@/components/studio/telegram-card";
+import { botUsername } from "@/server/telegram";
 import { payoutCard } from "@/server/paypal-connect";
 import { sellerProducts } from "@/server/catalog";
-import { appUrl } from "@/server/env";
+import { appUrl, env } from "@/server/env";
 import { currentSeller, DEMO_SELLER_HANDLES } from "@/server/seller-session";
 import { services } from "@/server/services";
 
@@ -36,7 +38,7 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
     );
   }
 
-  const [drafts, live, card] = await Promise.all([sellerProducts(seller.id, ["draft"]), sellerProducts(seller.id, ["approved"]), payoutCard(seller.id)]);
+  const [drafts, live, card, bot] = await Promise.all([sellerProducts(seller.id, ["draft"]), sellerProducts(seller.id, ["approved"]), payoutCard(seller.id), botUsername().catch(() => null)]);
   const result = (await searchParams).paypal;
   return (
     <main className="mx-auto grid min-h-dvh max-w-[76rem] content-start gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
@@ -50,7 +52,8 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
         </div>
         <SellerNav handle={seller.handle} current="studio" />
       </header>
-      {card && <GetPaidCard card={card} result={typeof result === "string" ? result : undefined} />}
+      {card && <GetPaidCard card={card} result={typeof result === "string" ? result : undefined} connectEnabled={env().PAYPAL_LIPP_ENABLED === "1"} />}
+      <TelegramCard judgeLink={bot ? `https://t.me/${bot}?start=judge` : null} />
       <Studio seller={{ handle: seller.handle, displayName: seller.displayName }} initialDrafts={drafts} initialLive={live} mcpUrl={appUrl("/mcp")} />
     </main>
   );
