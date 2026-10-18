@@ -43,10 +43,12 @@
     "fixes3-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/fixes3-checks.mts",
     "lipp-probe": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/lipp-probe.mts",
     "reconcile": "node --env-file-if-exists=../../.env --import tsx scripts/reconcile.mts",
-    "reconcile-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/reconcile-checks.mts"
+    "reconcile-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/reconcile-checks.mts",
+    "spike-c": "node --env-file-if-exists=../../.env --import tsx scripts/spike-c.mts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
+    "@paypal/agentic-commerce-spec": "1.1.0",
     "@shopfront/core": "workspace:*",
     "@shopfront/db": "workspace:*",
     "@shopfront/llm": "workspace:*",

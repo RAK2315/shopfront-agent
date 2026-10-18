@@ -1589,6 +1589,31 @@
 - **Serves:** P8 (agentic commerce), P7, J1, J3, J4, the AG Grid partner prize, G1, R2.
 ---
 
+## D-098: Spike C verdict: Go. Capture-on-ship works for both seller kinds; a direct-paid shop's pre-ship cancel is a seller handoff (2026-10-18)
+- **Method:** `pnpm --filter web spike-c`, with real sandbox calls, a real buyer approval (headless) and a `PayPal-Request-Id` on every POST. Results in `docs/screenshots/spike-c/`.
+
+| # | Check | Result | Debug id |
+|---|---|---|---|
+| C1 | A cart in PayPal's own Cart API v1 Zod (`@paypal/agentic-commerce-spec` 1.1.0): writable cart, response with `validation_issues` + `resolution_options` | Pass. **An agent-sent `items[].price` is valid in the schema**, so the server must ignore it (D-002) | — |
+| C2 | Store-bound RS256 JWT with `node:crypto` (no dependency): right store ok; other store, expired and tampered all refused; public key exports as a JWK | Pass | — |
+| C3 | Platform-paid: order `intent: AUTHORIZE` → buyer approves → `/authorize` (authorization `59P15908SF045500V`, valid until Nov 16) → later `/v2/payments/authorizations/{id}/capture` → refund | **Pass:** capture `9Y508584GP8179434` COMPLETED, refunded 201 | `f504225776b7c`, `f6700303bec0f`, `f348795c49ca8` |
+| C4 | Platform-paid: authorize → void | **Pass:** 200, VOIDED | `f82766947ac76` |
+| C5 | Direct-paid (payee = seller 2, `B83JSV9ELHV74`): authorize → capture on ship | **Pass:** capture `6H110925U9603183E` COMPLETED, payee seller 2. Our refund → **403 PERMISSION_DENIED**, as in D-076 | `f147239fe3e06`, `f9629400fb539`, `f573167508aec` |
+| C6 | Direct-paid: authorize → void | **Fail: 403 NOT_AUTHORIZED / PERMISSION_DENIED**; the authorization stays CREATED | `ca4c8d787890d` |
+
+- **Decision:**
+  - **Cart API checkouts authorize at checkout and capture when the seller ships** (adds tracking), for both seller kinds.
+  - **Cancel before shipping:**
+    - Platform-paid: the app voids the authorization.
+    - Direct-paid: PayPal refuses our void (C6), so it's a **seller handoff**, like refunds (D-083). The seller voids the hold in their own PayPal, and we track it by GET and webhook. If nobody acts, the hold lapses at PayPal's expiry (29 days); no money moves.
+  - **Honor period:** PayPal honors an authorization for 3 days. The seller is reminded to ship before then (dashboard and Telegram). A capture after day 3 is attempted once; if PayPal refuses it, the buyer gets a new approval link. This is stated in the README.
+  - The existing MCP / `/shop` flow keeps `intent: CAPTURE`. Only the Cart API path authorizes, because Store Sync carts are the place where ship-then-charge matters.
+- **Books:**
+  - The spike's two captures have no Shopfront order, by design. They join the reconciliation's explained list: `9Y508584GP8179434` (refunded) and `6H110925U9603183E` (in seller 2's sandbox balance; our app can't refund it).
+  - The voided and pending authorizations moved no money.
+- **Serves:** P8, J1, R2, D-002, D-083, D-095.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

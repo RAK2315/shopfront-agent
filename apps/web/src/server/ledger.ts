@@ -29,6 +29,8 @@ const DAY_MS = 86_400_000;
 /** Captures with no order in our DB by design, each with the decision that explains it. Shown, never hidden. */
 export const EXPLAINED_CAPTURES: Record<string, string> = {
   "3G13556369039540R": "Payee-routing spike run outside the app (D-076): a $37 order created directly at PayPal to prove a capture lands in seller 2's PayPal.",
+  "9Y508584GP8179434": "Spike C (D-098): a $12 authorize → capture-on-ship test on the platform account, created directly at PayPal and refunded.",
+  "6H110925U9603183E": "Spike C (D-098): a $12 authorize → capture-on-ship test paid to seller 2; our app may not refund another seller's capture (D-076).",
 };
 
 export type Trigger = "boot" | "daily" | "dashboard" | "script" | "webhook";

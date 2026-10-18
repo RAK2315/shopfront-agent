@@ -1,0 +1,85 @@
+[
+  {
+    "id": "C1 Cart API v1 schema (PayPal's own Zod)",
+    "ok": true,
+    "detail": {
+      "writable": true,
+      "agentPriceAccepted": true,
+      "responseShape": true,
+      "note": "an agent-sent item price is valid in the schema, so the server must ignore it (D-002)"
+    }
+  },
+  {
+    "id": "C2 store-bound RS256 JWT",
+    "ok": true,
+    "detail": {
+      "right": "ok",
+      "otherStore": "wrong_store",
+      "expired": "expired",
+      "tampered": "bad_signature",
+      "jwkKty": "RSA"
+    }
+  },
+  {
+    "id": "C3 platform: authorize at checkout → capture on ship",
+    "ok": true,
+    "detail": {
+      "order": "1SL069985E831184K",
+      "authorize": "201 CREATED",
+      "authDebug": "f504225776b7c",
+      "authorizationId": "59P15908SF045500V",
+      "expires": "2026-11-16T16:14:14Z",
+      "payee": "DY7U9FZDLKJRE",
+      "getAuthorization": "200 CREATED",
+      "captureOnShip": "201 COMPLETED",
+      "captureDebug": "f6700303bec0f",
+      "captureId": "9Y508584GP8179434",
+      "refundByApp": "201 COMPLETED",
+      "refundDebug": "f348795c49ca8"
+    }
+  },
+  {
+    "id": "C4 platform: authorize → void before shipping",
+    "ok": true,
+    "detail": {
+      "order": "8AY90517DK407572G",
+      "authorize": "201 CREATED",
+      "authorizationId": "5CB81642V50076159",
+      "payee": "DY7U9FZDLKJRE",
+      "void": "200",
+      "voidDebug": "f82766947ac76",
+      "after": "VOIDED"
+    }
+  },
+  {
+    "id": "C5 direct: authorize at checkout → capture on ship",
+    "ok": true,
+    "detail": {
+      "order": "13566303VP262932B",
+      "authorize": "201 CREATED",
+      "authDebug": "f147239fe3e06",
+      "authorizationId": "77A621029P594713Y",
+      "expires": "2026-11-16T16:15:04Z",
+      "payee": "B83JSV9ELHV74",
+      "getAuthorization": "200 CREATED",
+      "captureOnShip": "201 COMPLETED",
+      "captureDebug": "f9629400fb539",
+      "captureId": "6H110925U9603183E",
+      "refundByApp": "403 NOT_AUTHORIZED PERMISSION_DENIED",
+      "refundDebug": "f573167508aec"
+    }
+  },
+  {
+    "id": "C6 direct: authorize → void before shipping",
+    "ok": false,
+    "detail": {
+      "order": "5CM12921R1667604R",
+      "authorize": "201 CREATED",
+      "authorizationId": "2KX9926004503825H",
+      "payee": "B83JSV9ELHV74",
+      "void": "403 NOT_AUTHORIZED PERMISSION_DENIED",
+      "voidDebug": "ca4c8d787890d",
+      "after": "CREATED"
+    }
+  }
+]
