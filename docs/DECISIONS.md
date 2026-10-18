@@ -92,6 +92,7 @@
 | D-081 | 2026-10-18 | Webhook recovery: 503 on a verify outage, a boot and fallback sweep, `capture-<id>-<n>` after a decline; `/mcp` names the agent from headers; migration 0010 (Phase 9 → 0011) | ACCEPTED | G7, G9, J1 |
 | D-082 | 2026-10-18 | Phase 10 backend: telegram_updates dedupe, single-use link codes (owner token for the public demo seller), the action executor, judge_demo seeded and isolated | ACCEPTED | J1, J3, J4, P7, P8 |
 | D-083 | 2026-10-18 | Phase 9 backend (Partial): payee routing per seller (refused when not ready), first-capture verification, refund handoff status with the PayPal deep link, seller refunds reconciled from webhook or GET fallback | ACCEPTED | J1, J3, G1, R2 |
+| D-084 | 2026-10-18 | Log in with PayPal planned for the "Get paid" card (verify at connect, block unverified payees); Fern's $50 auto-refund limit kept; deletions only through `scripts/safe-rm.mjs` | ACCEPTED (plan; LIPP build waits for approval) | J1, J3, G1 |
 
 ---
 
@@ -1168,6 +1169,28 @@
   - **The insights answer's source labels are now written by code:** each tool returns a `summary_line` starting with `[db]` or `[paypal]`, and the agent quotes it. AT-5 #4 had failed when the model wrote "DB:" / "PayPal:" with correct figures. A REVIEW-1 #6 item, done early.
   - **`/pay` on mobile scrolls 29 px sideways**: the PayPal card and the test-buyer email chip. It's older than today and left for the UI review (no UI in Part 1).
 - **Serves:** J1, J3, G1, G9 (#04), R2, R5, D-002, D-006, D-076.
+
+---
+
+## D-084: Log in with PayPal plan, the $50 limit, and safe-rm (2026-10-18; owner message before "start review")
+
+- **Owner:** "Log in with PayPal" is enabled on the sandbox app with the Email and PayPal account ID scopes. Invoicing is enabled too (unused).
+- **Plan, not built.** It waits for approval with the walkthrough fix list. It changes D-083 like this:
+  - **Connect:** the "Get paid" card's button goes to `https://www.sandbox.paypal.com/signin/authorize` with our client id, `response_type=code`, `scope=openid email https://uri.paypal.com/services/paypalattributes`, a signed single-use `state` (the seller id and a nonce, 10-minute expiry) and `redirect_uri` = the return URL below.
+  - **Return** (`GET /api/seller/paypal/return`): check `state`, swap the code server-side for a token (`POST /v1/oauth2/token`, `grant_type=authorization_code`, our client id and secret in Basic auth), then read `GET /v1/identity/oauth2/userinfo?schema=paypalv1.1`. Store the `payer_id` (the account's merchant id) and the email. The seller becomes `verified` right away, `payout_verified_at` = now, and the event "Seller's PayPal verified by Log in with PayPal". The user token is used once and never stored.
+  - **Blocking:** `payeeRoute` routes only `verified` sellers, by `merchant_id`. `unverified` becomes `not_ready`, so `SELLER_NOT_READY` is refused before any order is created. This closes the D-083 finding (PayPal accepts a non-account payee email). Typing an email or merchant id stops being a way to get paid; the admin `set_payout` stays for ATs only.
+  - The first-capture check stays as a mismatch alarm (PLAN 9.2).
+  - PayPal shapes (the authorize parameters, the `userinfo` fields, whether a business account's `payer_id` equals the merchant id the capture returns) will be checked against current docs and the toolkit before coding (CLAUDE.md). The AT also compares the `userinfo` `payer_id` with seller 2's known merchant `B83JSV9ELHV74`.
+- **Return URL for the Developer Dashboard** (sandbox app → Log in with PayPal → Return URL): `https://shopfront-agent.onrender.com/api/seller/paypal/return`. Only for local testing, if the dashboard accepts it: `http://localhost:3000/api/seller/paypal/return`. The ATs run on Render, so the localhost one is optional.
+- **Estimate:** about 0.5 day: the route, the state signing, the `payeeRoute` change and tests, and an AT with seller 2. The card's UI is separate (the "Get paid" card is already in the UI list).
+- **Owner: keep the $50 auto-refund limit** for `fern_and_loom` (D-083 question closed).
+- **Deletions (owner rule, after two path-echo slips in part 6):**
+  - Raw `rm` is retired. Use `node scripts/safe-rm.mjs [-r] <path…>` (or `pnpm safe-rm`).
+  - It prints each resolved absolute path first and refuses: anything outside the repo; the repo root; `.git`; a missing path; a directory without `-r`.
+  - If any path is refused, nothing is deleted.
+  - Tested by hand (outside, root, `.git`, a directory without `-r`, a mix of good and bad paths, a missing path, from a subfolder through pnpm, and `-r`).
+  - Added to CLAUDE.md's working style.
+- **Serves:** J1, J3, G1, D-076, D-083.
 
 ---
 

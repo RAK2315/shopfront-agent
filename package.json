@@ -16,7 +16,8 @@
     "test:policy-coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.include=packages/core/src/refund-policy.ts --coverage.reporter=text-summary --coverage.thresholds.branches=100 packages/core/src/refund-policy.test.ts",
     "typecheck": "pnpm -r --parallel typecheck",
     "lint": "pnpm --filter web lint",
-    "paypal:toolkit-token": "node scripts/refresh-paypal-ai-toolkit-token.mjs"
+    "paypal:toolkit-token": "node scripts/refresh-paypal-ai-toolkit-token.mjs",
+    "safe-rm": "node scripts/safe-rm.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
