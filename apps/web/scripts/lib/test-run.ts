@@ -41,6 +41,9 @@ async function mark(ctx: BrowserContext) {
 
 const realLaunch = chromium.launch.bind(chromium);
 chromium.launch = (async (...a: Parameters<typeof chromium.launch>) => {
+  // AT_HEADLESS=1: run every suite on the headless shell (when this machine has no interactive desktop, a headed or
+  // channel:"chromium" launch fails with "spawn UNKNOWN"). PayPal's sandbox login works headless as of 2026-10-18.
+  if (process.env.AT_HEADLESS === "1") a = [{ ...(a[0] ?? {}), headless: true, channel: undefined }] as Parameters<typeof chromium.launch>;
   const browser: Browser = await realLaunch(...a);
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async (...o: Parameters<Browser["newContext"]>) => mark(await newContext(...o));

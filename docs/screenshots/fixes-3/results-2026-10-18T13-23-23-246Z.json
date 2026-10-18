@@ -1,0 +1,14 @@
+[
+  {
+    "id": "X4 'Simulate a refund' still works after a service restart",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_cc5gbma9452n",
+      "botSaid": "↩️ Refund request · $37.00\n1 × Practice copper-red cup\nReason: damaged · “It arrived with a chipped rim (practice refund",
+      "refundRequest": {
+        "status": "pending",
+        "decision": "needs_seller"
+      }
+    }
+  }
+]

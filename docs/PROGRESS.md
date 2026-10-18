@@ -157,3 +157,12 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
   - Log in with PayPal is still rejected by PayPal (OWNER-TODO #4), so `connect-checks` C2–C6 haven't run.
   - The PayPal sandbox's login flakes now and then; the ATs retry it.
 - **Next:** the owner's Log in with PayPal setting, then `connect-checks` in full. After that, the video and the submission.
+
+## Owner evening fixes (2026-10-18, D-094)
+- **Done:**
+  - `/privacy` and `/terms`; demo stock auto-restock; judge "Simulate a refund" survives restarts; the site nav on Studio; account verification status as a Log in with PayPal signal.
+  - Fixed on the way: the restock SQL and a capture guard (a captured order can no longer be cancelled as sold out).
+- **Tests:** `fixes3-checks` X1–X4 on Render, with X4 proving a fresh process via `booted_at`. Regression: approval 6/6, shop 4/4, phase4 7/7 (headless, `AT_HEADLESS=1`).
+- **Screenshots:** `docs/screenshots/fixes-3/`.
+- **Risks:** two orphaned sandbox captures from the bug window (owner's call). Visible browsers can't open on this machine right now; headless works.
+- **Next:** Log in with PayPal after 21:20 IST (3 h after the owner's save), then review v2 on "start review v2".

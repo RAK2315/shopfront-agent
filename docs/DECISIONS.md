@@ -102,6 +102,7 @@
 | D-091 | 2026-10-18 | Phase 13 lite: 13 real attacks with a proof-first hack card; checkouts counted in the DB | ACCEPTED | J3, G1, R2 |
 | D-092 | 2026-10-18 | Phase 9 screens + Log in with PayPal (built; button gated until PayPal accepts the Return URL) and the full Phase 10 Telegram copilot incl. judge mode | ACCEPTED | J1, J3, J4, G1, P7 |
 | D-093 | 2026-10-18 | Final regression findings: an accessibility regression fixed; five older ATs updated to the behaviour decided in D-086/D-087/D-091; phase9-checks superseded; Log in with PayPal still rejected by PayPal | ACCEPTED | J1, J2, G1 |
+| D-094 | 2026-10-18 | Owner evening list: /privacy and /terms, demo stock never runs out, judge refunds survive restarts, site nav on Studio, account verification status as a Log in with PayPal signal; plus two bugs found by the new AT (restock SQL, a capture guard) | ACCEPTED | J1, J2, G1 |
 
 ---
 
@@ -1458,6 +1459,36 @@
   - So the app's Log in with PayPal setting isn't active for this client id at PayPal (OWNER-TODO #4 has what to check).
   - `connect-checks --skip-lipp` runs C1 and the new C7: **a real Fern & Loom order paid by the sandbox buyer lands in seller 2's PayPal** (capture payee `B83JSV9ELHV74`). Fern & Loom never lost its verified status.
 - **Serves:** J1, J2, G1, D-084, D-086, D-087, D-091.
+
+---
+
+## D-094: Owner's evening fixes, and two bugs the new AT found (2026-10-18)
+
+- **Owner (18:20 IST):** the Log in with PayPal Return URL was a placeholder (`nativexo://paypalpay`). It's now our URL, with the Email, payer ID and account verification status scopes, a privacy URL and a user agreement URL. PayPal says it can take up to 3 hours to apply.
+- **Built:**
+  - **`/privacy` and `/terms`:** short and plain, with sandbox-demo wording. PayPal's consent page links to them; so does the landing footer.
+  - **Demo stock never runs out:**
+    - a demo variant (Juniper Clay, Fern & Loom, the judge shop, or any `test_only` seller) that sells down to 0 is set back to 20 in the same capture step;
+    - the demo reset leaves every demo listing at 20 or more;
+    - a real seller's stock is never touched.
+  - **"Simulate a refund" survives restarts:**
+    - "Simulate a buyer" always sends a `client_request_id`, so the buyer's order token can be re-derived server-side (`tokens.ts`). It's never stored;
+    - it works only for practice orders this bot created on the `test_only` shop;
+    - the in-memory map is gone.
+  - **Site nav on every Studio page** (Listings, Orders, the dashboard's Overview and Builder, and the sign-in page).
+  - **Account verification status as an extra signal:** if PayPal reports `verified_account: false`, the seller stays `unverified` and isn't paid; the card says why. If the status isn't shared, it's allowed.
+- **Bugs found by `fixes3-checks` X3, fixed the same evening:**
+  1. **The restock SQL used `= any(${array})`.** Drizzle expands a JS array into `$1, $2, $3`, so the statement threw in the middle of `recordCapture`, after PayPal had captured. `/pay/return` answered 500, and the webhook path then saw our own stock decrement as "sold out" and cancelled the order. Now the constants are an `IN (…)` list.
+  2. **The underlying gap (older than today):** a checkout with a capture already on record could still be cancelled by the "sold out before payment" check. Now an existing capture is settled from PayPal's order and never cancelled.
+  - **Two sandbox captures were orphaned** while bug 1 was live: `chk_sewtsaj30hts` (`4PS80372PS203812S`) and `chk_0prkr6zvb6y8` (`93897555YJ175420Y`), $33 each, test-flagged, cancelled in our DB but captured at PayPal. Left as they are pending the owner's call (refund them in the sandbox, or leave them).
+- **Testing on this machine:**
+  - The desktop session stopped allowing visible browsers ("spawn UNKNOWN").
+  - `AT_HEADLESS=1` in the shared preload runs every suite on the headless shell, and PayPal's sandbox login works headless now.
+  - `/api/health` reports `booted_at`, so X4 proves a fresh process answered (13:23:18 vs 13:19:14).
+- **ATs on Render:**
+  - `fixes3-checks` X1 /privacy + /terms, X2 the nav on 4 Studio pages, X3 restock (20 straight after a sale to 0; 0 rows under 20 after the reset), X4 a refund after a proven restart: all pass.
+  - Regression after the capture guard: approval 6/6, shop 4/4, phase4 7/7.
+- **Serves:** J1, J2, G1, D-009, D-073, D-084.
 
 ---
 
