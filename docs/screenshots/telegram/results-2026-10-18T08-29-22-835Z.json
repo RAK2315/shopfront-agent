@@ -1,0 +1,34 @@
+[
+  {
+    "id": "F1 /start judge → practice shop + welcome card",
+    "ok": true,
+    "detail": {
+      "link": {
+        "handle": "judge_demo",
+        "is_demo": true
+      },
+      "buttons": [
+        "🛍️ Orders",
+        "↩️ Pending refunds",
+        "🏪 Shop status",
+        "📊 Sales this week",
+        "🧪 Simulate a buyer"
+      ],
+      "text": "🧺 Connected to Judge's Demo Studio\nI'm this seller's copilot. I handle the shop's chores here in Telegram; anything that moves money waits "
+    }
+  },
+  {
+    "id": "F2 menus answer from the database",
+    "ok": true,
+    "detail": {
+      "status": "🏪 Judge's Demo Studio\n2 live listings · 0 drafts\n🏦 Paid into the Shopfront sandbox account (demo s",
+      "sales": "📊 Sales · last 7 days\n[db] $0.00 revenue from 0 orders; 0 refunds ($0.00).\n[db] is live; [paypal] can lag about 3 hours",
+      "orders": "No orders yet. Tap Simulate a buyer to place one."
+    }
+  },
+  {
+    "id": "run",
+    "ok": false,
+    "detail": "locator.click: Timeout 30000ms exceeded."
+  }
+]

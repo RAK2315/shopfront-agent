@@ -21,6 +21,13 @@ import pg from "pg";
 import { createPayPalApi, PayPalClient } from "@shopfront/paypal";
 import { loginAndApprove } from "./lib/paypal-popup.js";
 
+// D-084 (2026-10-18): only verified payees are routed, so P1c/P2's "unverified email, verified by the first capture"
+// path is refused by design, and P1 would leave fern_and_loom unable to sell. Superseded by connect-checks (Log in with
+// PayPal). Run only with --legacy-unverified-routing on a throwaway seller.
+if (!process.argv.includes("--legacy-unverified-routing")) {
+  console.error("phase9-checks is superseded by connect-checks since D-084 (it would unverify fern_and_loom). Not run.");
+  process.exit(2);
+}
 const args = process.argv.slice(2).filter((a) => a !== "--");
 const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const base = (arg("--base") ?? "").replace(/\/$/, "");

@@ -110,3 +110,23 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/connect/` (C1, and PayPal's error page as evidence).
 - **Risks:** until the Return URL is accepted the connect button is hidden (`PAYPAL_LIPP_ENABLED=0`) and verification falls back to the first payment (D-083). A PayPal-side configuration, not code.
 - **Next:** #8 + Phase 10.
+
+## #8 + Phase 10: the Telegram seller copilot (2026-10-18)
+- **Done:**
+  - A welcome card and menus from the DB, order pings with the photo, refund approvals by tap.
+  - Photo → AI draft → Publish tap; label photo → tracking → Add tracking tap; sales questions.
+  - Judge mode with Simulate a buyer / Simulate a refund; every bot message logged; a Studio card with the judge link (D-092).
+- **Tests on Render:**
+  - `telegram-flow-checks` 7/7. F3: the simulated buyer paid in PayPal → order ping. F4: refund by tap, PayPal `7TR76520BV342860X`. F5: draft → "Publish at $35.00" → live + catalog. F6: label read USPS `9400111899225853210512` → tracker on the PayPal order. F7: guardrails.
+  - `telegram-checks` 6/6 as a regression.
+  - The first F3 run failed on a sandbox login timeout, then passed on the re-run.
+- **Screenshots:** `docs/screenshots/telegram/` (bot transcripts as JSON; a made-up chat can't be screenshotted, so the real chat goes in the video).
+- **Risks:** "Simulate a refund" needs the order made in the same server session (the token is kept in memory); after a restart the bot says so.
+- **Next:** #13 README, #14 the final regression.
+
+## #13: README final pass (2026-10-18)
+- **Done:** the judge 5-minute path (shop, hack, seller, Telegram, live); how each judging criterion is met, including AG Grid; the what's-real table with links to proof; tools used; updated honest limitations; credits.
+- **Tests:** a fresh clone of `8235319` from the README: `pnpm install --frozen-lockfile`, typecheck, 176 unit tests, `pnpm build` and `pnpm start` all pass (`/api/health` ok, `/shop` 200).
+- **Screenshots:** —
+- **Risks:** the README claims Log in with PayPal is "switching on"; update it once OWNER-TODO #4 is done.
+- **Next:** #14.

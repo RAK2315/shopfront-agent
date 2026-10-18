@@ -72,10 +72,16 @@ async function buyAndPay(): Promise<string> {
   const href = (data as { links?: Array<{ rel: string; href: string }> }).links!.find((l) => l.rel === "payer-action")!.href;
   const browser = await chromium.launch({ headless: false, channel: "chromium" });
   const page = await (await browser.newContext()).newPage();
-  await page.goto(href, { waitUntil: "domcontentloaded" });
-  await loginAndApprove(page, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
-  await page.waitForURL(/\/pay\/chk_/, { timeout: 90_000 });
-  await browser.close();
+  try {
+    await page.goto(href, { waitUntil: "domcontentloaded" });
+    await loginAndApprove(page, { email: e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER_PASSWORD });
+    await page.waitForURL(/\/pay\/chk_/, { timeout: 90_000 });
+  } catch (err) {
+    await page.screenshot({ path: join(out, `_error-paypal-${ck}.png`) }).catch(() => {});
+    throw err;
+  } finally {
+    await browser.close();
+  }
   return ck;
 }
 
