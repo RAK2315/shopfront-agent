@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
-import type { ConsoleCheckout } from "@/server/console";
+import { Bot, Cable, CreditCard, Layers, ShieldCheck, X } from "lucide-react";
+import type { ConsoleCheckout, LiveStats } from "@/server/console";
 import type { ShopEvent } from "@/server/events";
 import { ConfirmationBadge } from "@/components/console/confirmation-badge";
 import { toTimelineItem } from "@/components/console/event-item";
@@ -28,7 +28,47 @@ function ago(iso: string, now: number) {
  * The live console: the SSE timeline (every agent → MCP → PayPal → webhook step) beside recent checkouts.
  * Server-rendered with the latest events, then follows /api/events; EventSource resumes with Last-Event-ID.
  */
-export function LiveWire({ initialEvents, initialCheckouts, after: start }: { initialEvents: ShopEvent[]; initialCheckouts: ConsoleCheckout[]; after?: number }) {
+/** The KPI strip (walkthrough #7): 24 hours from the database, then counted up live as events arrive. */
+function StatStrip({ stats }: { stats: LiveStats }) {
+  const cells = [
+    { id: "agent", label: "Agent steps", value: stats.agentSteps, icon: Bot, tone: "text-clay" },
+    { id: "mcp", label: "MCP calls", value: stats.mcpCalls, icon: Cable, tone: "text-ink-2" },
+    { id: "payments", label: "Payments captured", value: stats.payments, icon: CreditCard, tone: "text-paypal" },
+    { id: "blocked", label: "Attacks blocked", value: stats.blocked, icon: ShieldCheck, tone: "text-success" },
+  ];
+  return (
+    <ul className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Last 24 hours" data-testid="live-stats">
+      {cells.map((c) => (
+        <li key={c.id} className="flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3" data-testid={`live-stat-${c.id}`}>
+          <span className="grid size-9 shrink-0 place-items-center rounded-md bg-surface-2" aria-hidden>
+            <c.icon className={cn("size-4", c.tone)} />
+          </span>
+          <span className="grid min-w-0">
+            <span className="font-display text-2xl font-semibold tabular leading-7" data-testid={`live-stat-${c.id}-value`}>
+              {c.value}
+            </span>
+            <span className="truncate text-xs text-ink-2">{c.label} · 24 h</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function bump(stats: LiveStats, e: ShopEvent): LiveStats {
+  const d = (e.data ?? {}) as { errorCode?: string };
+  return {
+    ...stats,
+    agentSteps: stats.agentSteps + (e.actor === "buyer_agent" || e.actor === "ops_agent" ? 1 : 0),
+    mcpCalls: stats.mcpCalls + (e.actor === "mcp" && e.kind !== "tool_error" ? 1 : 0),
+    payments: stats.payments + (e.kind === "captured" ? 1 : 0),
+    blocked: stats.blocked + ((e.kind === "tool_error" && d.errorCode === "VALIDATION_ERROR") || e.kind === "webhook_rejected" ? 1 : 0),
+  };
+}
+
+export function LiveWire({ initialEvents, initialCheckouts, initialStats, after: start }: { initialEvents: ShopEvent[]; initialCheckouts: ConsoleCheckout[]; initialStats: LiveStats; after?: number }) {
+  const [stats, setStats] = useState(initialStats);
+  const [grouped, setGrouped] = useState(false);
   const [events, setEvents] = useState<ShopEvent[]>(() => [...initialEvents].sort((a, b) => b.id - a.id));
   const [checkouts, setCheckouts] = useState(initialCheckouts);
   const [wire, setWire] = useState<WireState>("connecting");
@@ -55,7 +95,11 @@ export function LiveWire({ initialEvents, initialCheckouts, after: start }: { in
     es.onerror = () => setWire(es.readyState === EventSource.CLOSED ? "paused" : "reconnecting");
     es.addEventListener("shop", (msg) => {
       const ev = JSON.parse((msg as MessageEvent<string>).data) as ShopEvent;
-      setEvents((prev) => (prev.some((p) => p.id === ev.id) ? prev : [ev, ...prev].slice(0, MAX_EVENTS)));
+      setEvents((prev) => {
+        if (prev.some((p) => p.id === ev.id)) return prev;
+        setStats((s) => bump(s, ev));
+        return [ev, ...prev].slice(0, MAX_EVENTS);
+      });
       if (ev.checkoutId) refetchCheckouts();
     });
     return () => es.close();
@@ -70,22 +114,58 @@ export function LiveWire({ initialEvents, initialCheckouts, after: start }: { in
     };
   }, []);
 
-  const items = useMemo(
-    () => events.filter((e) => !selected || e.checkoutId === selected).map(toTimelineItem),
-    [events, selected],
-  );
+  const items = useMemo(() => {
+    const list = events.filter((e) => !selected || e.checkoutId === selected);
+    if (!grouped || selected) return list.map(toTimelineItem);
+    // Group by checkout: each checkout's events together (newest activity first), other activity last.
+    const order: string[] = [];
+    const by = new Map<string, ShopEvent[]>();
+    for (const e of list) {
+      const k = e.checkoutId ?? "~other";
+      if (!by.has(k)) {
+        by.set(k, []);
+        order.push(k);
+      }
+      by.get(k)!.push(e);
+    }
+    order.sort((a, b) => (a === "~other" ? 1 : b === "~other" ? -1 : 0));
+    return order.flatMap((k) =>
+      by.get(k)!.map((e, i) => {
+        const it = toTimelineItem(e);
+        if (i !== 0) return it;
+        const c = checkouts.find((x) => x.id === k);
+        const head = k === "~other" ? "Other activity" : `${c?.items || "Checkout"} · ${k}${c ? ` · ${c.status.replace(/_/g, " ")}` : ""}`;
+        return { ...it, group: head };
+      }),
+    );
+  }, [events, selected, grouped, checkouts]);
 
   return (
+    <div className="grid gap-4">
+    <StatStrip stats={stats} />
     <div className="grid min-h-0 grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
       <Timeline
         items={items}
         state={wire}
-        title={selected ? "Timeline for one checkout" : "Live timeline"}
+        title={selected ? "Timeline for one checkout" : grouped ? "Live timeline · by checkout" : "Live timeline"}
         emptyText={selected ? "No events for this checkout yet." : "Waiting for the first agent call. Point any MCP client at /mcp."}
         className="max-h-[75dvh] lg:max-h-none lg:h-[calc(100dvh-11rem)] lg:min-h-[32rem]"
         listClassName="overflow-y-auto overscroll-contain"
         toolbar={
-          selected && (
+          !selected ? (
+            <button
+              type="button"
+              aria-pressed={grouped}
+              onClick={() => setGrouped((v) => !v)}
+              className={cn(
+                "inline-flex h-6 items-center gap-1 rounded-sm border px-1.5 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay",
+                grouped ? "border-clay bg-clay text-white" : "border-ink-panel-line bg-ink-panel-2 text-ink-panel-text hover:border-ink-panel-muted/50",
+              )}
+              data-testid="group-by-checkout"
+            >
+              <Layers aria-hidden className="size-3" /> Group by checkout
+            </button>
+          ) : (
             <button
               type="button"
               onClick={() => setSelected(null)}
@@ -147,6 +227,7 @@ export function LiveWire({ initialEvents, initialCheckouts, after: start }: { in
           </ul>
         )}
       </section>
+    </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import { confirmationOf, type CheckoutStatus, type Confirmation } from "@shopfront/core";
-import { and, desc, eq, inArray, schema } from "@shopfront/db";
+import { and, desc, eq, inArray, schema, sql } from "@shopfront/db";
 import { toShopEvent, type ShopEvent } from "./events";
 import { services } from "./services";
 
@@ -70,4 +70,28 @@ export async function recentEvents(limit = 60, includeTest = false): Promise<Sho
     .orderBy(desc(schema.events.id))
     .limit(limit);
   return rows.map(toShopEvent);
+}
+
+export interface LiveStats {
+  agentSteps: number;
+  mcpCalls: number;
+  payments: number;
+  blocked: number;
+  since: string;
+}
+
+/** The /live KPI strip (walkthrough #7): the last 24 hours of public events, counted by the database. */
+export async function liveStats(includeTest = false): Promise<LiveStats> {
+  const { db } = services();
+  const since = new Date(Date.now() - 86_400_000);
+  const rows = await db.execute<{ agent: number; mcp: number; paid: number; blocked: number }>(sql`
+    select
+      count(*) filter (where actor in ('buyer_agent', 'ops_agent'))::int as agent,
+      count(*) filter (where actor = 'mcp' and kind <> 'tool_error')::int as mcp,
+      count(distinct checkout_id) filter (where kind = 'captured')::int as paid,
+      count(*) filter (where (kind = 'tool_error' and data->>'errorCode' = 'VALIDATION_ERROR') or kind in ('webhook_rejected', 'hack_blocked'))::int as blocked
+    from ${schema.events}
+    where created_at >= ${since} and (${includeTest} or not is_test)`);
+  const r = rows.rows[0] ?? { agent: 0, mcp: 0, paid: 0, blocked: 0 };
+  return { agentSteps: Number(r.agent), mcpCalls: Number(r.mcp), payments: Number(r.paid), blocked: Number(r.blocked), since: since.toISOString() };
 }

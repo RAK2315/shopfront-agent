@@ -9,12 +9,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { createRequire } from "node:module";
 import { chromium, type Page } from "@playwright/test";
 import pg from "pg";
+import sharp from "sharp";
 
-const require = createRequire(import.meta.url);
-const sharp = require("sharp") as typeof import("sharp");
 const args = process.argv.slice(2).filter((a) => a !== "--");
 const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const base = (arg("--base") ?? "").replace(/\/$/, "");
