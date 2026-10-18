@@ -11,6 +11,8 @@
 //   K10 cancel before shipping: platform → hold VOIDED, stock back; direct-paid → handoff link (then shipped, books clean)
 //   K11 another agent's cart (same store) → 404
 //   K12 screens at desktop, 1920×1080, mobile: /cart/approved, /pay hold panel, /live with Cart API rows
+//   K13 /developers: the demo-token button issues a token and the curl it prints works against the live API
+//   K14 Studio "Store-Sync-ready" card: a seller-issued key works on its own store and is refused on another
 // Every suite ends with the reconciliation (preload). Usage: pnpm --filter web cart-checks -- --base <url>
 import { createHmac } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -25,7 +27,7 @@ const args = process.argv.slice(2).filter((a) => a !== "--");
 const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const base = (arg("--base") ?? "").replace(/\/$/, "");
 const out = resolve(arg("--out", "../../docs/screenshots/cart")!);
-const only = new Set((arg("--only", "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12") ?? "").split(","));
+const only = new Set((arg("--only", "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14") ?? "").split(","));
 const e = process.env as Record<string, string>;
 if (!base.startsWith("http")) throw new Error("Pass --base https://<deployed app>");
 mkdirSync(out, { recursive: true });
@@ -316,6 +318,57 @@ try {
       }
     await ctx.close();
     record("K12 screens at 3 sizes: /cart/approved, /pay after shipping, /live (the hold panel is shot in K6)", Object.values(shots).every((o) => o <= 0), { overflow: shots });
+  }
+  const sizes = [{ tag: "desktop", width: 1440, height: 900 }, { tag: "1920", width: 1920, height: 1080 }, { tag: "mobile", width: 390, height: 844 }];
+  if (only.has("K13")) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const overflow: Record<string, number> = {};
+    await page.goto(`${base}/developers`, { waitUntil: "load", timeout: 120_000 });
+    await page.getByTestId("get-token").click();
+    const curl = await page.getByTestId("curl-create").innerText({ timeout: 30_000 });
+    for (const s of sizes) {
+      await page.setViewportSize({ width: s.width, height: s.height });
+      await page.waitForTimeout(800);
+      overflow[s.tag] = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      await page.screenshot({ path: join(out, `developers-${s.tag}.png`), fullPage: s.tag === "mobile" });
+    }
+    await ctx.close();
+    // Run exactly what the page printed.
+    const url = /curl -X POST (\S+)/.exec(curl)?.[1];
+    const bearer = /Authorization: Bearer ([\w.-]+)/.exec(curl)?.[1];
+    const data = /-d '(.+)'/.exec(curl)?.[1];
+    const r = url && bearer && data ? await fetch(url, { method: "POST", headers: { authorization: `Bearer ${bearer}`, "content-type": "application/json" }, body: data }) : null;
+    const j = r ? ((await r.json()) as Record<string, unknown>) : {};
+    record("K13 /developers: demo token + the printed curl works against the live API", r?.status === 200 && j.validation_status === "REQUIRES_ADDITIONAL_INFORMATION" && Object.values(overflow).every((o) => o <= 0), { status: r?.status, validation: j.validation_status, overflow });
+  }
+
+  if (only.has("K14")) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(`${base}/studio`, { waitUntil: "load", timeout: 180_000 });
+    const cont = page.getByRole("button", { name: /^continue as/i });
+    if (await cont.isVisible().catch(() => false)) {
+      await cont.click();
+      await page.waitForTimeout(2500);
+    }
+    const card = page.getByTestId("store-sync-card");
+    await card.scrollIntoViewIfNeeded();
+    await card.getByRole("textbox").fill("AT shopping assistant");
+    await page.getByTestId("issue-agent-key").click();
+    const key = (await page.getByTestId("agent-key").innerText({ timeout: 30_000 })).trim();
+    const overflow: Record<string, number> = {};
+    for (const s of sizes) {
+      await page.setViewportSize({ width: s.width, height: s.height });
+      await card.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(600);
+      overflow[s.tag] = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      await card.screenshot({ path: join(out, `studio-card-${s.tag}.png`) });
+    }
+    await ctx.close();
+    const own = await cartApi("juniper_clay", "POST", "", key, { items: [{ variant_id: (await variantOf("juniper_clay")).id, quantity: 1 }] });
+    const other = await cartApi("fern_and_loom", "POST", "", key, { items: [] });
+    record("K14 Studio card: a seller-issued key works on its own store, 403 elsewhere", own.status === 200 && other.status === 403 && Object.values(overflow).every((o) => o <= 0), { own: `${own.status} ${own.json.validation_status}`, other: other.status, overflow });
   }
 } catch (err) {
   record("run", false, err instanceof Error ? err.message.split("\n")[0] : String(err));

@@ -1,0 +1,130 @@
+[
+  {
+    "id": "S1 empty state",
+    "ok": true,
+    "detail": {
+      "starters": 4,
+      "lines": 3,
+      "rail": {
+        "search": "todo",
+        "found": "todo",
+        "checkout": "todo",
+        "paypal": "todo",
+        "paid": "todo"
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "S2 image-led results + collapsed tool log",
+    "ok": true,
+    "detail": {
+      "cards": 3,
+      "cardHeight": 345.703125,
+      "imgs": [
+        {
+          "ok": true,
+          "src": true
+        },
+        {
+          "ok": true,
+          "src": true
+        },
+        {
+          "ok": true,
+          "src": true
+        }
+      ],
+      "collapsedByDefault": true,
+      "chipsWhenOpen": 1,
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "done",
+        "paypal": "active",
+        "paid": "todo"
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "S3a checkout in view without scrolling; waiting step highlighted; Your turn brings it back",
+    "ok": true,
+    "detail": {
+      "focus1440": {
+        "cardTop": true,
+        "button": true,
+        "active": "paypal"
+      },
+      "yourTurn": true,
+      "focus1920": {
+        "cardTop": true,
+        "button": true,
+        "active": "paypal"
+      }
+    }
+  },
+  {
+    "id": "S3 inline PayPal approval → paid state → rail done",
+    "ok": true,
+    "detail": {
+      "checkoutId": "chk_epvnleb49e3i",
+      "db": {
+        "status": "paid",
+        "cap": "2E109505CS776784V"
+      },
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "done",
+        "paypal": "done",
+        "paid": "done"
+      },
+      "thumb": true,
+      "overflowCheckout": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      },
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "S4a phone: the checkout scrolls into view by itself",
+    "ok": true,
+    "detail": {
+      "cardTop": true,
+      "button": true,
+      "active": "paypal"
+    }
+  },
+  {
+    "id": "S4 closing PayPal charges nothing",
+    "ok": true,
+    "detail": {
+      "message": "You closed PayPal before approving. Nothing was charged.",
+      "rail": {
+        "search": "done",
+        "found": "done",
+        "checkout": "done",
+        "paypal": "active",
+        "paid": "todo"
+      },
+      "db": {
+        "status": "created"
+      }
+    }
+  }
+]

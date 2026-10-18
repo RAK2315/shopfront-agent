@@ -7,6 +7,7 @@ import { SellerSignIn } from "@/components/studio/sign-in";
 import { Studio } from "@/components/studio/studio";
 import { GetPaidCard } from "@/components/studio/get-paid-card";
 import { TelegramCard } from "@/components/studio/telegram-card";
+import { StoreSyncCard } from "@/components/studio/store-sync-card";
 import { botUsername } from "@/server/telegram";
 import { payoutCard } from "@/server/paypal-connect";
 import { sellerProducts } from "@/server/catalog";
@@ -60,6 +61,7 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
       </header>
       {card && <GetPaidCard card={card} result={typeof result === "string" ? result : undefined} connectEnabled={env().PAYPAL_LIPP_ENABLED === "1"} />}
       <TelegramCard judgeLink={bot ? `https://t.me/${bot}?start=judge` : null} />
+      <StoreSyncCard baseUrl={appUrl(`/api/paypal/v1/stores/${seller.handle}`)} />
       <Studio seller={{ handle: seller.handle, displayName: seller.displayName }} initialDrafts={drafts} initialLive={live} mcpUrl={appUrl("/mcp")} />
     </main>
     </>

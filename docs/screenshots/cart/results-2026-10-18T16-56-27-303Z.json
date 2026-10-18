@@ -1,0 +1,105 @@
+[
+  {
+    "id": "K4 validation issues with resolution options; a $0.01 agent price creates no order",
+    "ok": true,
+    "detail": {
+      "checks": {
+        "unknown": true,
+        "otherStore": true,
+        "tooMany": true,
+        "lowStock": true,
+        "priceMismatch": true,
+        "abroad": true,
+        "coupon": true,
+        "allInvalid": true,
+        "noOrdersCreated": true
+      },
+      "priceTotal": "33.00",
+      "priceIssue": [
+        {
+          "issue": "PRICE_MISMATCH",
+          "actions": [
+            "ACCEPT_NEW_PRICE",
+            "REMOVE_ITEM"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "K6 PayPal's client completes a real order: authorized, stock reserved, hold at PayPal",
+    "ok": true,
+    "detail": {
+      "holdPanel": {
+        "1920": {
+          "panel": 1,
+          "button": 0,
+          "overflow": 0
+        },
+        "desktop": {
+          "panel": 1,
+          "button": 0,
+          "overflow": 0
+        },
+        "mobile": {
+          "panel": 1,
+          "button": 0,
+          "overflow": 0
+        }
+      },
+      "steps": [
+        "POST /merchant-cart 200",
+        "PUT /merchant-cart/{id} 200",
+        "GET /merchant-cart/{id} 200",
+        "POST /merchant-cart/{id}/checkout 200"
+      ],
+      "checkout": "chk_azopiwrdbqt1",
+      "status": "authorized",
+      "authorization": "6MT2857567770015U CREATED",
+      "expires": "2026-11-16T16:55:36Z",
+      "stock": "20 → 19",
+      "wire": [
+        "cart_checkout_opened",
+        "order_created",
+        "cart_updated",
+        "authorized",
+        "cart_completed",
+        "order_approved"
+      ],
+      "schemaOk": true,
+      "review": "https://shopfront-agent.onrender.com/pay/chk_azopiwrdbqt1?t=…"
+    }
+  },
+  {
+    "id": "K7 a replayed checkout returns the same completed cart; exactly one hold",
+    "ok": true,
+    "detail": {
+      "status": 200,
+      "cart": "COMPLETED",
+      "authorizations": 1
+    }
+  },
+  {
+    "id": "K8 ship → the hold is captured at PayPal, order shipped, tracking added",
+    "ok": true,
+    "detail": {
+      "status": "shipped",
+      "capture": "6F167152MU683911G COMPLETED",
+      "authorization": "CAPTURED"
+    }
+  },
+  {
+    "id": "K9 direct-paid Fern & Loom: authorized with payee = seller 2, captured on ship into seller 2's PayPal",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_uciyx2kq3in2",
+      "payee": "B83JSV9ELHV74",
+      "hold": "CREATED",
+      "shipped": {
+        "status": "shipped",
+        "cap": "3SK72780UA458430Y",
+        "payee": "B83JSV9ELHV74"
+      }
+    }
+  }
+]

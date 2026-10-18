@@ -12,7 +12,7 @@ const LINKS = [
   { href: "/shop", label: "Try the buyer demo" },
   { href: "/live", label: "Live wire" },
   { href: "/studio", label: "Sell with Shopfront" },
-  { href: "/llms.txt", label: "Developers" },
+  { href: "/developers", label: "Developers" },
   { href: REPO_URL, label: "Docs", external: true },
 ] as const;
 
