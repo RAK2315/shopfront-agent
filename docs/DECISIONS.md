@@ -1561,6 +1561,34 @@
 - **Serves:** J1, J2, J4, P7, P8, R2, R3, G1.
 ---
 
+## D-097: Competitive re-plan: Vault cancelled for good; Cart API v1, AG Studio, Gauntlet, proof docs; available through Dec 15 (2026-10-18; owner)
+- **Owner's decision** (supersedes D-096's Vault re-add):
+  1. **Phase 11 (Vault reorder) is cancelled for good.** Spike V is not run. Mandat and Bursar already ship Vault mandates, so it no longer differentiates.
+  2. **New: Phase C, PayPal Cart API v1 merchant contract** for every Shopfront store. The endpoints are `POST /merchant-cart`, `PUT /merchant-cart/{id}`, `POST /merchant-cart/{id}/checkout` (plus `GET /merchant-cart/{id}`, which the spec also defines). It needs JWT auth bound to the store, `validation_issues` with `resolution_options`, and Orders v2 integration.
+     - Spike first: does capture-on-ship (authorize at checkout) work with our direct-payee flow?
+     - Ship a test agent client that shops through the Cart API, plus a README section.
+     - Pitch line: "Every Shopfront seller is Store-Sync-ready."
+  3. **AG Grid prize:** move the dashboard effort to AG Studio, with custom widgets and a read-only "Shop Manager" Studio agent on the Studio agent framework. Check `paypaldev/hackathon-paypal-ag-grid-boilerplate`. OWNER-TODO: the AG Studio trial must cover Dec 15.
+  4. **Gauntlet:** the hack card becomes naive vs guarded agents side by side, 30+ attacks, including prompt injection hidden in product photos and shipping-label photos read by our vision step.
+  5. **Proof docs:** `threat-model.md`, a sandbox-validation table, `development-with-ai.md`, and test counts in the README.
+  6. **Availability:** keep-warm and every trial through Dec 15 (the judging window). PLAN dates updated.
+  - Order: 2, 3, 4, 5, under the same standing rules.
+- **Research findings, 2026-10-18** (they shape the plan):
+  - **Cart API source:**
+    - `github.com/paypal/agent-commerce` and its `v1/api-spec.yaml` return 404 publicly.
+    - The docs.paypal.ai Store Sync pages now 301 to 404s.
+    - PayPal's published npm package **`@paypal/agentic-commerce-spec` 1.1.0** (Apache-2.0, generated from that repo's OpenAPI) carries the full schema: `PayPalCart`, `ValidationIssue` (6 codes, 3 types, per-category context), `ResolutionOption` (22 actions), `PaymentMethod {type: "paypal", token, payer_id, approval_url}`, `BusinessError`, and checkout `payment_confirmation`. We build to that package's Zod schemas.
+  - **Store Sync access:** "merchants must complete this form … to request access" (developer.paypal.com/agentic-commerce-services/about). So PayPal won't route real assistants to us without onboarding, and the JWT is "PayPal-supplied" with no public verification spec.
+    - **Honest framing:** Shopfront implements the merchant side of Cart API v1 and is ready for Store Sync onboarding. Our test agent proves the contract end to end with real Orders v2 sandbox payments.
+    - Until PayPal issues tokens, the bearer JWT is a store-bound token we issue (RS256, published JWKS, `aud` = the store), verified on the same code path that would verify PayPal's.
+  - **CartItem price:** the spec's `CartItem` has an optional agent-sent `price`. Under D-002 it is never trusted: we price from the DB, and a differing price returns `PRICING_ERROR / PRICE_MISMATCH` with `ACCEPT_NEW_PRICE`. It becomes a Gauntlet attack.
+  - **AG Studio:** the Builder tab already runs AG Studio with 3 custom widgets and a custom `insights` agent (D-023). Phase AG upgrades it: a designed multi-page Studio report, more custom widgets, theming, and the read-only Shop Manager agent built from the documented agent framework (`agents`, `primaryAgent`, tool lists).
+  - **Keep-warm:** the repo is public, so a GitHub Actions schedule pings `/api/health/live` (which doesn't touch the DB) every 10 minutes with no new account. Neon stays asleep, and Render's 750 h covers one always-on service (744 h in a 31-day month), assuming no other free service shares the workspace (OWNER-TODO).
+- **Review v2 fixes:** #1 is done. #2, #6, #3, #7 and #8 stay. #4 (dashboard width) and #5 (AI change made visible) fold into Phase AG, because the dashboard effort moves to AG Studio.
+- **Schedule:** PLAN.md "Competitive re-plan (D-097)". The freeze stays at the end of Nov 5, submission Nov 11, availability through Dec 15.
+- **Serves:** P8 (agentic commerce), P7, J1, J3, J4, the AG Grid partner prize, G1, R2.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
