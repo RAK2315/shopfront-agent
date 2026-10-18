@@ -191,3 +191,15 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
   - The 3-day honor period for holds.
   - PayPal sandbox login flakes (retries).
 - **Next:** review v2 fixes #2, #6, #8, then Phase AG (AG Studio).
+
+## Phase AG started (2026-10-18, paused at the owner's request)
+- **Done:**
+  - `dashboardData` adds, for the AG Studio report: attempts (every checkout, with channel/agent/outcome), listings (stock, low-stock flag) and Cart API carts; orders gain channel, agent, captured amount and paid-to.
+  - Read-only Shop Manager tools on `/api/seller/insights`: `agent_activity`, `orders_needing_action`, `stock_levels`, `reconciliation_status`.
+- **Not yet built:**
+  - the 5-page Studio preset (relationships + calendar + measures);
+  - the reconcile and Cart API funnel custom widgets;
+  - the Shop Manager agent definition;
+  - the "what changed" strip (fix #5); the overview width (fix #4);
+  - AT-AG.
+- **Next (on resume):** build the preset and widgets in `components/dashboard/`, then AT-AG. Then review fixes #3 and #7, Gauntlet, proof docs, the Nov 4–5 regression (including phase6 #6 on a local replay server), DEMO-SCRIPT, review v3 pack.

@@ -13,6 +13,18 @@ import { services } from "./services";
 const PAID: CheckoutStatus[] = ["paid", "shipped", "partially_refunded", "refunded", "reversed"];
 const day = (d: Date) => d.toISOString().slice(0, 10);
 
+/** Where an order came from, in words a seller reads (Phase AG). */
+export const CHANNEL: Record<string, string> = { web_agent: "Shopfront agent", mcp_external: "MCP agent", cart_api: "Cart API", storefront: "Storefront" };
+/** An attempt's outcome, from its checkout status. */
+function outcomeOf(status: string) {
+  if (["paid", "shipped", "partially_refunded"].includes(status)) return "paid";
+  if (status === "authorized") return "authorized";
+  if (["refunded", "reversed"].includes(status)) return "refunded";
+  if (status === "capture_denied") return "declined";
+  if (status === "cancelled") return "cancelled";
+  return "awaiting buyer";
+}
+
 export async function dashboardData(sellerId: string) {
   const { db } = services();
   const since = new Date(Date.now() - 90 * 86_400_000);
@@ -20,7 +32,7 @@ export async function dashboardData(sellerId: string) {
   const checkouts = await db
     .select()
     .from(schema.checkouts)
-    .where(and(eq(schema.checkouts.sellerId, sellerId), includeTest ? undefined : eq(schema.checkouts.isTest, false), inArray(schema.checkouts.status, PAID), gte(schema.checkouts.createdAt, since)));
+    .where(and(eq(schema.checkouts.sellerId, sellerId), includeTest ? undefined : eq(schema.checkouts.isTest, false), inArray(schema.checkouts.status, [...PAID, "authorized"]), gte(schema.checkouts.createdAt, since)));
   const ids = checkouts.map((c) => c.id);
   const [items, caps, refunds, ships, products] = await Promise.all([
     ids.length ? db.select().from(schema.checkoutItems).where(inArray(schema.checkoutItems.checkoutId, ids)) : [],
@@ -48,6 +60,11 @@ export async function dashboardData(sellerId: string) {
       ship_by: c.shipBy ?? "",
       note: c.internalNote ?? "",
       paypal_order: c.paypalOrderId ?? "",
+      // Phase AG: where it came from and where the money went. Authorized Cart API orders count once captured.
+      channel: CHANNEL[c.source] ?? c.source,
+      agent: c.mcpClientName ?? "",
+      captured_usd: (cap?.amountCents ?? 0) / 100,
+      paid_to: c.payeeMerchantId || c.payeeEmail ? "seller's PayPal" : "platform account",
     };
   });
   const lines = items.map((l) => {
@@ -67,8 +84,112 @@ export async function dashboardData(sellerId: string) {
       amount_usd: r.amountCents / 100,
     };
   });
-  return { orders, lines, refunds: refundRows };
+  // Phase AG: every checkout attempt (any outcome) for the Agents page, the listings with stock, and Cart API carts.
+  const [attemptRows, listingRows, cartRows] = await Promise.all([
+    db
+      .select()
+      .from(schema.checkouts)
+      .where(and(eq(schema.checkouts.sellerId, sellerId), includeTest ? undefined : eq(schema.checkouts.isTest, false), gte(schema.checkouts.createdAt, since))),
+    db
+      .select({ v: schema.variants, p: schema.products })
+      .from(schema.variants)
+      .innerJoin(schema.products, eq(schema.products.id, schema.variants.productId))
+      .where(and(eq(schema.products.sellerId, sellerId), inArray(schema.products.status, ["approved", "draft"]))),
+    db
+      .select()
+      .from(schema.carts)
+      .where(and(eq(schema.carts.sellerId, sellerId), includeTest ? undefined : eq(schema.carts.isTest, false), gte(schema.carts.createdAt, since))),
+  ]);
+  const attempts = attemptRows.map((c) => ({
+    order: c.id,
+    date: day(c.createdAt),
+    channel: CHANNEL[c.source] ?? c.source,
+    agent: c.mcpClientName ?? (c.source === "storefront" ? "buyer" : "unnamed agent"),
+    outcome: outcomeOf(c.status),
+    status: c.status,
+    total_usd: c.totalCents / 100,
+  }));
+  const listings = listingRows.map(({ v, p }) => ({
+    listing: p.title,
+    variant: Object.values(v.options).join(" · ") || "one size",
+    sku: v.sku,
+    status: p.status === "approved" ? "live" : "draft",
+    price_usd: v.priceCents / 100,
+    stock: v.stock,
+    low_stock: v.stock <= 3 ? "low" : "ok",
+  }));
+  const carts = cartRows.map((c) => ({
+    cart: c.id,
+    date: day(c.createdAt),
+    agent: c.client,
+    status: c.status,
+    validation: c.validationStatus,
+    issue: ((c.issues as Array<{ context?: { specific_issue?: string }; code?: string }>)[0]?.context?.specific_issue ?? (c.issues as Array<{ code?: string }>)[0]?.code ?? "") as string,
+    order: c.checkoutId ?? "",
+  }));
+  return { orders, lines, refunds: refundRows, attempts, listings, carts };
 }
+
+/** Shop Manager tool (read-only): what needs the seller now. */
+export async function ordersNeedingAction(sellerId: string) {
+  const { db } = services();
+  const includeTest = await includeTestRowsFor(sellerId);
+  const rows = await db
+    .select()
+    .from(schema.checkouts)
+    .where(and(eq(schema.checkouts.sellerId, sellerId), includeTest ? undefined : eq(schema.checkouts.isTest, false), inArray(schema.checkouts.status, ["paid", "authorized"])));
+  const ships = rows.length ? await db.select({ id: schema.shipments.checkoutId }).from(schema.shipments).where(inArray(schema.shipments.checkoutId, rows.map((r) => r.id))) : [];
+  const shipped = new Set(ships.map((s) => s.id));
+  const pending = await db
+    .select({ id: schema.refundRequests.id, order: schema.refundRequests.checkoutId, amount: schema.refundRequests.amountCents })
+    .from(schema.refundRequests)
+    .innerJoin(schema.checkouts, eq(schema.checkouts.id, schema.refundRequests.checkoutId))
+    .where(and(eq(schema.checkouts.sellerId, sellerId), eq(schema.refundRequests.status, "pending")));
+  const now = Date.now();
+  const toShip = rows.filter((r) => !shipped.has(r.id));
+  const holds = toShip.filter((r) => r.status === "authorized");
+  const urgent = holds.filter((r) => r.authorizedAt && now - r.authorizedAt.getTime() > 2 * 86_400_000);
+  return {
+    summary_line: `[db] ${toShip.length} order${toShip.length === 1 ? "" : "s"} to ship (${holds.length} of them Cart API holds, charged on ship${urgent.length ? `; ${urgent.length} past day 2 of PayPal's 3-day honor period` : ""}); ${pending.length} refund request${pending.length === 1 ? "" : "s"} waiting for you.`,
+    to_ship: toShip.slice(0, 20).map((r) => ({ order: r.id, status: r.status, total: centsToValue(r.totalCents), ship_by: r.shipBy ?? null })),
+    refunds_waiting: pending.slice(0, 20).map((p) => ({ refund: p.id, order: p.order, amount: centsToValue(p.amount) })),
+  };
+}
+
+/** Shop Manager tool (read-only): listings by stock. */
+export async function stockLevels(sellerId: string) {
+  const { db } = services();
+  const rows = await db
+    .select({ title: schema.products.title, options: schema.variants.options, stock: schema.variants.stock })
+    .from(schema.variants)
+    .innerJoin(schema.products, eq(schema.products.id, schema.variants.productId))
+    .where(and(eq(schema.products.sellerId, sellerId), eq(schema.products.status, "approved"), eq(schema.variants.active, true)));
+  const low = rows.filter((r) => r.stock <= 3);
+  return {
+    summary_line: `[db] ${rows.length} live variant${rows.length === 1 ? "" : "s"}; ${low.length ? `low stock (3 or fewer): ${low.map((r) => `${r.title}${Object.keys(r.options).length ? ` (${Object.values(r.options).join(", ")})` : ""} ${r.stock}`).join("; ")}` : "none low on stock"}.`,
+    variants: rows.map((r) => ({ listing: r.title, variant: Object.values(r.options).join(" · "), stock: r.stock })),
+  };
+}
+
+/** Shop Manager tool (read-only): orders by channel and agent for a date range. */
+export async function agentActivity(sellerId: string, fromIso: string, toIso: string) {
+  const { db } = services();
+  const includeTest = await includeTestRowsFor(sellerId);
+  const rows = await db.execute<{ source: string; agent: string | null; attempts: number; paid: number; revenue_cents: number }>(sql`
+    select source, mcp_client_name agent, count(*)::int attempts,
+           count(*) filter (where status in ('paid','shipped','partially_refunded','refunded','authorized'))::int paid,
+           coalesce(sum(total_cents) filter (where status in ('paid','shipped','partially_refunded','refunded','authorized')), 0)::int revenue_cents
+    from ${schema.checkouts}
+    where seller_id = ${sellerId} and created_at >= ${fromIso} and created_at <= ${toIso} ${includeTest ? sql`` : sql`and not is_test`}
+    group by source, mcp_client_name order by 4 desc`);
+  const by = rows.rows.map((r) => ({ channel: CHANNEL[r.source] ?? r.source, agent: r.agent ?? "", attempts: r.attempts, orders: r.paid, revenue: centsToValue(r.revenue_cents) }));
+  const total = by.reduce((n, r) => n + r.orders, 0);
+  return {
+    summary_line: `[db] ${total} order${total === 1 ? "" : "s"} from ${by.length} agent/channel pair${by.length === 1 ? "" : "s"} between ${fromIso.slice(0, 10)} and ${toIso.slice(0, 10)}${by[0] ? `; most from ${by[0].channel}${by[0].agent ? ` (${by[0].agent})` : ""}` : ""}.`,
+    by_channel_and_agent: by,
+  };
+}
+
 
 export const LedgerEdit = z.strictObject({
   note: z.string().max(500).optional(),
