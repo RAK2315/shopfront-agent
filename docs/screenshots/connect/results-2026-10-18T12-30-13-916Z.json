@@ -1,0 +1,20 @@
+[
+  {
+    "id": "C1 demo shop's Get paid card: platform account, explained",
+    "ok": true,
+    "detail": {
+      "status": "platform"
+    }
+  },
+  {
+    "id": "C7 a paid Fern & Loom order lands in seller 2's PayPal",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_8tt302u4lb79",
+      "capture": {
+        "status": "paid",
+        "payee_merchant_id": "B83JSV9ELHV74"
+      }
+    }
+  }
+]

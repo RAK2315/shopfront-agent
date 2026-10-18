@@ -2,7 +2,8 @@
 //   L1 every /shop starter lands, run through the hosted agent (Groq through the budget guard):
 //      search starters: the agent calls search_products and gets at least one in-stock result
 //      order starters (no order in a fresh session): the agent answers in words, with no error and no failed tool call
-//   L2 "Try to hack the price" on /shop shows the calm "Protected: 3 of 3 blocked" card, each row naming its reason
+//   L2 "Try to hack the price" on /shop shows the proof-first card (D-091): every attack blocked, checkouts 0, each chip
+//      naming the server's reason
 //   L3 the /shop timeline carries the "Answered before" legend at desktop width
 // Each starter runs in its own fresh buyer session, spaced out for Groq's free per-minute token limit.
 // Usage: pnpm --filter web lane-checks -- --base https://shopfront-agent.onrender.com [--only 1,2,3] [--out <dir>]
@@ -83,16 +84,19 @@ if (only.has("2") || only.has("3")) {
         const txt = await card.innerText();
         await card.scrollIntoViewIfNeeded();
         await page.screenshot({ path: join(out, `hack-protected-${name}.png`) });
+        await page.waitForTimeout(2500); // the chips settle red → green
+        const chips = await card.getByTestId("hack-chip").evaluateAll((els) => els.map((el) => ({ blocked: el.getAttribute("data-blocked"), title: el.getAttribute("title") ?? "" })));
         const detail = {
           viewport: name,
-          heading: txt.split("\n")[0],
+          heading: txt.split(/\r?\n/)[0],
           blocked: await card.getAttribute("data-blocked"),
-          reasons: txt.match(/Blocked by server · [^\n]+/g),
-          checkoutsCreated: txt.match(/Checkouts created: (\d+)/)?.[1],
+          total: await card.getAttribute("data-total"),
+          chipsWithReason: chips.filter((c) => c.blocked === "true" && /^Blocked · .{3,}/.test(c.title)).length,
+          checkoutsCreated: await page.getByTestId("hack-checkouts").innerText(),
         };
         record(
-          `L2 hack demo shows "Protected: 3 of 3 blocked" with a reason per attack (${name})`,
-          detail.heading === "Protected: 3 of 3 blocked" && detail.blocked === "3" && detail.reasons?.length === 3 && detail.checkoutsCreated === "0",
+          `L2 hack demo: every attack blocked with a reason per attack, 0 checkouts (${name})`,
+          detail.heading === "Every attack was blocked by the server" && detail.blocked === detail.total && Number(detail.total) >= 12 && detail.chipsWithReason === Number(detail.total) && detail.checkoutsCreated === "0",
           detail,
         );
       }

@@ -32,6 +32,7 @@ const record = (id: string, ok: boolean, detail: unknown) => {
 };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const SELLER2_MERCHANT = "B83JSV9ELHV74";
+const skipLipp = args.includes("--skip-lipp");
 const seller2 = { email: e.SANDBOX_SELLER2_EMAIL, password: e.SANDBOX_SELLER2_PASSWORD };
 if (!seller2.email || !seller2.password) throw new Error("SANDBOX_SELLER2_EMAIL / _PASSWORD missing in .env");
 const admin = createHmac("sha256", e.SESSION_SECRET).update("admin:demo-reset").digest("base64url");
@@ -85,6 +86,9 @@ try {
   record("C1 demo shop's Get paid card: platform account, explained", (await card.getAttribute("data-status")) === "platform" && /platform/i.test(await card.innerText()), { status: await card.getAttribute("data-status") });
   await card.screenshot({ path: join(out, "C1-get-paid-platform.png") });
 
+  // --skip-lipp: PayPal hasn't accepted our Return URL yet (OWNER-TODO #4). Skip every step that needs Log in with
+  // PayPal, including C4, which would unverify fern_and_loom with no way to verify it again.
+  if (!skipLipp) {
   // C2: real Log in with PayPal from the card (the demo shop is only checked, never rerouted).
   let returnUrl = "";
   page.on("request", (r) => {
@@ -154,6 +158,8 @@ try {
     await ctx3.close();
     const f = (await db.query("select payout_status, paypal_merchant_id from sellers where handle='fern_and_loom'")).rows[0];
     record("C6 Fern & Loom reconnected (verified again)", f.payout_status === "verified" && f.paypal_merchant_id === SELLER2_MERCHANT, f);
+  }
+
   }
 
   // C7: a real paid order lands in seller 2's PayPal (the capture names seller 2 as payee), so Fern & Loom sells again.

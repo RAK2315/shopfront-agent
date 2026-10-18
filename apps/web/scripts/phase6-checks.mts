@@ -301,9 +301,12 @@ try {
       attempts.push({ id, status: r.status, blocked: ok(r) && !leaks(r, body) });
     };
 
-    await http("8a /pay/return with only a checkout id", `/pay/return?checkout=${V}`, (r) => r.status === 400);
-    await http("8b /pay/return with the public PayPal order id as token", `/pay/return?checkout=${V}&token=${ppid}`, (r) => r.status === 400);
-    await http("8c /pay/return with the attacker's own valid order token", `/pay/return?checkout=${V}&token=${ppid}&t=${mine.order_token}`, (r) => r.status === 400);
+    // Since D-086 a bad return link is sent to the branded "link incomplete or expired" page (303, no token), never to
+    // the order: blocked = that redirect target, or the older plain 400.
+    const refused = (r: Response) => r.status === 400 || (r.status === 303 && (r.headers.get("location") ?? "").endsWith("/pay/link-invalid"));
+    await http("8a /pay/return with only a checkout id", `/pay/return?checkout=${V}`, refused);
+    await http("8b /pay/return with the public PayPal order id as token", `/pay/return?checkout=${V}&token=${ppid}`, refused);
+    await http("8c /pay/return with the attacker's own valid order token", `/pay/return?checkout=${V}&token=${ppid}&t=${mine.order_token}`, refused);
     await http("8d /pay/[id] with the attacker's token", `/pay/${V}?t=${mine.order_token}`, (r) => r.status === 404);
     await http("8e /api/checkouts/[id]/status with the attacker's token", `/api/checkouts/${V}/status?t=${mine.order_token}`, (r) => r.status === 403);
     await http("8f capture with the attacker's token", `/api/checkouts/${V}/capture`, (r) => r.status === 403, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ t: mine.order_token }) });
@@ -372,8 +375,8 @@ try {
     };
     record(
       "8 token theft: no route issues or accepts an order token for someone else's checkout; the real redirect return still captures once",
-      Boolean(seen) && attempts.length === 10 && attempts.every((a) => a.blocked) && own.status === 200 && Boolean(landed) && after?.status === "paid" && replay.status === 303 && captureCalls === 1 && wrongPp.status === 400,
-      { victimVisibleOnPublicConsole: Boolean(seen), attempts, legit },
+      Boolean(seen) && attempts.length === 10 && attempts.every((a) => a.blocked) && own.status === 200 && Boolean(landed) && after?.status === "paid" && replay.status === 303 && captureCalls === 1 && refused(wrongPp),
+      { victimVisibleOnPublicConsole: Boolean(seen), attempts, legit, checks: { seen: Boolean(seen), ten: attempts.length === 10, allBlocked: attempts.every((a) => a.blocked), own: own.status === 200, landed: Boolean(landed), paid: after?.status === "paid", replay: replay.status === 303, oneCapture: captureCalls === 1, wrongPp: refused(wrongPp) } },
     );
   }
 } catch (err) {

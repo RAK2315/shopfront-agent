@@ -1,0 +1,79 @@
+{
+  "base": "https://shopfront-agent.onrender.com",
+  "at": "2026-10-18T12:25:06.758Z",
+  "results": [
+    {
+      "id": "R1 verify outage → 503 + nothing stored; real FAILURE → 200 unverified",
+      "ok": true,
+      "detail": {
+        "outageStatus": 503,
+        "storedAfterOutage": false,
+        "verdictStatus": 200,
+        "verified": false,
+        "row": {
+          "verified": false,
+          "deliveries": 1
+        }
+      }
+    },
+    {
+      "id": "R4 /mcp names the agent: header, then User-Agent; /pay says 'Prepared by Claude'",
+      "ok": true,
+      "detail": {
+        "header": {
+          "mcp_client_name": "recovery-checks",
+          "source": "mcp_external"
+        },
+        "userAgent": {
+          "mcp_client_name": "Claude-User",
+          "source": "mcp_external"
+        },
+        "payPageNamesClaude": true
+      }
+    },
+    {
+      "id": "R3 decline → 422 + attempt 1; the next capture is capture-<id>-1 and pays",
+      "ok": true,
+      "detail": {
+        "checkout": "chk_jih4fdxqc3an",
+        "declined": {
+          "mock": true,
+          "debugId": "f544626b5fd1c",
+          "nextRequestId": "capture-chk_jih4fdxqc3an-1",
+          "paypalRequestId": "capture-chk_jih4fdxqc3an"
+        },
+        "afterDecline": {
+          "capture_attempt": 1,
+          "status": "created"
+        },
+        "captureCalls": [
+          {
+            "paypal_request_id": "capture-chk_jih4fdxqc3an",
+            "status": 422,
+            "debug_id": "f544626b5fd1c"
+          },
+          {
+            "paypal_request_id": "capture-chk_jih4fdxqc3an-1",
+            "status": 201,
+            "debug_id": "f930450ebd94f"
+          }
+        ],
+        "final": "paid"
+      }
+    },
+    {
+      "id": "R2 restart → boot sweep processes the stored, unprocessed event once",
+      "ok": true,
+      "detail": {
+        "eventId": "WH-1XU73097GG8291835-9R103901630854152",
+        "reason": "boot",
+        "sweptAt": "2026-10-18T12:25:01.448Z",
+        "row": {
+          "processed_at": "2026-10-18T12:25:01.444Z",
+          "attempts": 2,
+          "error": null
+        }
+      }
+    }
+  ]
+}

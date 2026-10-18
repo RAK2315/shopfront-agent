@@ -8,7 +8,8 @@
 //      is flagged, including the PayPal webhook rows
 //   I5 no public event since the cutover says "mode:replay"; a replayed step is badged "Replayed recording" instead
 //   I6 the demo seller's own views (Orders, dashboard data, insights, the dashboard's event stream) hide test orders
-//      for a normal visitor, and still show them to a test run (AT-4/AT-5 carry the header)
+//      for a normal visitor with "Include test orders" switched off, and still show them to a test run (AT-4/AT-5 carry
+//      the header). Since D-087 the switch is on by default for the demo seller: test orders then show, each badged.
 // Usage: pnpm --filter web fixes-checks -- --base https://shopfront-agent.onrender.com [--cutover <ISO time>]
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -158,7 +159,8 @@ try {
   {
     const signIn = await fetch(`${base}/api/seller/session`, { method: "POST", headers: { ...PUBLIC, "content-type": "application/json" }, body: JSON.stringify({ handle: "juniper_clay" }) });
     const cookie = (signIn.headers.get("set-cookie") ?? "").split(";")[0]!;
-    const as = (test: boolean) => (test ? { cookie } : { ...PUBLIC, cookie });
+    // The switch off (D-087): what a real seller always sees. The default (switch on) is checked separately below.
+    const as = (test: boolean) => (test ? { cookie } : { ...PUBLIC, cookie: `${cookie}; sf_test_orders=0` });
     const [newestTestPaid] = await q<{ id: string }>(
       "select c.id from checkouts c join sellers s on s.id=c.seller_id where s.handle='juniper_clay' and c.is_test and c.status in ('paid','shipped','partially_refunded','refunded') order by c.created_at desc limit 1",
     );
@@ -192,9 +194,14 @@ try {
       testRunSeesOrdersPage: testHtml.includes(newestTestPaid?.id ?? "-"),
       insightOrdersTestRun: testInsight,
     };
+    // The default for the demo seller: test orders shown, each with a "Test run" badge (D-087).
+    const defHtml = await (await fetch(`${base}/studio/orders`, { headers: { ...PUBLIC, cookie } })).text();
+    const defaultShowsBadged = defHtml.includes(newestTestPaid?.id ?? "-") && defHtml.includes("Test run");
+    Object.assign(detail, { defaultShowsTestOrdersBadged: defaultShowsBadged });
     record(
-      "I6 the demo seller's Orders, dashboard, insights and event stream hide test orders, except for a test run",
-      detail.signedIn &&
+      "I6 with the switch off the demo seller's views hide test orders (except for a test run); by default they show, badged",
+      defaultShowsBadged &&
+        detail.signedIn &&
         Boolean(newestTestPaid) &&
         detail.dashboardTestIds === 0 &&
         detail.ordersPageTestIds === 0 &&

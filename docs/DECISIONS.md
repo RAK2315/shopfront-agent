@@ -101,6 +101,7 @@
 | D-090 | 2026-10-18 | Studio editor, landing, live console and mobile pass (walkthrough #9, #6, #7, #11) | ACCEPTED | J2, J5 |
 | D-091 | 2026-10-18 | Phase 13 lite: 13 real attacks with a proof-first hack card; checkouts counted in the DB | ACCEPTED | J3, G1, R2 |
 | D-092 | 2026-10-18 | Phase 9 screens + Log in with PayPal (built; button gated until PayPal accepts the Return URL) and the full Phase 10 Telegram copilot incl. judge mode | ACCEPTED | J1, J3, J4, G1, P7 |
+| D-093 | 2026-10-18 | Final regression findings: an accessibility regression fixed; five older ATs updated to the behaviour decided in D-086/D-087/D-091; phase9-checks superseded; Log in with PayPal still rejected by PayPal | ACCEPTED | J1, J2, G1 |
 
 ---
 
@@ -1434,6 +1435,29 @@
 - **Test hook:** `tg_photo` (admin token) hands a photo to the same `onPhoto` as the webhook, because a made-up chat can't upload to Telegram.
 - **AT:** `telegram-flow-checks` F1–F7 plus the earlier `telegram-checks` T1–T6 as a regression (results in PROGRESS).
 - **Serves:** J1, J3, J4, G1, P7, D-002, D-072, D-073.
+
+---
+
+## D-093: Final regression findings (2026-10-18; item #14)
+
+- **A real regression, fixed:**
+  - The #9 "AI" badge sat inside each AI-filled field's `<label>`, so the field's name became "AI Tracking number". That broke AT-4 #5 (`getByLabel("Tracking number")`) and changed what screen readers announce.
+  - The badge now sits outside the `<label>`, and is `aria-hidden` (`a0d21f6`). AT-4 passes 7/7.
+- **Older ATs updated to decided behaviour (not app changes):**
+  - **AT-6 #8 token theft:** a bad `/pay/return` link now 303s to the branded "link incomplete or expired" page (D-086). The test now accepts that redirect target (or a 400) as "refused". It still requires that no token is issued and that the real return captures once. All 10 attempts were blocked.
+  - **`fixes-checks` I6:** since D-087 the demo seller's "Include test orders" switch is on by default. I6 now checks both sides: switch off hides test orders (as before), and the default shows them, badged.
+  - **`lane-checks` L2:** the 13-attack card (D-091) replaces "Protected: 3 of 3". The test requires every chip blocked with a server reason, and 0 checkouts.
+  - **`phase2-checks` E:** after pointing the webhook at a wrong URL, PayPal kept delivering to the old URL for a while. The test now waits 45 s, and waits up to 90 s for the "via poll" badge that the next fallback check records. The app behaved correctly in every run: paid via poll, no webhook, 46 s after approval.
+  - **PayPal sandbox flakiness** ("Things don't appear to be working at the moment", a login page that never loads): the shared login helper presses PayPal's *Try again* up to 3 times, and the telegram-flow and connect approvals retry once.
+- **`phase9-checks` is superseded** by `connect-checks` (D-084): its P1/P2 path routed an unverified email, which is now refused, and it would leave Fern & Loom unable to sell. It refuses to run without `--legacy-unverified-routing`.
+- **Log in with PayPal:**
+  - Still rejected after the owner's fix, about an hour later. PayPal's page answers "invalid client_id or redirect_uri" for every variant tried:
+    - `/connect` and `/signin/authorize`;
+    - scopes `openid`, `openid email`, and with the PayPal account-ID scope;
+    - redirect URIs: the exact Return URL, with a trailing slash, the site root, `/studio` and `localhost`.
+  - So the app's Log in with PayPal setting isn't active for this client id at PayPal (OWNER-TODO #4 has what to check).
+  - `connect-checks --skip-lipp` runs C1 and the new C7: **a real Fern & Loom order paid by the sandbox buyer lands in seller 2's PayPal** (capture payee `B83JSV9ELHV74`). Fern & Loom never lost its verified status.
+- **Serves:** J1, J2, G1, D-084, D-086, D-087, D-091.
 
 ---
 

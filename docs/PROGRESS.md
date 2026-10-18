@@ -140,3 +140,20 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Excluded:** `phase9-checks` (superseded by `connect-checks` since D-084, now guarded) and `connect-checks` C2–C6 (OWNER-TODO #4).
 - **Risks:** none found in our code during the run.
 - **Next:** finish the remaining scripts when the machine has memory.
+
+## #14: final regression, completed (2026-10-18)
+- **Done:** every AT on Render, run one at a time (log: `docs/screenshots/final-regression.log`):
+  - approval 6/6, shop 4/4, dashboard 9/9, studio 5/5, landing 5/5, live 5/5, hack 3/3, mobile 39/39;
+  - telegram-flow 7/7, telegram 6/6;
+  - phase2 7/7, phase4 7/7, AT-5 6/6 (Lighthouse 100/100) + the demo reset;
+  - AT-6 8/8 (#6 against a local zero-AI replay server);
+  - recovery 4/4, fixes (isolation) 6/6, lane 6/6;
+  - `connect-checks --skip-lipp` 2/2 (C7: a real Fern & Loom order paid to seller 2);
+  - `final-screens`: 45 shots (15 screens × 3 sizes), 0 with sideways scroll.
+  - Plus the fresh clone from the README.
+- **Tests fixed on the way:** one accessibility regression in the app (the AI badge inside a `<label>`); five ATs updated to behaviour already decided (D-093).
+- **Screenshots:** `docs/screenshots/final/` (every screen at desktop, 1920×1080, mobile).
+- **Risks:**
+  - Log in with PayPal is still rejected by PayPal (OWNER-TODO #4), so `connect-checks` C2–C6 haven't run.
+  - The PayPal sandbox's login flakes now and then; the ATs retry it.
+- **Next:** the owner's Log in with PayPal setting, then `connect-checks` in full. After that, the video and the submission.

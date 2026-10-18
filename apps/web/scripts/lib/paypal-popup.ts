@@ -6,7 +6,17 @@ export async function loginAndApprove(popup: Page, buyer: { email: string; passw
   await popup.waitForLoadState("domcontentloaded");
   if (shots.login) await popup.screenshot({ path: shots.login });
   const emailBox = popup.locator("#email, input[name='login_email']").first();
-  await emailBox.waitFor({ timeout: 45_000 });
+  // PayPal's sandbox sometimes shows "Things don't appear to be working at the moment" with a Try again button.
+  for (let i = 0; ; i++) {
+    const ready = await emailBox.waitFor({ timeout: 15_000 }).then(() => true, () => false);
+    if (ready) break;
+    const tryAgain = popup.getByRole("button", { name: /try again/i }).first();
+    if (i < 3 && (await tryAgain.isVisible().catch(() => false))) {
+      await tryAgain.click().catch(() => {});
+      continue;
+    }
+    if (i >= 3) throw new Error("PayPal's sandbox login page didn't load (after 3 tries)");
+  }
   await emailBox.fill(buyer.email);
   const next = popup.locator("#btnNext");
   if (await next.isVisible().catch(() => false)) await next.click();

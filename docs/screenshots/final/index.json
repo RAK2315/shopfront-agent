@@ -1,0 +1,227 @@
+[
+  {
+    "route": "01-landing",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "01-landing",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "01-landing",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "02-shop",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "02-shop",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "02-shop",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "03-pay",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "03-pay",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "03-pay",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "04-live",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "04-live",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "04-live",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "05-storefront-juniper",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "05-storefront-juniper",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "05-storefront-juniper",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "06-storefront-fern",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "06-storefront-fern",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "06-storefront-fern",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "07-product",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "07-product",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "07-product",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "08-studio-signin",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "08-studio-signin",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "08-studio-signin",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "09-studio",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "09-studio",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "09-studio",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "10-orders",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "10-orders",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "10-orders",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "11-dashboard-overview",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "11-dashboard-overview",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "11-dashboard-overview",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "12-dashboard-builder",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "12-dashboard-builder",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "12-dashboard-builder",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "13-pay-link-invalid",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "13-pay-link-invalid",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "13-pay-link-invalid",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "14-not-found",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "14-not-found",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "14-not-found",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "15-design-system",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "15-design-system",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "15-design-system",
+    "size": "mobile",
+    "overflow": 0
+  }
+]
