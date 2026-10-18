@@ -95,6 +95,16 @@
 - **Results:** stored in `reconciliation_runs`. The dashboard badge reads the latest run, scoped to the seller. A new mismatch goes on the seller's timeline once.
 - **Reports only.** A stray capture on a cancelled order is refunded by an operator action (`refund_stray`) through `executeRefund`; `cancelled + REFUND_FULL → refunded`.
 
+### 2.4c PayPal Cart API v1 (D-097, D-098, D-099)
+- **Endpoints:** per store at `/api/paypal/v1/stores/{store}/merchant-cart` (POST, GET, PUT, `/checkout`). Every request runs: rate limit → store → store-bound JWT (`cart-auth.ts`) → `cart.ts`.
+- **Validation:** `evaluate()` reads only the DB (stock, prices, ship-to, payee readiness). It returns PayPal's `validation_issues` + `resolution_options`. Agent-sent prices are reported, never used.
+- **Checkout flow:**
+  - A valid cart → `openCheckout()` (shared with MCP) → Orders v2 `intent: AUTHORIZE` with the buyer's address.
+  - The buyer approves at PayPal → `/checkout` authorizes, stores the authorization and takes stock → `authorized`.
+- **After checkout:**
+  - Ship: `addTracking` → `captureOnShip` → capture of the authorization → `paid` → tracking → `shipped`.
+  - Cancel: platform-paid → void; direct-paid → seller handoff, closed by the VOIDED webhook or the reconciliation.
+
 ### 2.5 Post-sale ops (Flow 5)
 1. On `paid`, the ops agent drafts a thank-you message (structured `{subject, body}`). It is shown on the order page and in the buyer's status view. No email is sent (D-008).
 2. **Tracking:** the seller photographs a shipping label or types the number. Vision extracts `{carrier, tracking_number, confidence}`. The seller confirms. Then `POST /v2/checkout/orders/{order_id}/track` with `capture_id`, `tracking_number`, `carrier` (+ `notify_payer`). The tracking number is never invented.

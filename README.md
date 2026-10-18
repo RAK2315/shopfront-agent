@@ -8,6 +8,7 @@ Built for *Build What's Next with PayPal and AI* (2026). Everything runs in the 
 
 - **Live demo:** https://shopfront-agent.onrender.com (free tier; the first load after idle can take about a minute)
 - **MCP endpoint (any agent):** `https://shopfront-agent.onrender.com/mcp`
+- **PayPal Cart API v1 (Store-Sync-ready), per store:** `https://shopfront-agent.onrender.com/api/paypal/v1/stores/{store}/merchant-cart` · [try it](https://shopfront-agent.onrender.com/developers)
 - **Telegram seller copilot (judge mode):** https://t.me/juniper_clay_copilot_bot?start=judge
 
 ---
@@ -39,7 +40,8 @@ The same login is shown, with copy buttons, under every PayPal button.
    - Tap **🧪 Simulate a buyer**, approve the PayPal link as the test buyer, and the **order ping** arrives.
    - Tap **Simulate a refund request**: the policy decides, or you get **Approve / Decline** buttons.
    - Send a product photo (→ a draft with *Publish at $X*) or a shipping-label photo (→ *Add tracking* to the PayPal order).
-5. **Watch the wire.** **[/live](https://shopfront-agent.onrender.com/live)**: 24-hour counts (agent steps, MCP calls, payments captured, attacks blocked), then every event as it happens. Group them by checkout, or follow one.
+5. **Shop through PayPal's Cart API (60 s).** Open **[/developers](https://shopfront-agent.onrender.com/developers)** → *Get a 1-hour token* and paste the curl: the shop answers in PayPal's Cart API v1 schema with `REQUIRES_ADDITIONAL_INFORMATION` and how to fix it. Or run PayPal's own client as an agent: `pnpm --filter web cart-agent -- --store juniper_clay --query mug`.
+6. **Watch the wire.** **[/live](https://shopfront-agent.onrender.com/live)**: 24-hour counts (agent steps, MCP calls, payments captured, attacks blocked), then every event as it happens. Group them by checkout, or follow one.
 
 If the first page load takes about a minute, the free server is waking up; after that it's fast.
 
@@ -60,6 +62,21 @@ Shopfront is one network-level MCP server for every seller: add it once, shop ev
 ```
 
 Tools: `search_products`, `get_product`, `create_checkout` (variant ids and quantities only), `get_checkout_status`, `request_refund`. Prices, totals and refund amounts are always computed by the server. Crawlers and agents can also read [`/llms.txt`](https://shopfront-agent.onrender.com/llms.txt) and schema.org data on every storefront.
+
+## Every Shopfront seller is Store-Sync-ready
+
+PayPal Store Sync lets AI assistants build carts and check out at a merchant's own API, through **PayPal's Cart API v1** contract. Every Shopfront store answers it, built to PayPal's published schema ([`@paypal/agentic-commerce-spec`](https://www.npmjs.com/package/@paypal/agentic-commerce-spec)):
+
+| | |
+|---|---|
+| **Endpoints** (base `…/api/paypal/v1/stores/{store}`) | `POST /merchant-cart` · `GET /merchant-cart/{id}` · `PUT /merchant-cart/{id}` (full replacement) · `POST /merchant-cart/{id}/checkout` |
+| **Auth** | A Bearer JWT bound to one store (EdDSA, audience = the store; public key at [`/.well-known/jwks.json`](https://shopfront-agent.onrender.com/.well-known/jwks.json)). A token for one shop gets 403 at another; a cart is visible only to the agent that built it. |
+| **Validation** | `validation_status` and `validation_issues` with PayPal's codes and `resolution_options`, computed from the database: unknown or other-store items, stock (with alternatives), quantity, ship-to country, missing address, coupons, an unverified seller. **An agent-sent price is never used**: a different one comes back as `PRICE_MISMATCH` → `ACCEPT_NEW_PRICE`. |
+| **Payment** | A valid cart opens an Orders v2 order (`intent: AUTHORIZE`, the buyer's address provided). The buyer approves at PayPal's `approval_url`; `checkout` authorizes it; **adding tracking captures it** (capture on ship). Cancelling before shipping releases the hold. |
+| **Both seller kinds** | Platform-paid and direct-paid shops are authorized and captured alike (the capture lands in the seller's own PayPal). PayPal refuses our void of a direct-paid seller's hold, so that cancel is a one-tap handoff to their PayPal, like refunds (D-098). |
+| **Proof** | `cart-checks` K1–K14 on Render with real sandbox payments, and a **test agent built on PayPal's own Cart API client** (`scripts/cart-agent.mts`). Every hold is in the reconciliation. |
+
+Honest scope: PayPal routes Store Sync traffic, and issues merchant tokens, after onboarding through a request-access program. Until then Shopfront issues its own store-bound tokens; the verifier is the single place PayPal's would be checked.
 
 ## How each judging criterion is met
 
@@ -89,6 +106,7 @@ Every row is an acceptance test run **against the deployed app**, with real PayP
 | Telegram | Judge mode end to end: welcome, menus from the DB, a simulated buyer paid in PayPal → order ping → refund by policy or tap, photo → Publish tap, label → Add tracking tap, guardrails | [telegram](docs/screenshots/telegram/), D-092 |
 | Phase 9 | Each seller paid **directly into their own PayPal** (`payee`): a real capture paid seller 2; a shop with no verified PayPal is refused before any order; seller-side refunds closed by the verified webhook | [AT-9](docs/screenshots/phase-9/AT-9.md) |
 | Log in with PayPal | A real sign-in as seller 2 verifies Fern & Loom (payer id = the merchant PayPal pays); a replayed sign-in link is refused; an unverified email is refused before any order; the next paid order lands in seller 2's PayPal | [connect](docs/screenshots/connect/), D-092, D-094 |
+| Cart API v1 (Store Sync) | PayPal's own Cart API client buys through the merchant contract: validation issues and resolutions in PayPal's schema; six bad tokens refused (missing, garbage, `alg:none`, expired, other store, forged); a $0.01 agent price creates no order; authorize at checkout, **capture on ship** (Fern & Loom's capture lands in seller 2's PayPal); void or seller handoff; a replayed checkout holds once | [cart](docs/screenshots/cart/), D-097, D-098 |
 | Reconciliation | Every PayPal capture of the last 30 days (Transaction Search, verified webhooks, a GET for the newest) matched against our orders on boot, daily and at the end of every test suite; the dashboard shows **Reconciled with PayPal ✓** or the mismatches with their ids. It caught the two captures a bug left on cancelled orders (D-094); both were refunded through the app's refund code | [reconcile](docs/screenshots/reconcile/), D-095 |
 | Recovery | A verify outage gets 503 (PayPal retries); unprocessed webhooks are swept; a declined card's next capture gets a new `PayPal-Request-Id`. The decline uses PayPal's documented sandbox negative-testing header (`PayPal-Mock-Response`) on a real capture call | [RECOVERY](docs/screenshots/recovery/RECOVERY.md) |
 | Live, landing, mobile | 24 h counts from the DB, ids behind Details, live rows; the landing's pitch and doors; 13 routes × 3 phone widths with no sideways scroll | [live](docs/screenshots/live/), [landing](docs/screenshots/landing/), [mobile](docs/screenshots/mobile/) |
@@ -109,7 +127,8 @@ Every row is an acceptance test run **against the deployed app**, with real PayP
 |---|---|
 | **Orders v2** | Create (from the agent's checkout, with a per-seller `payee`), capture, GET for fallback checks, `POST …/track` for shipment tracking |
 | **JS SDK v6** | The human approval step (`paypal-button`, a one-time payment session, an explicit popup with a redirect fallback) on `/pay` and inline in the chat |
-| **Payments v2** | GET the capture before refunding, refund the capture, GET the refund |
+| **Payments v2** | GET the capture before refunding, refund the capture, GET the refund; Cart API holds: authorize, GET, capture on ship, void |
+| **Cart API v1** (agentic commerce, Store Sync) | The merchant contract every store implements: carts, validation issues with resolutions, checkout into Orders v2 |
 | **Webhooks v1** | Signature verification, `PAYMENT.CAPTURE.*` (completed, pending, denied, refunded, reversed), `CHECKOUT.ORDER.APPROVED` |
 | **Catalog Products v1** | Listings mirrored into PayPal's catalog; description, category and image updated from the dashboard (PATCH) |
 | **Transaction Search v1** | The `[paypal]` figures (it can lag about 3 hours, so today's figures come from our DB), and the reconciliation of PayPal's captures against our orders |
@@ -146,6 +165,8 @@ Badges say which source answered each AI step: "Live · Groq", "Live · Gemini",
 - **Not built (cut for time):** saved-wallet reorders with PayPal Vault, and dispute handling.
 - **Listing photos** are public-domain museum pieces standing in for the sellers' work (credits below).
 - **Free tiers:** Render cold starts (about 1 minute), Groq's 8k tokens per minute, Gemini latency. Answers are cached, and the demo can replay.
+- **Store Sync onboarding is request-access.** The Cart API contract is implemented and proven with our own test agent and PayPal's client library; PayPal itself routes to a merchant only after onboarding, and then supplies the JWTs.
+- **Capture on ship:** PayPal honors an authorization for 3 days (it stays capturable until it expires at 29 days, without the guarantee). Sellers are reminded to ship within 3 days. A direct-paid seller releases a cancelled hold in their own PayPal.
 - **Transaction Search lags** by up to about 3 hours, so every figure is labelled with its source. The reconciliation covers the newest payments with verified webhooks and a direct GET of the capture.
 - **The reconciliation's "daily" run** happens only while the free Render service is awake; it also runs on every start-up and whenever the dashboard finds the last run more than a day old.
 

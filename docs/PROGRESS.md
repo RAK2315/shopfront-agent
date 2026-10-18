@@ -178,3 +178,16 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/reconcile/`.
 - **Risks:** Transaction Search lags (covered by webhooks and GETs). The daily run happens only while Render is awake (start-up and dashboard runs cover it).
 - **Next:** review v2.
+
+## Phase C: PayPal Cart API v1, Store-Sync-ready (2026-10-18, D-097 to D-099)
+- **Done:**
+  - Every store answers Cart API v1 to PayPal's published schema: store-bound JWT, validation issues with resolutions, authorize at checkout, capture on ship, void or seller handoff.
+  - The holds are in the reconciliation.
+  - `/developers` (demo token + curl), a Studio card for agent keys, and a test agent on PayPal's own client.
+- **Tests:** `cart-checks` K1–K14 on Render with real sandbox payments; regression `shop-checks` 6/6 and `phase6` 1–5, 7, 8; reconciliation clean after every run.
+- **Screenshots:** `docs/screenshots/cart/` (developers, the Studio card, the hold panel, approved, live) at desktop, 1920 and mobile.
+- **Risks:**
+  - Store Sync onboarding is request-access (the README says so).
+  - The 3-day honor period for holds.
+  - PayPal sandbox login flakes (retries).
+- **Next:** review v2 fixes #2, #6, #8, then Phase AG (AG Studio).

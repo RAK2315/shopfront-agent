@@ -1,0 +1,42 @@
+[
+  {
+    "id": "K12 screens at 3 sizes: /cart/approved, /pay after shipping, /live (the hold panel is shot in K6)",
+    "ok": true,
+    "detail": {
+      "overflow": {
+        "approved@desktop": 0,
+        "approved@1920": 0,
+        "approved@mobile": 0,
+        "live@desktop": 0,
+        "live@1920": 0,
+        "live@mobile": 0
+      }
+    }
+  },
+  {
+    "id": "K13 /developers: demo token + the printed curl works against the live API",
+    "ok": true,
+    "detail": {
+      "status": 200,
+      "validation": "REQUIRES_ADDITIONAL_INFORMATION",
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "K14 Studio card: a seller-issued key works on its own store, 403 elsewhere",
+    "ok": true,
+    "detail": {
+      "own": "200 REQUIRES_ADDITIONAL_INFORMATION",
+      "other": 403,
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  }
+]

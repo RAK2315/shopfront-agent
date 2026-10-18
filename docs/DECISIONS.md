@@ -1614,6 +1614,49 @@
 - **Serves:** P8, J1, R2, D-002, D-083, D-095.
 ---
 
+## D-099: Phase C delivered: PayPal Cart API v1 merchant contract for every store (2026-10-18; D-097, D-098)
+- **Built** (commits `239c442` → `2787f5c`):
+  - **Endpoints:** `POST /merchant-cart`, `GET`/`PUT /merchant-cart/{id}` and `POST /merchant-cart/{id}/checkout` under `/api/paypal/v1/stores/{store}`.
+    - Requests and responses use PayPal's published Zod schemas (`@paypal/agentic-commerce-spec` 1.1.0).
+    - Errors use the spec's `Error` / `BusinessError` shapes.
+  - **Auth:**
+    - Store-bound EdDSA JWTs (`cart-auth.ts`). The key is derived from `SESSION_SECRET`, so there's no new secret; the JWKS is at `/.well-known/jwks.json`.
+    - `alg:none` and unknown keys are refused before any signature work. A refusal is logged on the store's wire as blocked.
+  - **Validation** (`cart.ts`):
+    - Deterministic issues with PayPal's codes and `resolution_options`.
+    - **An agent-sent `items[].price` is never used**: a mismatch returns `PRICE_MISMATCH` + `ACCEPT_NEW_PRICE`, and no order is created.
+  - **Payments:**
+    - `openCheckout()` is extracted from the MCP `create_checkout`, so both paths share pricing (D-002), payee routing (D-083), timers, webhooks and reconciliation.
+    - Cart orders use `intent: AUTHORIZE` with `SET_PROVIDED_ADDRESS`.
+    - New state `authorized` (events `AUTHORIZED`, `AUTHORIZATION_VOIDED`). Stock is taken at authorization and returned on release.
+    - Capture on ship runs in `addTracking`; void, or a direct-paid handoff, in `cancelAuthorized`.
+    - Webhooks: `PAYMENT.AUTHORIZATION.CREATED` / `VOIDED` (the webhook is subscribed to `*`).
+  - **Safety:** no other path can capture an AUTHORIZE order (the pay page, the return URL, the approved-webhook safety net and fallback checks are all guarded).
+  - **Reconciliation:** every open hold is checked with PayPal.
+    - VOIDED or EXPIRED (a seller's own void, the 29-day expiry) closes the order: lifecycle, no money moves.
+    - CAPTURED-without-us, DENIED or NOT_FOUND is a mismatch.
+  - **Screens:**
+    - `/developers`: endpoints, auth, the issues table, and a 1-hour demo token with a runnable curl.
+    - The Studio "Store-Sync-ready" card (30-day agent keys).
+    - `/cart/approved`, the `/pay` hold panel, Cart API rows on the wire, and an "authorized" pill.
+  - **Test agent:** `scripts/cart-agent.mts`, on PayPal's own client (`createCart`, `updateCart`, `getCart`, `completeCheckout`).
+- **Deviations (decided here):**
+  1. **The base URL is per store** (`/stores/{handle}`): Store Sync registers one base URL per merchant, and a platform hosts many. The JWT audience must equal the handle in the path.
+  2. **Tokens are self-issued until onboarding** (D-097). `/api/cart-token` gives 1-hour tokens for the demo shops only (rate-limited); sellers issue 30-day keys in the Studio.
+  3. **Carts belong to the agent that built them** (the JWT subject). Another agent with a token for the same store gets 404 (AT-C K11).
+  4. **Cart status mapping:**
+     - `INCOMPLETE`: has issues, or its order expired;
+     - `CREATED`: valid, order open;
+     - `READY`: the buyer approved, per the webhook;
+     - `COMPLETED`: authorized.
+  5. **The MCP and `/shop` path keeps `intent: CAPTURE`.** Only Cart API carts authorize.
+  6. **The capture's payee comes from a PayPal GET of the capture**, because the authorization-capture response has none (found by AT-C K9).
+- **Results:**
+  - `cart-checks` K1–K14 pass on Render: K1–K5, K10–K12 in run 1; K4 and K6–K9 after two fixes; K12–K14 after the screens. The reconciliation is clean after every run.
+  - Regression after the refactor: `shop-checks` 6/6. `phase6-checks` 1–5, 7 and 8 pass; 8 needed a rerun, because the spare sandbox buyer's PayPal login flaked 3× and a probe showed the account works. #6 needs the local replay server (Nov 4–5 regression).
+- **Serves:** P8, J1, J4, R2, D-002, D-083, D-095.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
