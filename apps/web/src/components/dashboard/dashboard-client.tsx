@@ -22,14 +22,14 @@ export function DashboardClient(props: ComponentProps<typeof StudioReport>) {
   const [opened, setOpened] = useState(false);
   useEffect(() => {
     const m = window.matchMedia(PHONE);
-    const on = () => setNarrow(m.matches);
+    const on = () => {
+      setNarrow(m.matches);
+      if (!m.matches) setOpened(true);
+    };
     on();
     m.addEventListener("change", on);
     return () => m.removeEventListener("change", on);
   }, []);
-  useEffect(() => {
-    if (narrow === false) setOpened(true);
-  }, [narrow]);
   if (narrow === null) return null;
   return (
     <>
