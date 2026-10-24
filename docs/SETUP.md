@@ -66,7 +66,7 @@ Your screenshot shows **Connection pooling ON**. That pooled string is exactly w
 5. Don't paste the URLs in chat. Tell me when they're in `.env`, and I'll run a connection test and the first migration.
 
 ## 7. AG Studio trial key
-1. From the "Your AG Studio trial is ready" email, copy the **whole** key string. It starts with `[TRIAL]_this_{AG_Studio_Pro}_Enterprise_key…` and ends after `[v3]_[03C]_MT…`.
+1. From AG Grid's trial email, copy the **whole** key string (one long line). Never paste it into docs, logs, screenshots or commits; it goes only in `.env` and Render as `NEXT_PUBLIC_AG_LICENSE_KEY`.
 2. Put it in `.env` on one line: `NEXT_PUBLIC_AG_LICENSE_KEY=<whole key>`. No quotes are needed; if your editor wraps the line, make sure it stays a single line.
 3. Add it to the Render env too, when we deploy.
 4. The key **deactivates Nov 29, 2026**. Around **Nov 20**, email AG Grid (the contact named in your email) to ask for an extension through judging (D-032).
