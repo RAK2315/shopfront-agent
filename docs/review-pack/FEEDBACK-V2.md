@@ -39,6 +39,6 @@ Ranked by what a judge meets first and how much it costs. 👁 = a judge sees it
 | 2 | /shop image and search accuracy | **Done 2026-10-18** (`review2-checks` R2a–R2c: weighted search with a relevance cut; the mug listing renamed "Blue crackle mug" to match a real CC0 mug photo) |
 | 6 | Get paid onboarding clarity | **Done 2026-10-18** (R6 + `connect-checks` C2) |
 | 8 | /shop live panel balance | **Done 2026-10-18** (R8: a 4-lane guide while the wire is quiet) |
-| 4, 5 | Dashboard width, AI change made visible | Folded into Phase AG (D-097) |
+| 4, 5 | Dashboard width, AI change made visible | **Done 2026-10-24** in Phase AG (D-101): `ag-checks` C1–C2 (strip tagged AI, Undo), `dashboard-checks` G0/G4/G6 (width, banner, Undo target) |
 | 3, 7 | Landing prominence, Telegram polish | Scheduled Oct 29 |
 

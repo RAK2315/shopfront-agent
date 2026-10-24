@@ -215,6 +215,7 @@
 - `telegram-flow-checks`, `connect-checks`, `final-screens`;
 - plus the older `phase2/4/5/6/9-checks`, `recovery-checks`, `telegram-checks`, `fixes-checks`, `lane-checks`;
 - `cart-checks` (AT-C, K1–K14), `cart-agent` (PayPal's Cart API client as a buyer agent), `spike-c`;
+- `ag-checks` (AT-AG: L1–L3 licence, P1–P5 report pages, A1–A6 Shop Manager, C1–C2 change strip; `--expect-no-key` runs L4 against a local build made with `NEXT_PUBLIC_AG_LICENSE_KEY=` empty);
 - `reconcile-checks` (the badge) and `reconcile` (the bare check). Every suite above also ends with `reconcile --settle` by itself (the preload, D-095); `AT_RECONCILE=0` skips it.
 
 **Habits from this run:**

@@ -1,0 +1,118 @@
+[
+  {
+    "id": "G0 overview with real data, no watermark",
+    "ok": true,
+    "detail": {
+      "kpis": [
+        "$2,486.00",
+        "59",
+        "$42.14",
+        "27.96%"
+      ],
+      "ordersRows": 98,
+      "edition": "community",
+      "testBadges": 15,
+      "chartPoints": 4,
+      "listings": 6,
+      "watermark": false,
+      "licenceErrors": [],
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "G4a Ask → view state, rows match, Undo restores",
+    "ok": true,
+    "detail": {
+      "view": {
+        "last_days": 7,
+        "statuses": null,
+        "product_contains": null,
+        "min_total": 50,
+        "max_total": null,
+        "shipped": "no",
+        "group_by": null,
+        "sort": null,
+        "columns": null,
+        "chart": null
+      },
+      "banner": [
+        "Filter: last 7 days",
+        "Filter: total over $50",
+        "Filter: not shipped yet"
+      ],
+      "rowsOk": true,
+      "afterUndo": {
+        "last_days": null,
+        "statuses": null,
+        "product_contains": null,
+        "min_total": null,
+        "max_total": null,
+        "shipped": null,
+        "group_by": null,
+        "sort": null,
+        "columns": null,
+        "chart": null
+      }
+    }
+  },
+  {
+    "id": "G4b question → [db] and [paypal] lines written by code",
+    "ok": true,
+    "detail": {
+      "lines": [
+        "[db] $2562.00 revenue from 67 orders; 25 refunds ($951.00).",
+        "[paypal] $3163.00 gross from 74 transactions; 29 refunds ($1074.00)."
+      ]
+    }
+  },
+  {
+    "id": "G4c 10 injection prompts: schema-valid view or figures only; money data unchanged",
+    "ok": true,
+    "detail": {
+      "checksumUnchanged": true,
+      "schemaOk": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  },
+  {
+    "id": "G5 grouped grid and linked chart agree",
+    "ok": true,
+    "detail": {
+      "groups": {
+        "Blue crackle mug": 3080,
+        "Ash-glaze serving bowl": 600,
+        "Bud vase trio": 594,
+        "Speckled stoneware mug": 108
+      },
+      "rowsTotal": 4382,
+      "chartPoints": 4,
+      "rowsInView": 98
+    }
+  },
+  {
+    "id": "G6 no sideways scroll; Builder tab loads",
+    "ok": true,
+    "detail": {
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      },
+      "builder": true
+    }
+  }
+]

@@ -203,3 +203,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
   - the "what changed" strip (fix #5); the overview width (fix #4);
   - AT-AG.
 - **Next (on resume):** build the preset and widgets in `components/dashboard/`, then AT-AG. Then review fixes #3 and #7, Gauntlet, proof docs, the Nov 4–5 regression (including phase6 #6 on a local replay server), DEMO-SCRIPT, review v3 pack.
+
+## Phase AG: AG Studio showcase delivered (2026-10-24, D-100, D-101)
+- **Done:** a 5-page Studio report (Overview · Orders · Payments & reconciliation · Inventory · Agents & Cart API) on six joined sources with a calendar and two measures; two new custom widgets (PayPal reconciliation, Cart API funnel); the read-only **Shop Manager** agent (no tool can move money); review fixes #5 (a "what changed" strip tagged AI, with Undo; AI tags on the overview's chips) and #4 (overview up to 1760 px, larger grid type). The AG key is Studio-only and expires 29 Nov; without a valid key Studio is never mounted and the tab shows the Community overview with a notice.
+- **Tests:** `ag-checks` 16/16 on Render (L1–L3, P1–P5, A1–A6, C1–C2) + L4 on a local build without the key; every Shop Manager figure re-checked against the tools; reconcile PASS. Regression: `dashboard-checks` G0, G4, G5, G6 pass; unit tests 195.
+- **Screenshots:** `docs/screenshots/ag/` (every page, the Shop Manager, the change strip, the expired/missing-key fallback) at desktop, 1920 and mobile.
+- **Risks:** the Studio trial ends 29 Nov (owner asks for the extension on Nov 25); Studio's grid shows money with one decimal ("$33.0"); on a phone the report scrolls inside its box (the Overview tab is the phone view).
+- **Next:** review fixes #3 (landing) and #7 (Telegram), then the Gauntlet.

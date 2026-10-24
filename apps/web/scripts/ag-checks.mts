@@ -272,7 +272,7 @@ try {
         rechecked.push({ tool: t.name, same: !!line && line === was });
       }
       const ok = expected.every((n) => used.includes(n)) && quoted.length >= expected.length && quoted.every((l) => l.inReply && /^\[(db|paypal)\]/.test(l.line)) && rechecked.length >= expected.length && rechecked.every((r) => r.same);
-      record(`${id} Shop Manager: "${q}"`, ok, { used, quoted, rechecked, reply: reply.slice(0, 400), raw: tools.map((t) => String(t.result).slice(0, 160)) });
+      record(`${id} Shop Manager: "${q}"`, ok, { used, quoted, rechecked, reply: reply.slice(0, 400) });
       await page.getByRole("button", { name: /^New$/ }).click().catch(() => undefined);
       await sleep(1500);
     }
