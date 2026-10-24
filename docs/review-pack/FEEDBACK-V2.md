@@ -40,5 +40,5 @@ Ranked by what a judge meets first and how much it costs. 👁 = a judge sees it
 | 6 | Get paid onboarding clarity | **Done 2026-10-18** (R6 + `connect-checks` C2) |
 | 8 | /shop live panel balance | **Done 2026-10-18** (R8: a 4-lane guide while the wire is quiet) |
 | 4, 5 | Dashboard width, AI change made visible | **Done 2026-10-24** in Phase AG (D-101): `ag-checks` C1–C2 (strip tagged AI, Undo), `dashboard-checks` G0/G4/G6 (width, banner, Undo target) |
-| 3, 7 | Landing prominence, Telegram polish | Scheduled Oct 29 |
+| 3, 7 | Landing prominence, Telegram polish | **Done 2026-10-24** (`landing-checks` L6, `telegram-flow-checks` 7/7) |
 

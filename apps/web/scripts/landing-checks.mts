@@ -45,15 +45,16 @@ try {
 
   // L6 (review v2 fix #3): the hero sub-text and the live panel read at a glance; the cards are body size; the page
   // uses the width at 1920.
+  // A string script: tsx would wrap a named helper in __name(), which the page doesn't have.
   const measure = () =>
-    page.evaluate(() => {
-      const px = (el: Element | null) => (el ? parseFloat(getComputedStyle(el).fontSize) : 0);
+    page.evaluate(`(() => {
+      const fs = (el) => (el ? parseFloat(getComputedStyle(el).fontSize) : 0);
       const sub = document.querySelector("h1 + p");
-      const wire = document.querySelector("[data-testid=hero-wire]") as HTMLElement | null;
+      const wire = document.querySelector("[data-testid=hero-wire]");
       const card = document.querySelector("[data-testid=flow-strip] > li p:last-child");
-      const strip = document.querySelector("[data-testid=flow-strip]") as HTMLElement | null;
-      return { subPx: px(sub), wireWidth: Math.round(wire?.getBoundingClientRect().width ?? 0), wireZoom: wire ? getComputedStyle(wire).zoom : "", cardPx: px(card), stripWidth: Math.round(strip?.getBoundingClientRect().width ?? 0) };
-    });
+      const strip = document.querySelector("[data-testid=flow-strip]");
+      return { subPx: fs(sub), wireWidth: Math.round(wire ? wire.getBoundingClientRect().width : 0), wireZoom: wire ? getComputedStyle(wire).zoom : "", cardPx: fs(card), stripWidth: Math.round(strip ? strip.getBoundingClientRect().width : 0) };
+    })()`) as Promise<{ subPx: number; wireWidth: number; wireZoom: string; cardPx: number; stripWidth: number }>;
   const at1440 = await measure();
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.waitForTimeout(700);

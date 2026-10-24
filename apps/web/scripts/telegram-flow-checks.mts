@@ -111,7 +111,7 @@ try {
   const sa = await waitSent("sales");
   await tap(CHAT, "m:orders");
   const or = await waitSent("orders");
-  record("F2 menus answer from the database", /live listing/.test(st.text) && /\[db\]/.test(sa.text) && or.text.length > 10, { status: st.text.slice(0, 100), sales: sa.text.slice(0, 120), orders: or.text.slice(0, 100) });
+  record("F2 menus answer from the database", /Listings: \d+ live/.test(st.text) && /\[db\]/.test(sa.text) && or.text.length > 10, { status: st.text.slice(0, 100), sales: sa.text.slice(0, 120), orders: or.text.slice(0, 100) });
 
   // F3
   since.at = new Date();

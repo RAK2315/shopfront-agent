@@ -1,0 +1,142 @@
+[
+  {
+    "created_at": "2026-10-24T15:17:18.709Z",
+    "kind": "welcome",
+    "text": "Connected to Judge's Demo Studio · practice shop\nSandbox only. Tap Simulate a buyer to place an order and watch the pings arrive here.",
+    "buttons": [
+      "🛍️ Orders",
+      "↩️ Pending refunds",
+      "🏪 Shop status",
+      "📊 Sales this week",
+      "🧪 Simulate a buyer",
+      "How it works"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:21.411Z",
+    "kind": "status",
+    "text": "🏪 Shop status · Judge's Demo Studio\nListings: 5 live · 0 drafts\nPayouts: the Shopfront sandbox account (demo shop)\nAgents: buy through https://shopfront-agent.onrender.com/mcp",
+    "buttons": [
+      "Open the storefront"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:23.797Z",
+    "kind": "sales",
+    "text": "📊 Sales summary · last 7 days\n[db] $224.00 revenue from 7 orders; 3 refunds ($111.00).\nTop seller: Practice copper-red cup (7 sold, $224.00)\n[db] is live; [paypal] can lag about 3 hours.",
+    "buttons": []
+  },
+  {
+    "created_at": "2026-10-24T15:17:26.226Z",
+    "kind": "orders",
+    "text": "🛍️ Latest orders\n• $37.00 · 1 × Practice copper-red cup · Paid · 6 d ago\n• $37.00 · 1 × Practice copper-red cup · Paid · 6 d ago\n• $37.00 · 1 × Practice copper-red cup · Shipped · 6 d ago\n• $37.00 · 1 × Practice copper-red cup · Refunded · 6 d ago\n• $37.00 · 1 × Practice copper-",
+    "buttons": [
+      "Open Orders in the Studio"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:28.774Z",
+    "kind": "simulate",
+    "text": "🧪 Simulate a buyer\nPick what the buyer's agent orders. You'll get a PayPal link to approve as the sandbox buyer, then the order ping.",
+    "buttons": [
+      "Practice copper-red cup · $32.00",
+      "White Glazed Bowl · $35.00",
+      "White Ceramic Bowl · $35.00",
+      "White Ceramic Bowl · $42.00",
+      "Practice serving bowl · $90.00"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:31.800Z",
+    "kind": "simulated_order",
+    "text": "🧾 Order ready · $37.00\n1 × Practice copper-red cup\n\nApprove it in PayPal as the buyer. Use the sandbox test buyer shown on the page; no real money moves.\nYour order ping arrives here when PayPal confirms the payment.",
+    "buttons": [
+      "Approve in PayPal (as the buyer)"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:48.915Z",
+    "kind": "order_ping",
+    "text": "💰 Order paid · $37.00\nItems: 1 × Practice copper-red cup\nPayPal: payment confirmed, paid to the Shopfront sandbox account.\nNext: send me a photo of the shipping label and I'll add tracking to the PayPal order.",
+    "buttons": [
+      "Open the order",
+      "🧪 Simulate a refund request"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:52.148Z",
+    "kind": "refund_request",
+    "text": "↩️ Refund request · $37.00\nItems: 1 × Practice copper-red cup\nReason: damaged · “It arrived with a chipped rim (practice refund).”\nWhy you: this buyer already had automatic refunds this month. The amount was computed by the server.",
+    "buttons": [
+      "✅ Refund $37.00",
+      "Decline"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:17:57.744Z",
+    "kind": "refund_done",
+    "text": "✅ Refund approved and sent. PayPal returned the money to the buyer.",
+    "buttons": []
+  },
+  {
+    "created_at": "2026-10-24T15:17:59.497Z",
+    "kind": "reading",
+    "text": "✨ Reading your photo… (about 10 seconds)",
+    "buttons": []
+  },
+  {
+    "created_at": "2026-10-24T15:18:05.820Z",
+    "kind": "draft",
+    "text": "✨ Draft: White Glazed Bowl\nThis is a white bowl featuring a glossy finish and an exposed rim. It has a round base and sloping sides.\n\n💲 Price: $45.00 · the AI's guess until you publish. You decide.\nNothing is live until you tap Publish.",
+    "buttons": [
+      "✅ Publish at $45.00",
+      "✏️ Set my price",
+      "Edit in the Studio"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:18:08.409Z",
+    "kind": "published",
+    "text": "🎉 White Glazed Bowl is live.\nIn your storefront now, mirrored to PayPal's catalog, and AI shopping agents can find it over MCP.",
+    "buttons": [
+      "See it in your shop"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:18:10.889Z",
+    "kind": "simulated_order",
+    "text": "🧾 Order ready · $37.00\n1 × Practice copper-red cup\n\nApprove it in PayPal as the buyer. Use the sandbox test buyer shown on the page; no real money moves.\nYour order ping arrives here when PayPal confirms the payment.",
+    "buttons": [
+      "Approve in PayPal (as the buyer)"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:18:27.507Z",
+    "kind": "order_ping",
+    "text": "💰 Order paid · $37.00\nItems: 1 × Practice copper-red cup\nPayPal: payment confirmed, paid to the Shopfront sandbox account.\nNext: send me a photo of the shipping label and I'll add tracking to the PayPal order.",
+    "buttons": [
+      "Open the order",
+      "🧪 Simulate a refund request"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:18:30.010Z",
+    "kind": "reading",
+    "text": "📦 Reading the label…",
+    "buttons": []
+  },
+  {
+    "created_at": "2026-10-24T15:18:34.249Z",
+    "kind": "label_read",
+    "text": "📦 USPS 9400111899220277492312\nAdd it to the order for 1 × Practice copper-red cup ($37.00)?\nI'll put the tracking on the PayPal order and tell the buyer.",
+    "buttons": [
+      "✅ Add tracking"
+    ]
+  },
+  {
+    "created_at": "2026-10-24T15:18:37.269Z",
+    "kind": "tracking_added",
+    "text": "🚚 Tracking added: USPS 9400111899220277492312\nIt's on the PayPal order, and the buyer has a note on their order page.",
+    "buttons": []
+  }
+]

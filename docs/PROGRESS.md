@@ -210,3 +210,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/ag/` (every page, the Shop Manager, the change strip, the expired/missing-key fallback) at desktop, 1920 and mobile.
 - **Risks:** the Studio trial ends 29 Nov (owner asks for the extension on Nov 25); Studio's grid shows money with one decimal ("$33.0"); on a phone the report scrolls inside its box (the Overview tab is the phone view).
 - **Next:** review fixes #3 (landing) and #7 (Telegram), then the Gauntlet.
+
+## Review v2 fixes #3 and #7 (2026-10-24, D-096)
+- **Done:** landing (#3): a 96 rem container with wider gutters, hero sub-text at 23 px, a larger live panel, workflow cards at body size (16 px); Telegram (#7): the welcome is two lines and the four actions, with the rest behind "How it works"; one header pattern each for Order paid, Refund request and Sales summary, the same field order, no decorative emoji in message bodies.
+- **Tests:** `landing-checks` 6/6 on Render (new L6 measures the sizes); `telegram-flow-checks` 7/7 on Render (a real sandbox purchase approved in PayPal, a refund executed, a label photo turned into PayPal tracking); reconcile PASS after each.
+- **Screenshots:** `docs/screenshots/landing/` at desktop, 1920 and mobile (fold and full page).
+- **Risks:** none new. The landing's live panel shows only public events; in a quiet spell it shows the newest sales and agent calls, however old.
+- **Next:** the Gauntlet (D-102).
