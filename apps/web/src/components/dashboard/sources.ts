@@ -6,8 +6,10 @@ import type { AgDataSourcesDefinition, AgExpressionFieldDefinition, AgRelationDe
 export type Row = Record<string, unknown>;
 export type Sources = { orders: Row[]; lines: Row[]; refunds: Row[]; attempts: Row[]; listings: Row[]; carts: Row[] };
 
-const usdFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const usd = (id: string, name: string) => ({ id, name, format: "currencyFormat", formatOptions: { format: usdFormat } });
+// Studio's own format-string syntax: what its field panel writes for "$, 2 decimal places" (serialisable, unlike an
+// Intl.NumberFormat, so it survives saved layouts and what the AI assistant reads).
+export const USD_FORMAT = "$#,##0.00";
+const usd = (id: string, name: string) => ({ id, name, format: "currencyFormat", formatOptions: { format: USD_FORMAT } });
 const text = (id: string, name: string, hide?: boolean) => ({ id, name, format: "textFormat", ...(hide && { hide }) });
 const int = (id: string, name: string, hide?: boolean) => ({ id, name, format: "integerFormat", ...(hide && { hide }) });
 const date = (id: string, name: string) => ({ id, name, format: "dateFormat" });

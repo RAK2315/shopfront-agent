@@ -5,10 +5,14 @@
 //   L3  ?aglicense=missing: the same with reason no-key
 //   L4  (--expect-no-key, a local build without the key) the report tab falls back with no query param
 //   P1–P5  each of the 5 pages: every widget title shows, key figures equal the data API (revenue, orders, captured,
-//       stock, attempts, the Cart API funnel), reconcile widget reads ✓; screenshots at desktop, 1920 and mobile
+//       stock, attempts, the Cart API funnel), reconcile widget reads ✓; every dollar amount on the page (grid cells and
+//       value widgets) has two decimals ($33.00, never $33.0; the refunds grid on P3 must show some); screenshots at desktop,
+//       1920 and mobile
 //   A1–A5  the Shop Manager answers 5 scripted questions; every [db]/[paypal] line in its reply is a tool's summary
 //       line, and re-running that tool with the same arguments gives the same line (the figures are real)
 //   A6  "refund order X" is refused: no tool runs, the reply says it can't, no refund row appears
+//   P6  a phone (390 px) opening the report tab sees one line ("Best viewed on desktop. Open the overview") linking to the Overview;
+//       Studio is never mounted
 //   C1  an AI change shows the "what changed" strip tagged AI; Undo restores the page exactly
 //   C2  a seller's own change shows the strip untagged; Undo restores it
 // Usage: pnpm --filter web ag-checks -- --base https://shopfront-agent.onrender.com [--only L1,P,A,C] [--expect-no-key]
@@ -219,12 +223,53 @@ try {
       if (id === "orders") extra.gridRows = await page.locator(".ag-row").count();
       if (id === "payments") extra.reconcile = await page.getByTestId("widget-reconcile").getAttribute("data-state");
       if (id === "agents") extra.funnel = { want: funnel, got: JSON.parse((await page.getByTestId("widget-cart-funnel").getAttribute("data-stages")) || "[]") };
+      // Screenshots first: the money check below scrolls each grid into view.
+      const overflow = await shots(`P${i + 1}-${id}`, false);
+      // Money format: every dollar amount in the report's DOM (grid cells, value widgets) has exactly two decimals.
+      // And nothing paints over it: the pixel just inside each visible money cell's text edge belongs to that cell
+      // (AG Grid's overlay scroll strip once hid the last digit: "$33.0" on screen, "$33.00" in the DOM).
+      const money = (await page.evaluate(String.raw`(() => {
+        const root = document.querySelector("[data-testid=dashboard]");
+        const cells = [...root.querySelectorAll(".ag-cell")].filter((c) => c.innerText.includes("$"));
+        const covered = [];
+        for (const grid of new Set(cells.map((c) => c.closest(".ag-root-wrapper")))) {
+          const first = cells.find((c) => grid.contains(c));
+          const restore = [];
+          for (let el = first.parentElement; el; el = el.parentElement) restore.push([el, el.scrollTop, el.scrollLeft]);
+          first.scrollIntoView({ block: "center" });
+          for (const c of cells.filter((x) => grid.contains(x))) {
+            const range = document.createRange();
+            range.selectNodeContents(c);
+            const t = range.getBoundingClientRect();
+            const y = t.top + t.height / 2;
+            if (t.width === 0 || y < 0 || y > innerHeight || t.right > innerWidth) continue;
+            for (const x of [t.left + 1, t.right - 1]) {
+              const hit = document.elementFromPoint(x, y);
+              // Only something inside the same grid that paints a background over the text counts (rows cut off by
+              // the page's own scroll box are fine; a transparent overlay scroll strip is fine).
+              if (!hit || c.contains(hit) || !grid.contains(hit) || hit.closest(".ag-row")) continue;
+              let paints = null;
+              for (let el = hit; el && el !== grid && !el.contains(c); el = el.parentElement) {
+                const bg = getComputedStyle(el).backgroundColor;
+                if (bg !== "transparent" && !/rgba\(.*,\s*0\)$/.test(bg)) { paints = el; break; }
+              }
+              if (paints) covered.push(c.innerText.trim() + " under ." + [...paints.classList].join("."));
+            }
+          }
+          // Put every scroll box back, or the next page's widgets start off-screen (Studio skips rendering them).
+          for (const [el, top, left] of restore) { el.scrollTop = top; el.scrollLeft = left; }
+        }
+        return { all: root.innerText.match(/-?\$[\d,]+(?:\.\d+)?/g) || [], grid: cells.map((c) => c.innerText.trim()), covered };
+      })()`)) as { all: string[]; grid: string[]; covered: string[] };
+      const badMoney = [...new Set([...money.all, ...money.grid].filter((t) => !/^-?\$\d[\d,]*\.\d{2}$/.test(t))), ...money.covered];
+      extra.money = { amounts: money.all.length, gridCells: money.grid.length, sample: money.grid.slice(0, 4), bad: badMoney.slice(0, 6) };
       const broken = /Something went wrong|Failed to load|Error loading/i.test(body);
       const extraOk =
+        badMoney.length === 0 &&
+        (id !== "payments" || money.grid.length > 0) &&
         (id !== "orders" || (extra.gridRows as number) > 0) &&
         (id !== "payments" || extra.reconcile === "ok") &&
         (id !== "agents" || JSON.stringify((extra.funnel as { want: number[] }).want) === JSON.stringify((extra.funnel as { got: number[] }).got));
-      const overflow = await shots(`P${i + 1}-${id}`, false);
       const marks = await watermarks();
       record(`P${i + 1} page ${id}: every widget renders with real figures`, !missing.length && Object.values(figures).every((f) => f.ok) && extraOk && !broken && !marks && !errors.length && Object.values(overflow).every((o) => o <= 0), {
         widgets: Object.keys(pg0.widgets).length,
@@ -236,6 +281,36 @@ try {
         overflow,
       });
     }
+  }
+
+  if (want("P6")) {
+    // P6: a phone opens the report tab: one line pointing to the Overview; Studio is never loaded or mounted.
+    const phone = await ctx.newPage();
+    await phone.setViewportSize({ width: 390, height: 844 });
+    await phone.goto(`${base}/studio/dashboard?tab=report`, { waitUntil: "load", timeout: 180_000 });
+    const note = phone.getByTestId("report-phone-note");
+    await note.waitFor({ timeout: 60_000 }).catch(() => undefined);
+    await sleep(4000);
+    const text = (await note.innerText().catch(() => "")).trim();
+    const href = await note.getByRole("link").getAttribute("href").catch(() => null);
+    const mounted = await phone.locator("[data-testid=dashboard], .ag-studio, [class*=ag-studio-]").count();
+    const api = await phone.evaluate("typeof window.__shopfrontStudio");
+    const lines = (await phone.evaluate(String.raw`(() => { const el = document.querySelector("[data-testid=report-phone-note]"); const cs = getComputedStyle(el); return Math.round((el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / parseFloat(cs.lineHeight)); })()`).catch(() => -1)) as number;
+    const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    await phone.screenshot({ path: join(out, "P6-phone-note-mobile.png") });
+    await note.getByRole("link").click();
+    await phone.waitForURL((u) => u.pathname === "/studio/dashboard" && !u.search.includes("tab=report"), { timeout: 60_000 }).catch(() => undefined);
+    const landed = new URL(phone.url()).pathname + new URL(phone.url()).search;
+    await phone.close();
+    record("P6 phone: the report tab shows the desktop note, links to Overview, never mounts Studio", /best viewed on desktop/i.test(text) && href === "/studio/dashboard" && lines === 1 && mounted === 0 && api === "undefined" && overflow <= 0 && landed === "/studio/dashboard", {
+      text,
+      href,
+      mounted,
+      api,
+      noteHeightInLines: lines,
+      overflow,
+      landed,
+    });
   }
 
   // The phone screenshots leave the report in view mode; the AI assistant lives in edit mode on a wide screen.

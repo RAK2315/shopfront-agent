@@ -1712,6 +1712,13 @@
 - **Serves:** J1, J3, P7, R2, D-002 (shown by contrast), D-021.
 ---
 
+## D-103: The new AG key expires 1 Dec; "$33.0" was clipping, not formatting; the Report tab on a phone is a one-line pointer (2026-10-25; D-100, D-101)
+- **Key:** the owner's 2026-10-25 AG key (Studio's validator: `STUDIO-PRO-AI` trial, **expiry 1 December 2026**) is on Render (hash matches `.env`, redeployed manually 2026-10-24 19:57 UTC); `ag-checks` L1 passes on it. It still licenses Studio only (AG Grid / Charts Enterprise validators reject it). Judging runs to Dec 15, so the trial extension is still needed for Dec 1–15; D-100's fallback covers a lapse automatically.
+- **Money format, deviation from the handoff's diagnosis:** the cells were already "$33.00" in the DOM. AG Grid 36.2, when the browser uses overlay scrollbars (headless Chromium, Chrome on Windows 11, macOS), lays its 16 px vertical scroll strip over the last column with an opaque `--ag-data-background-color` and reserves no width for it, so a right-aligned last column lost its final digit on screen. **Fix:** one global CSS rule makes that strip transparent in overlay mode (`globals.css`), for Studio's grids and the Overview's. The money fields also move from an `Intl.NumberFormat` object to Studio's own format string `"$#,##0.00"` (what its field panel writes; serialisable). **Check:** `ag-checks` P1–P5 now fail if any dollar amount in the report has other than two decimals **or** if anything inside the grid paints over a visible money cell's text (red on the live build before the fix: P2 and P3, "under .ag-body-vertical-scroll-viewport"); a unit test pins every `*_usd` field to the format string.
+- **Phone (< 768 px):** the Report tab shows one line, "Best viewed on desktop. Open the overview", and Studio's bundle is neither loaded nor mounted (the gate sits before the dynamic import). If Studio is already open and the window narrows, it is hidden, not unmounted, so no edit is lost. `ag-checks` P6 checks the line (one line at 390 px), the link, and that Studio never mounts.
+- **Serves:** J2 (AG Grid polish), J4, D-100.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

@@ -107,7 +107,7 @@
 | Test variant | `var_cobalt120000` (Cobalt drip mug, $32 + $5 shipping) |
 | Neon | project `shopfront`, branch `production`, migrations `0000`–`0009` |
 | Data-isolation cutover | `2026-10-17T13:11:20.579Z` (pass it as `fixes-checks --cutover`) |
-| AG Studio trial | key in env; **expires 2026-11-29** |
+| AG Studio trial | key in env and on Render; **expires 2026-12-01** (D-103; extension asked Nov 25) |
 
 ## Env var names (values only in `.env` and on Render)
 - `PAYPAL_*`, `LLM_*`, `GEMINI_*`, `GROQ_*`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `APP_URL`, `SESSION_SECRET`, `NEXT_PUBLIC_AG_LICENSE_KEY`, `SANDBOX_BUYER_EMAIL`, `SANDBOX_BUYER_PASSWORD`.

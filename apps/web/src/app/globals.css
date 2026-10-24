@@ -153,3 +153,11 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* AG Grid 36 with overlay scrollbars (Chrome on Windows 11 and macOS, headless Chromium) lays a 16 px scroll strip
+   over the last column with an opaque background, which hid the last digit of right-aligned money ("$33.0").
+   A transparent strip lets the text show, as any overlay scrollbar does. */
+.ag-body-vertical-scroll.ag-scrollbar-invisible .ag-body-vertical-scroll-viewport,
+.ag-body-horizontal-scroll.ag-scrollbar-invisible .ag-body-horizontal-scroll-viewport {
+  background-color: transparent;
+}
