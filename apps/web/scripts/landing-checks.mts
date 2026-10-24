@@ -43,6 +43,24 @@ try {
   const feed = await page.getByText("Happening on the sandbox right now").isVisible();
   record("L3 developer card + live feed", /\/mcp/.test(mcp) && feed, { hasMcp: /\/mcp/.test(mcp), feed });
 
+  // L6 (review v2 fix #3): the hero sub-text and the live panel read at a glance; the cards are body size; the page
+  // uses the width at 1920.
+  const measure = () =>
+    page.evaluate(() => {
+      const px = (el: Element | null) => (el ? parseFloat(getComputedStyle(el).fontSize) : 0);
+      const sub = document.querySelector("h1 + p");
+      const wire = document.querySelector("[data-testid=hero-wire]") as HTMLElement | null;
+      const card = document.querySelector("[data-testid=flow-strip] > li p:last-child");
+      const strip = document.querySelector("[data-testid=flow-strip]") as HTMLElement | null;
+      return { subPx: px(sub), wireWidth: Math.round(wire?.getBoundingClientRect().width ?? 0), wireZoom: wire ? getComputedStyle(wire).zoom : "", cardPx: px(card), stripWidth: Math.round(strip?.getBoundingClientRect().width ?? 0) };
+    });
+  const at1440 = await measure();
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.waitForTimeout(700);
+  const at1920 = await measure();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  record("L6 prominence: hero sub-text ≥ 22 px, live panel ≥ 520 px and zoomed, card body ≥ 16 px, 1920 uses ≥ 1450 px", at1440.subPx >= 22 && at1440.wireWidth >= 520 && Number(at1440.wireZoom) > 1 && at1440.cardPx >= 16 && at1920.stripWidth >= 1450, { at1440, at1920 });
+
   const navLinks = await page.getByRole("navigation", { name: "Site" }).locator("ul a").allInnerTexts();
   const overflow: Record<string, number> = {};
   for (const s of [{ tag: "desktop", w: 1440, h: 900 }, { tag: "1920", w: 1920, h: 1080 }, { tag: "mobile", w: 390, h: 844 }]) {

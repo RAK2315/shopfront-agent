@@ -70,7 +70,7 @@ export default async function Home() {
               <Store aria-hidden className="size-4 text-clay" /> Sell with Shopfront
             </Link>
           </div>
-          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-base text-ink-2 motion-safe:animate-[rise_520ms_240ms_var(--ease-out-expo)_both]">
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-md text-ink-2 motion-safe:animate-[rise_520ms_240ms_var(--ease-out-expo)_both]">
             <li className="inline-flex items-center gap-1.5">
               <ShieldCheck aria-hidden className="size-4 text-clay" /> The shop sets the price, never the agent
             </li>
@@ -103,7 +103,7 @@ export default async function Home() {
                 <img src={photo.img} alt="" className="aspect-[4/3] w-full rounded-md object-cover" />
               )}
               <p className="text-lg font-medium text-ink">Drops a photo. AI writes the listing.</p>
-              <p className="text-base text-ink-2">She checks it and confirms the price. Nothing goes live on an AI guess.</p>
+              <p className="text-md text-ink-2">She checks it and confirms the price. Nothing goes live on an AI guess.</p>
             </li>
             <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
               <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-clay-strong">
@@ -123,7 +123,7 @@ export default async function Home() {
                 )}
               </div>
               <p className="text-lg font-medium text-ink">Finds it over MCP and sets up the order.</p>
-              <p className="text-base text-ink-2">It sends ids and quantities. The shop computes the total.</p>
+              <p className="text-md text-ink-2">It sends ids and quantities. The shop computes the total.</p>
             </li>
             <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
               <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-paypal">
@@ -145,7 +145,7 @@ export default async function Home() {
                 <span className="mt-1 rounded-md bg-paypal-soft px-2 py-1.5 text-center text-sm font-medium text-paypal">Approve in PayPal</span>
               </div>
               <p className="text-lg font-medium text-ink">Approves the payment in PayPal.</p>
-              <p className="text-base text-ink-2">The agent can&apos;t pay on its own. A verified webhook confirms the sale.</p>
+              <p className="text-md text-ink-2">The agent can&apos;t pay on its own. A verified webhook confirms the sale.</p>
             </li>
             <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
               <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-clay-strong">
@@ -156,7 +156,7 @@ export default async function Home() {
                 <img src={textile.img} alt="" className="aspect-[4/3] w-full rounded-md object-cover" />
               )}
               <p className="text-lg font-medium text-ink">Ships, tracks and refunds inside her rules.</p>
-              <p className="text-base text-ink-2">It reads the label photo, adds tracking to PayPal and asks her before any refund outside policy.</p>
+              <p className="text-md text-ink-2">It reads the label photo, adds tracking to PayPal and asks her before any refund outside policy.</p>
             </li>
           </ol>
         </div>
