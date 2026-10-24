@@ -38,6 +38,7 @@
     "mobile-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/mobile-checks.mts",
     "hack-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/hack-checks.mts",
     "ag-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/ag-checks.mts",
+    "gauntlet-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/gauntlet-checks.mts",
     "connect-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/connect-checks.mts",
     "telegram-flow-checks": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/telegram-flow-checks.mts",
     "final-screens": "node --env-file-if-exists=../../.env --import tsx --import ./scripts/lib/test-run.ts scripts/final-screens.mts",

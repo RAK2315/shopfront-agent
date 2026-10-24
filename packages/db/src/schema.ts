@@ -424,3 +424,18 @@ export const carts = pgTable(
   },
   (t) => [index('carts_seller').on(t.sellerId, t.createdAt), index('carts_checkout').on(t.checkoutId)],
 );
+
+/** The Gauntlet (D-102): one row per run, naive shop vs Shopfront; the page shows the latest public run. */
+export const gauntletRuns = pgTable(
+  'gauntlet_runs',
+  {
+    id: text('id').primaryKey(), // gnt_ + 12 chars
+    status: text('status').notNull(), // running | done | failed
+    results: jsonb('results').$type<Array<Record<string, unknown>>>().notNull().default([]),
+    summary: jsonb('summary').$type<Record<string, unknown>>().notNull().default({}),
+    isTest: boolean('is_test').notNull().default(false),
+    createdAt: createdAt(),
+    finishedAt: ts('finished_at'),
+  },
+  (t) => [index('gauntlet_runs_public').on(t.isTest, t.createdAt)],
+);

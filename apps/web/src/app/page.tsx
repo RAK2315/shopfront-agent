@@ -187,6 +187,9 @@ export default async function Home() {
           <Link href="/shop" className="inline-flex w-fit items-center gap-1.5 text-md font-medium text-clay-strong underline-offset-4 hover:underline">
             Try to hack the price yourself <ArrowRight aria-hidden className="size-4" />
           </Link>
+          <Link href="/gauntlet" className="inline-flex w-fit items-center gap-1.5 text-md font-medium text-clay-strong underline-offset-4 hover:underline">
+            Watch 31 attacks on a naive shop and on Shopfront <ArrowRight aria-hidden className="size-4" />
+          </Link>
         </div>
         <aside className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-4 rounded-lg border border-line bg-surface p-5" aria-labelledby="dev-h" data-testid="developer-card">
           <h2 id="dev-h" className="inline-flex items-center gap-2 text-lg font-semibold">

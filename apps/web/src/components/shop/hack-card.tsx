@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { motion, useReducedMotion } from "motion/react";
 import { ChevronRight, CircleAlert, CircleCheck, ShieldAlert, ShieldCheck } from "lucide-react";
 import { hackReason } from "@/lib/hack-reason";
@@ -93,6 +95,9 @@ export function HackCard({ result }: { result: HackResult }) {
       <p className="text-xs text-muted">
         Real requests to the public MCP endpoint and webhook, answered by the server. Real price of {result.product}: ${result.serverPrice} + ${result.shipping} shipping, from the seller&apos;s catalog. Next: the same trick as a prompt to the agent.
       </p>
+      <Link href="/gauntlet" className="inline-flex w-fit items-center gap-1 text-sm font-medium text-clay-strong underline-offset-4 hover:underline" data-testid="hack-gauntlet-link">
+        Run the full Gauntlet: 31 attacks, a naive shop beside Shopfront <ChevronRight aria-hidden className="size-3.5" />
+      </Link>
     </div>
   );
 }

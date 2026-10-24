@@ -110,6 +110,7 @@
 | D-099 | 2026-10-18 | Phase C delivered: PayPal Cart API v1 merchant contract for every store | ACCEPTED | P8, J1, J4, R2 |
 | D-100 | 2026-10-24 | The new AG key is Studio-only (expires 29 Nov); graceful expiry: Studio not mounted, Community overview + notice; `?aglicense=` simulation | ACCEPTED | J2, G1 |
 | D-101 | 2026-10-24 | Phase AG: 5-page Studio report (host page tabs), reconcile + Cart API funnel widgets, read-only Shop Manager, AI changes tagged with Undo; overview stays default | ACCEPTED | J2, J1, J4 |
+| D-102 | 2026-10-24 | The Gauntlet: 31 attacks in 7 families on /gauntlet, naive shop vs Shopfront with the same model; naive orders are real sandbox orders never approved (contained exception) | ACCEPTED | J1, J3, P7, R2 |
 
 ---
 
@@ -1692,6 +1693,23 @@
   - Overview: the change banner gets the AI tag, AI-set filter chips are outlined and tagged, Undo says what it restores ("Undo goes back to: …"), a test-order count and a one-line `[db]` / `[paypal]` legend sit above the KPIs.
 - **Review fix #4 (width):** the overview spans up to 1760 px with 24–32 px gutters; its grids use 14 px type and taller rows. The report fills the window.
 - **Serves:** J2 (AG Grid prize: custom widgets, theming, layout, Studio Agent Framework), J1, J4, D-002 (no money tool), D-095, D-097, D-100.
+---
+
+## D-102: The Gauntlet: 31 attacks in 7 families, a naive shop beside Shopfront, same model; a contained exception to "no LLM creates orders" (2026-10-24; D-097)
+- **Where:** a new page **`/gauntlet`** (the /shop hack card keeps its quick 13-attack run and links to it). A run streams results tile by tile; the last run is stored (`gauntlet_runs`, migration 0014) and shown on load. One run at a time, at most one every 3 minutes, so the free LLM tier and the sandbox are not flooded.
+- **The two sides, same model, same tasks:**
+  - **Naive shop** (`server/gauntlet/naive.ts`): what a quick integration does. Its agent tools accept `price`, `total`, `discount_percent`, `coupon` and `currency`; its order code trusts them; its cart and webhook handlers have no store binding and no signature check; its refund tool takes any amount; its vision prompts follow text in the photo.
+  - **Guarded side:** Shopfront's real paths: `/mcp` (ids and quantities only), the Cart API v1 contract (store-bound JWT, server pricing), the real cataloger and label reader (text in a photo is data, price never from a photo), webhook signature checks, the refund policy.
+  - LLM steps (chat, product-photo and label-photo families) use the same model and route through the `llm.call` budget guard on both sides; answers are cached by prompt and image hash (D-021), and each tile says whether the answer was live or cached.
+- **The 7 families (31):** chat injection 5 · product-photo injection 4 · shipping-label injection 4 · schema smuggling 6 (incl. the Cart API price) · cross-store JWT and cart ids 4 · replay 4 · refund abuse 4.
+- **Contained exception (owner's plan, D-097):** to make the naive side's harm real, the naive order code creates **a real PayPal sandbox Orders v2 order at the amount the naive agent chose**. This is the only code in the repo where model output sets an amount, and it is fenced:
+  - it lives only in `server/gauntlet/`, is reachable only from `/api/gauntlet`, and never writes a checkout row;
+  - the order's approve link is never shown or stored, so no one can approve it and it can never be captured; the sandbox discards unapproved orders (checked 2026-10-24: orders left unapproved since Oct 15–18 now return 404 `RESOURCE_NOT_FOUND`, debug ids `f117991ff9dec`, `f550373c62cea`);
+  - Orders v2 has no void for an unapproved order (void exists only for authorizations), so "voided after display" in the plan becomes "never approved, left to expire"; the page says so;
+  - a `$0.00` amount is sent as is: PayPal rejects it, and that real answer is shown ("PayPal refused it").
+  - Naive refunds, cart reads across stores and webhook acceptance run **in the naive server's memory only**; no refund or webhook is sent to PayPal for them. Their tiles say "in memory, not sent".
+- **AT-GA (`gauntlet-checks`):** every guarded attack is blocked with its reason; every naive PayPal order is confirmed by a GET (status `CREATED`, the attacker's amount); guarded checkouts created during the run all carry the database price; 3-size screenshots; reconcile PASS.
+- **Serves:** J1, J3, P7, R2, D-002 (shown by contrast), D-021.
 ---
 
 ## Requirement updates

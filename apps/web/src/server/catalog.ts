@@ -13,7 +13,7 @@ type Seller = typeof schema.sellers.$inferSelect;
 
 export const CATALOGER_PROMPT_VERSION = "cataloger-v2";
 
-const CATALOGER_SYSTEM = [
+export const CATALOGER_SYSTEM = [
   "You catalog products for an independent maker's online shop from one product photo.",
   "Write what a careful shop assistant would: a plain title (no hype, at most 60 characters), a factual 2–3 sentence description, one lowercase category word, and visible attributes (material, colour, glaze, size, finish).",
   "Give every field an honest confidence from 0 to 1. Use low confidence when you are inferring rather than seeing.",

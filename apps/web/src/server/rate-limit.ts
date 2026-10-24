@@ -11,6 +11,7 @@ const LIMITS = {
   shop_hack: { max: 6, windowMs: 60_000 },
   cart_api: { max: 60, windowMs: 60_000 }, // PayPal Cart API v1 (D-097)
   cart_token: { max: 5, windowMs: 60_000 }, // demo tokens for judges
+  gauntlet: { max: 2, windowMs: 10 * 60_000 }, // a run is ~40 model calls (D-102)
 } as const;
 export type RateKey = keyof typeof LIMITS;
 

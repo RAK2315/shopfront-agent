@@ -15,6 +15,7 @@ export const ID_PREFIXES = {
   extraction: 'ext',
   telegramAction: 'tga',
   cart: 'cart',
+  gauntletRun: 'gnt',
 } as const;
 
 export type IdKind = keyof typeof ID_PREFIXES;
