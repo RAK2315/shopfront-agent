@@ -28,7 +28,7 @@ export function LandingWire({ initial }: { initial: ShopEvent[] }) {
       title="Happening on the sandbox right now"
       emptyText="Quiet right now. Start a purchase in the shop and watch it arrive here."
       className="h-full shadow-[var(--shadow-float)]"
-      listClassName="max-h-[30rem] overflow-hidden"
+      listClassName="max-h-[30rem] overflow-hidden lg:max-h-[32rem]"
     />
   );
 }

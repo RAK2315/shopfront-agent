@@ -120,7 +120,7 @@ try {
   const ck = await buyAndPay();
   const ping = await waitSent("order_ping", 90_000);
   const isTest = (await db.query("select is_test from checkouts where id=$1", [ck])).rows[0]?.is_test;
-  record("F3 Simulate a buyer → real sandbox order → approved in PayPal → order ping", isTest && /New order/.test(ping.text) && ping.checkout_id === ck && ping.buttons.includes("🧪 Simulate a refund request"), { checkout: ck, ping: ping.text.slice(0, 140), buttons: ping.buttons });
+  record("F3 Simulate a buyer → real sandbox order → approved in PayPal → order ping", isTest && /Order paid/.test(ping.text) && ping.checkout_id === ck && ping.buttons.includes("🧪 Simulate a refund request"), { checkout: ck, ping: ping.text.slice(0, 140), buttons: ping.buttons });
 
   // F4
   since.at = new Date();

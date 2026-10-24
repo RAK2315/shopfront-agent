@@ -53,6 +53,7 @@ const MAIN_MENU = (isDemo: boolean): Button[][] => [
     { text: "📊 Sales this week", data: "m:sales" },
   ],
   ...(isDemo ? [[{ text: "🧪 Simulate a buyer", data: "m:sim" }]] : []),
+  [{ text: "How it works", data: "m:how" }],
 ];
 
 /** The first message after linking: who I am, which shop, what works. */
@@ -61,21 +62,27 @@ export async function welcome(chatId: number, sellerId: string) {
   if (!s) return;
   const demo = s.testOnly;
   const lines = [
-    `🧺 <b>Connected to ${esc(s.displayName)}</b>`,
-    `I'm this seller's copilot. I handle the shop's chores here in Telegram; anything that moves money waits for your tap.`,
-    "",
-    "<b>What I do</b>",
-    "• 🛍️ Ping you the moment an order is paid in PayPal",
-    "• ↩️ Ask you before any refund outside your policy",
-    "• ✨ Turn a product photo into a listing (you set the price)",
-    "• 📦 Read a shipping-label photo and add tracking to the PayPal order",
-    "• 📊 Answer “how are sales?” with live figures",
-    "",
+    `<b>Connected to ${esc(s.displayName)}${demo ? " · practice shop" : ""}</b>`,
     demo
-      ? "🧪 <b>Judge mode</b>: a practice shop, sandbox only. Tap <b>Simulate a buyer</b> to place an order and watch the pings arrive."
-      : `Payouts: ${s.payoutStatus === "verified" ? "paid directly to your PayPal" : s.payoutStatus === "platform" ? "the Shopfront sandbox account (demo shop)" : "connect PayPal in the Studio to start selling"}.`,
+      ? "Sandbox only. Tap <b>Simulate a buyer</b> to place an order and watch the pings arrive here."
+      : "I run your shop's chores here. Anything that moves money waits for your tap.",
   ];
   await send(chatId, lines.join("\n"), { buttons: MAIN_MENU(demo), sellerId, kind: "welcome", isTest: demo });
+}
+
+/** "How it works": the longer explanation the welcome leaves out. */
+async function howItWorks(chatId: number, s: Seller) {
+  const payouts = s.payoutStatus === "verified" ? "straight to your PayPal" : s.payoutStatus === "platform" ? "into the Shopfront sandbox account (demo shop)" : "nowhere yet: connect PayPal in the Studio";
+  const lines = [
+    "<b>How it works</b>",
+    "Order paid: I message you as soon as PayPal confirms a payment.",
+    "Refund request: inside your policy it runs by itself; outside it, you get Refund / Decline buttons.",
+    "Product photo: send one and I draft the listing. You set the price before it goes live.",
+    "Shipping label: send a photo and I add the tracking to the PayPal order.",
+    "Sales: ask “how are sales?” for live figures from the shop and from PayPal.",
+    `Payouts go ${payouts}. Anything that moves money needs your tap.`,
+  ];
+  return send(chatId, lines.join("\n"), { sellerId: s.id, kind: "how", isTest: s.testOnly, buttons: MAIN_MENU(s.testOnly) });
 }
 
 async function ordersFor(s: Seller, limit = 5) {
@@ -98,6 +105,7 @@ export async function menu(chatId: number, sellerId: string, key: string) {
   if (!s) return;
   const demo = s.testOnly;
   const o = { sellerId, isTest: demo };
+  if (key === "how") return howItWorks(chatId, s);
   if (key === "orders") {
     const rows = await ordersFor(s);
     if (!rows.length) return send(chatId, demo ? "No orders yet. Tap <b>Simulate a buyer</b> to place one." : "No paid orders yet.", { ...o, kind: "orders", buttons: MAIN_MENU(demo) });
@@ -113,7 +121,7 @@ export async function menu(chatId: number, sellerId: string, key: string) {
       .where(and(eq(schema.checkouts.sellerId, s.id), eq(schema.refundRequests.status, "pending")))
       .orderBy(asc(schema.refundRequests.createdAt))
       .limit(3);
-    if (!rows.length) return send(chatId, "↩️ Nothing waiting. Refunds inside your policy run automatically.", { ...o, kind: "refunds" });
+    if (!rows.length) return send(chatId, "↩️ <b>Refund requests · none waiting</b>\nRefunds inside your policy run automatically.", { ...o, kind: "refunds" });
     for (const { r } of rows) await pingRefundRequest(r.id, chatId);
     return true;
   }
@@ -121,8 +129,8 @@ export async function menu(chatId: number, sellerId: string, key: string) {
     const { db } = services();
     const live = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.sellerId, s.id), eq(schema.products.status, "approved")));
     const drafts = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.sellerId, s.id), eq(schema.products.status, "draft")));
-    const payout = s.payoutStatus === "verified" ? `✅ Paid directly to your PayPal${s.paypalMerchantId ? ` (${s.paypalMerchantId})` : ""}` : s.payoutStatus === "platform" ? "🏦 Paid into the Shopfront sandbox account (demo shop)" : "⚠️ Not taking payments: connect PayPal in the Studio";
-    return send(chatId, [`🏪 <b>${esc(s.displayName)}</b>`, `${live.length} live listing${live.length === 1 ? "" : "s"} · ${drafts.length} draft${drafts.length === 1 ? "" : "s"}`, payout, `Agents buy through ${esc(appUrl("/mcp"))}`].join("\n"), { ...o, kind: "status", buttons: [[{ text: "Open the storefront", url: appUrl(`/s/${s.handle}`) }]] });
+    const payout = s.payoutStatus === "verified" ? `Payouts: straight to your PayPal${s.paypalMerchantId ? ` (${s.paypalMerchantId})` : ""}` : s.payoutStatus === "platform" ? "Payouts: the Shopfront sandbox account (demo shop)" : "Payouts: not set up. Connect PayPal in the Studio to take payments.";
+    return send(chatId, [`🏪 <b>Shop status · ${esc(s.displayName)}</b>`, `Listings: ${live.length} live · ${drafts.length} draft${drafts.length === 1 ? "" : "s"}`, payout, `Agents: buy through ${esc(appUrl("/mcp"))}`].join("\n"), { ...o, kind: "status", buttons: [[{ text: "Open the storefront", url: appUrl(`/s/${s.handle}`) }]] });
   }
   if (key === "sales") {
     const to = new Date();
@@ -131,7 +139,7 @@ export async function menu(chatId: number, sellerId: string, key: string) {
     const db = await dbSalesSummary(s.id, iso(from), iso(to));
     const pp = demo ? null : await paypalTransactions(iso(from), iso(to)).catch(() => null);
     const top = db.by_product[0];
-    return send(chatId, ["📊 <b>Sales · last 7 days</b>", `<code>${esc(db.summary_line)}</code>`, pp ? `<code>${esc(pp.summary_line)}</code>` : "", top ? `Top seller: ${esc(top.product)} (${top.units} sold, $${top.revenue_usd})` : "", "<i>[db] is live; [paypal] can lag about 3 hours.</i>"].filter(Boolean).join("\n"), { ...o, kind: "sales" });
+    return send(chatId, ["📊 <b>Sales summary · last 7 days</b>", `<code>${esc(db.summary_line)}</code>`, pp ? `<code>${esc(pp.summary_line)}</code>` : "", top ? `Top seller: ${esc(top.product)} (${top.units} sold, $${top.revenue_usd})` : "", "<i>[db] is live; [paypal] can lag about 3 hours.</i>"].filter(Boolean).join("\n"), { ...o, kind: "sales" });
   }
   if (key === "sim" && demo) {
     const { db } = services();
@@ -190,7 +198,7 @@ export async function simulateRefund(chatId: number, sellerId: string, checkoutI
   if (!token) return send(chatId, "I can only simulate a refund on a practice order made with <b>Simulate a buyer</b>. Simulate a new one.", { sellerId, kind: "simulated_refund", isTest: true });
   const r = await requestRefund({ checkout_id: checkoutId, order_token: token, reason_code: "damaged", details: "It arrived with a chipped rim (practice refund)." });
   // A refund that needs the seller pings itself (pingRefundRequest); an automatic one is reported here.
-  if (r.decision === "auto_approve") await send(chatId, `✅ <b>Refunded automatically · ${usd(Math.round(Number(r.amount.value) * 100))}</b>\nInside your policy, so no tap was needed. PayPal sent the money back to the buyer.`, { sellerId, checkoutId, kind: "refund_auto", isTest: true });
+  if (r.decision === "auto_approve") await send(chatId, `↩️ <b>Refunded automatically · ${usd(Math.round(Number(r.amount.value) * 100))}</b>\nWhy: inside your policy, so no tap was needed.\nPayPal: the money went back to the buyer.`, { sellerId, checkoutId, kind: "refund_auto", isTest: true });
   return r;
 }
 
@@ -214,8 +222,8 @@ export async function pingOrderPaid(checkoutId: string) {
   // Cart API orders (D-098) are only authorized: PayPal holds the money, and adding tracking is what charges it.
   const held = c.status === "authorized";
   const html = held
-    ? [`🔒 <b>New order · ${usd(c.totalCents)} · authorized</b>`, esc(items), `PayPal is holding the payment ${paidTo}. It's charged when you add tracking, so please ship within 3 days.`, "", "📦 When it's packed, send me a photo of the shipping label: adding tracking captures the payment."].join("\n")
-    : [`🛍️ <b>New order · ${usd(c.totalCents)}</b>`, esc(items), `Paid in PayPal ${paidTo}. ✅ Payment confirmed.`, "", "📦 When it's packed, send me a photo of the shipping label and I'll add tracking to the PayPal order."].join("\n");
+    ? [`💰 <b>Order authorized · ${usd(c.totalCents)}</b>`, `Items: ${esc(items)}`, `PayPal: holding the payment ${paidTo}; it's charged when you add tracking. Ship within 3 days.`, "Next: send me a photo of the shipping label. Adding tracking captures the payment."].join("\n")
+    : [`💰 <b>Order paid · ${usd(c.totalCents)}</b>`, `Items: ${esc(items)}`, `PayPal: payment confirmed, paid ${paidTo}.`, "Next: send me a photo of the shipping label and I'll add tracking to the PayPal order."].join("\n");
   const buttons: Button[][] = [[{ text: "Open the order", url: appUrl("/studio/orders") }]];
   if (s?.testOnly && c.mcpClientName === SIM_CLIENT) buttons.push([{ text: "🧪 Simulate a refund request", data: `m:simrefund:${c.id}` }]);
   for (const chatId of chats) await send(chatId, html, { sellerId: c.sellerId, checkoutId: c.id, kind: "order_ping", buttons, photoUrl: img ? imageUrl(img.sha) : undefined, isTest: c.isTest });
@@ -229,11 +237,16 @@ export async function pingRefundRequest(refundRequestId: string, onlyChat?: numb
   const chats = onlyChat ? [onlyChat] : await chatsFor(row.c.sellerId);
   const items = await itemsText(row.c.id);
   const trace = (row.r.decisionTrace as Array<{ rule: string; passed: boolean }>).find((t) => !t.passed);
-  const why: Record<string, string> = { under_auto_cap: "It's above your automatic refund limit", buyer_auto_refund_limit: "This buyer already had automatic refunds this month", within_window: "It's outside your refund window", reason_auto_eligible: "That reason always needs you", reason_not_always_review: "That reason always needs you" };
+  const why: Record<string, string> = { under_auto_cap: "it's above your automatic refund limit", buyer_auto_refund_limit: "this buyer already had automatic refunds this month", within_window: "it's outside your refund window", reason_auto_eligible: "that reason always needs you", reason_not_always_review: "that reason always needs you" };
   for (const chatId of chats) {
     const approve = await createChatAction({ sellerId: row.c.sellerId, chatId, kind: "approve_refund", payload: { refundRequestId } });
     const decline = await createChatAction({ sellerId: row.c.sellerId, chatId, kind: "decline_refund", payload: { refundRequestId } });
-    const html = [`↩️ <b>Refund request · ${usd(row.r.amountCents)}</b>`, esc(items), `Reason: ${row.r.reasonCode.replace(/_/g, " ")}${row.r.details ? ` · “${esc(row.r.details.slice(0, 120))}”` : ""}`, `${trace ? why[trace.rule] ?? "Your policy asks you to decide" : "Your policy asks you to decide"}, so it's your call. The amount was computed by the server.`].join("\n");
+    const html = [
+      `↩️ <b>Refund request · ${usd(row.r.amountCents)}</b>`,
+      `Items: ${esc(items)}`,
+      `Reason: ${row.r.reasonCode.replace(/_/g, " ")}${row.r.details ? ` · “${esc(row.r.details.slice(0, 120))}”` : ""}`,
+      `Why you: ${trace ? why[trace.rule] ?? "your policy asks you to decide" : "your policy asks you to decide"}. The amount was computed by the server.`,
+    ].join("\n");
     await send(chatId, html, { sellerId: row.c.sellerId, checkoutId: row.c.id, kind: "refund_request", isTest: row.c.isTest, buttons: [[{ text: `✅ Refund ${usd(row.r.amountCents)}`, data: approve.id }, { text: "Decline", data: decline.id }]] });
   }
 }

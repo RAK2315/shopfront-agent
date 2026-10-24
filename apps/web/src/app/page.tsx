@@ -46,12 +46,12 @@ export default async function Home() {
 
   return (
     <div className="min-h-dvh bg-canvas">
-      <div className="mx-auto max-w-[84rem] px-5 pt-5 sm:px-8">
+      <div className="mx-auto max-w-[96rem] px-5 pt-5 sm:px-8">
         <SiteNav />
       </div>
 
       {/* Hero: what it is in one line, the two doors, and the machine working on the right. */}
-      <section className="mx-auto grid max-w-[84rem] grid-cols-[minmax(0,1fr)] gap-12 px-5 pt-12 pb-16 sm:px-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:pt-20 lg:pb-24">
+      <section className="mx-auto grid max-w-[96rem] grid-cols-[minmax(0,1fr)] gap-12 px-5 pt-12 pb-16 sm:px-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-center lg:pt-20 lg:pb-24 xl:gap-16">
         <div className="grid content-start gap-7">
           <p className="w-fit rounded-pill border border-line bg-surface px-3 py-1 text-sm text-ink-2 motion-safe:animate-[rise_520ms_var(--ease-out-expo)_both]">
             PayPal + AI · live on the PayPal sandbox
@@ -59,7 +59,7 @@ export default async function Home() {
           <h1 className="max-w-[13ch] font-display text-hero font-medium tracking-[-0.03em] motion-safe:animate-[rise_520ms_60ms_var(--ease-out-expo)_both]">
             Your storefront, ready for AI agents.
           </h1>
-          <p className="max-w-[46ch] text-lg text-ink-2 motion-safe:animate-[rise_520ms_120ms_var(--ease-out-expo)_both]">
+          <p className="max-w-[46ch] text-lg text-ink-2 lg:text-xl motion-safe:animate-[rise_520ms_120ms_var(--ease-out-expo)_both]">
             Drop a product photo and Shopfront writes the listing. Any AI shopping agent can then find it and set up the order, and the buyer approves the payment in PayPal.
           </p>
           <div className="flex flex-wrap items-center gap-3 motion-safe:animate-[rise_520ms_180ms_var(--ease-out-expo)_both]">
@@ -70,7 +70,7 @@ export default async function Home() {
               <Store aria-hidden className="size-4 text-clay" /> Sell with Shopfront
             </Link>
           </div>
-          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-2 motion-safe:animate-[rise_520ms_240ms_var(--ease-out-expo)_both]">
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-base text-ink-2 motion-safe:animate-[rise_520ms_240ms_var(--ease-out-expo)_both]">
             <li className="inline-flex items-center gap-1.5">
               <ShieldCheck aria-hidden className="size-4 text-clay" /> The shop sets the price, never the agent
             </li>
@@ -79,34 +79,34 @@ export default async function Home() {
             </li>
           </ul>
         </div>
-        <div className="min-h-[24rem] motion-safe:animate-[rise_620ms_200ms_var(--ease-out-expo)_both]">
+        <div className="min-h-[24rem] lg:min-h-[28rem] lg:[zoom:1.12] motion-safe:animate-[rise_620ms_200ms_var(--ease-out-expo)_both]" data-testid="hero-wire">
           <LandingWire initial={initial} />
         </div>
       </section>
 
       {/* One sale, start to finish, with the real listings an agent buys. */}
       <section aria-labelledby="flow-h" className="border-y border-line bg-surface">
-        <div className="mx-auto grid max-w-[84rem] gap-8 px-5 py-14 sm:px-8 lg:py-20">
+        <div className="mx-auto grid max-w-[96rem] gap-8 px-5 py-14 sm:px-8 lg:py-20">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 id="flow-h" className="max-w-[24ch] font-display text-display font-medium tracking-[-0.02em]">
               From her photo to a paid, shipped order.
             </h2>
-            <p className="max-w-[40ch] text-base text-ink-2">Who does what: the seller and the buyer decide; agents do the legwork; PayPal moves the money.</p>
+            <p className="max-w-[40ch] text-lg text-ink-2">Who does what: the seller and the buyer decide; agents do the legwork; PayPal moves the money.</p>
           </div>
           <ol className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-testid="flow-strip">
-            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-clay-strong">
+            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-clay-strong">
                 <Camera aria-hidden className="size-4" /> 1 · The seller
               </span>
               {photo && (
                 // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
                 <img src={photo.img} alt="" className="aspect-[4/3] w-full rounded-md object-cover" />
               )}
-              <p className="text-md font-medium text-ink">Drops a photo. AI writes the listing.</p>
-              <p className="text-sm text-ink-2">She checks it and confirms the price. Nothing goes live on an AI guess.</p>
+              <p className="text-lg font-medium text-ink">Drops a photo. AI writes the listing.</p>
+              <p className="text-base text-ink-2">She checks it and confirms the price. Nothing goes live on an AI guess.</p>
             </li>
-            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-clay-strong">
+            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-clay-strong">
                 <Bot aria-hidden className="size-4" /> 2 · The buyer&apos;s agent
               </span>
               <div className="grid gap-2 rounded-md bg-surface p-3">
@@ -122,11 +122,11 @@ export default async function Home() {
                   </div>
                 )}
               </div>
-              <p className="text-md font-medium text-ink">Finds it over MCP and sets up the order.</p>
-              <p className="text-sm text-ink-2">It sends ids and quantities. The shop computes the total.</p>
+              <p className="text-lg font-medium text-ink">Finds it over MCP and sets up the order.</p>
+              <p className="text-base text-ink-2">It sends ids and quantities. The shop computes the total.</p>
             </li>
-            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-paypal">
+            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-paypal">
                 <CircleCheck aria-hidden className="size-4" /> 3 · The buyer
               </span>
               <div className="grid gap-2 rounded-md bg-surface p-3 text-sm">
@@ -144,26 +144,26 @@ export default async function Home() {
                 </div>
                 <span className="mt-1 rounded-md bg-paypal-soft px-2 py-1.5 text-center text-sm font-medium text-paypal">Approve in PayPal</span>
               </div>
-              <p className="text-md font-medium text-ink">Approves the payment in PayPal.</p>
-              <p className="text-sm text-ink-2">The agent can&apos;t pay on its own. A verified webhook confirms the sale.</p>
+              <p className="text-lg font-medium text-ink">Approves the payment in PayPal.</p>
+              <p className="text-base text-ink-2">The agent can&apos;t pay on its own. A verified webhook confirms the sale.</p>
             </li>
-            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-clay-strong">
+            <li className="grid content-start gap-3 rounded-lg border border-line bg-canvas p-5">
+              <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-clay-strong">
                 <Truck aria-hidden className="size-4" /> 4 · The seller&apos;s agent
               </span>
               {textile && (
                 // eslint-disable-next-line @next/next/no-img-element -- content-hashed, resized server-side
                 <img src={textile.img} alt="" className="aspect-[4/3] w-full rounded-md object-cover" />
               )}
-              <p className="text-md font-medium text-ink">Ships, tracks and refunds inside her rules.</p>
-              <p className="text-sm text-ink-2">It reads the label photo, adds tracking to PayPal and asks her before any refund outside policy.</p>
+              <p className="text-lg font-medium text-ink">Ships, tracks and refunds inside her rules.</p>
+              <p className="text-base text-ink-2">It reads the label photo, adds tracking to PayPal and asks her before any refund outside policy.</p>
             </li>
           </ol>
         </div>
       </section>
 
       {/* The guardrail promise, shown with a real rejected call, and the door for developers. */}
-      <section aria-labelledby="guard-h" className="mx-auto grid max-w-[84rem] grid-cols-[minmax(0,1fr)] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start lg:py-20">
+      <section aria-labelledby="guard-h" className="mx-auto grid max-w-[96rem] grid-cols-[minmax(0,1fr)] gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start lg:py-20">
         <div className="grid min-w-0 content-start gap-5">
           <h2 id="guard-h" className="max-w-[18ch] font-display text-display font-medium tracking-[-0.02em]">
             The model proposes. Code decides the money.
@@ -218,7 +218,7 @@ export default async function Home() {
       </section>
 
       <footer className="border-t border-line">
-        <div className="mx-auto grid max-w-[84rem] gap-2 px-5 py-10 text-sm text-ink-2 sm:px-8">
+        <div className="mx-auto grid max-w-[96rem] gap-2 px-5 py-10 text-sm text-ink-2 sm:px-8">
           <p>
             Honest scope: PayPal sandbox only, no real money. Juniper Clay is paid into the platform&apos;s sandbox account; Fern &amp; Loom is paid directly into its own PayPal account. Free-tier AI (Gemini, Groq), so a first answer after a quiet spell can take a moment. Listing photos are public-domain museum pieces standing in for the sellers&apos; work.
           </p>
