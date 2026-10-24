@@ -1,0 +1,92 @@
+[
+  {
+    "id": "F1 /start judge → practice shop + welcome card",
+    "ok": true,
+    "detail": {
+      "link": {
+        "handle": "judge_demo",
+        "is_demo": true
+      },
+      "buttons": [
+        "🛍️ Orders",
+        "↩️ Pending refunds",
+        "🏪 Shop status",
+        "📊 Sales this week",
+        "🧪 Simulate a buyer",
+        "How it works"
+      ],
+      "text": "Connected to Judge's Demo Studio · practice shop\nSandbox only. Tap Simulate a buyer to place an order and watch the pings arrive here."
+    }
+  },
+  {
+    "id": "F2 menus answer from the database",
+    "ok": true,
+    "detail": {
+      "status": "🏪 Shop status · Judge's Demo Studio\nListings: 7 live · 0 drafts\nPayouts: the Shopfront sandbox acco",
+      "sales": "📊 Sales summary · last 7 days\n[db] $352.00 revenue from 11 orders; 5 refunds ($185.00).\nTop seller: Practice copper-red",
+      "orders": "🛍️ Latest orders\n• $37.00 · 1 × Practice copper-red cup · Paid · 5 h ago\n• $37.00 · 1 × Practice co"
+    }
+  },
+  {
+    "id": "F3 Simulate a buyer → real sandbox order → approved in PayPal → order ping",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_vjr3o50r4wi7",
+      "ping": "💰 Order paid · $37.00\nItems: 1 × Practice copper-red cup\nPayPal: payment confirmed, paid to the Shopfront sandbox account.\nNext: send me a ",
+      "buttons": [
+        "Open the order",
+        "🧪 Simulate a refund request"
+      ]
+    }
+  },
+  {
+    "id": "F4 Simulate a refund → policy or tap → refunded in PayPal",
+    "ok": true,
+    "detail": {
+      "via": "approved by tap",
+      "refund": {
+        "status": "executed",
+        "paypal_refund_id": "84P04667KV879745N"
+      }
+    }
+  },
+  {
+    "id": "F5 product photo → AI draft → Publish tap → live listing",
+    "ok": true,
+    "detail": {
+      "draft": "✨ Draft: White Glazed Ceramic Bowl\nThis is a wide white ceramic bowl featuring a smooth interior and a slightly textured",
+      "buttons": [
+        "✅ Publish at $35.00",
+        "✏️ Set my price",
+        "Edit in the Studio"
+      ],
+      "product": "prd_t6eq5hjuc3ft",
+      "db": {
+        "status": "approved",
+        "paypal_catalog_id": "prd_t6eq5hjuc3ft"
+      }
+    }
+  },
+  {
+    "id": "F6 label photo → tracking read → Add tracking tap → shipment on the PayPal order",
+    "ok": true,
+    "detail": {
+      "read": "📦 USPS 9400111899227902320212\nAdd it to the order for 1 × Practice copper-red cup ($37.00)?\nI'll put the tracking on th",
+      "kind": "label_read",
+      "shipment": {
+        "carrier": "USPS",
+        "tracking_number": "9400111899227902320212",
+        "source": "label_photo",
+        "paypal_tracker_ref": "7MP05935GR3059308-9400111899227902320212"
+      }
+    }
+  },
+  {
+    "id": "F7 wrong secret 401; unlinked chat told how to link; a used button does nothing",
+    "ok": true,
+    "detail": {
+      "secret": 401,
+      "usedButtonUnchanged": true
+    }
+  }
+]

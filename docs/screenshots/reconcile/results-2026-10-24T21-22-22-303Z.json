@@ -1,0 +1,43 @@
+[
+  {
+    "id": "R1 reconciliation run against PayPal",
+    "ok": true,
+    "detail": {
+      "matched": 137,
+      "mismatches": [],
+      "explained": 3,
+      "error": null,
+      "expect": 0
+    }
+  },
+  {
+    "id": "R2 dashboard badge matches the run",
+    "ok": true,
+    "detail": {
+      "1920": {
+        "state": "ok",
+        "n": 0,
+        "text": "Reconciled with PayPal ✓",
+        "rows": 0,
+        "fits": true,
+        "overflow": 0
+      },
+      "desktop": {
+        "state": "ok",
+        "n": 0,
+        "text": "Reconciled with PayPal ✓",
+        "rows": 0,
+        "fits": true,
+        "overflow": 0
+      },
+      "mobile": {
+        "state": "ok",
+        "n": 0,
+        "text": "Reconciled with PayPal ✓",
+        "rows": 0,
+        "fits": true,
+        "overflow": 0
+      }
+    }
+  }
+]

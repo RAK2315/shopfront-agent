@@ -1,0 +1,78 @@
+[
+  {
+    "id": "AP1a popup approval via /shop",
+    "ok": true,
+    "detail": {
+      "checkoutId": "chk_3pqwu8e72mav",
+      "status": "paid",
+      "capture": "2TW2171539006421S",
+      "popupAttempts": 1
+    }
+  },
+  {
+    "id": "AP1b refund re-walk",
+    "ok": true,
+    "detail": {
+      "refundRequest": "rfr_pjw0ehgv9p6u",
+      "decision": "auto_approve",
+      "via": "auto_approve",
+      "paypalRefundId": "17B61613KG1732642",
+      "paypalStatus": "COMPLETED"
+    }
+  },
+  {
+    "id": "AP2 redirect approval",
+    "ok": true,
+    "detail": {
+      "checkoutId": "chk_xpwrochyw0ms",
+      "status": "paid",
+      "capture": "4XX344602V861902R",
+      "returnUrlEvents": 1,
+      "landedOn": "/pay/chk_xpwrochyw0ms"
+    }
+  },
+  {
+    "id": "AP3 redirect cancel",
+    "ok": true,
+    "detail": {
+      "status": "created",
+      "message": "You left PayPal before approving. Nothing was charged; you can approve again below."
+    }
+  },
+  {
+    "id": "AP4 dead ends",
+    "ok": true,
+    "detail": {
+      "no token": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "wrong token": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "bad return link": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "unknown route": {
+        "status": 404,
+        "branded": true,
+        "leaksOrder": false
+      },
+      "mobileOverflowPx": 0
+    }
+  },
+  {
+    "id": "AP5 first click opens PayPal (8 fresh pages)",
+    "ok": true,
+    "detail": {
+      "opened": 8,
+      "hrefMatches": 8,
+      "of": 8
+    }
+  }
+]

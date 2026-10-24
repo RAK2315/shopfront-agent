@@ -1,0 +1,62 @@
+[
+  {
+    "id": "X1 /privacy and /terms are live and linked from the landing",
+    "ok": true,
+    "detail": {
+      "/privacy": {
+        "status": 200,
+        "h1": "Privacy",
+        "sandbox": true,
+        "ok": true
+      },
+      "/terms": {
+        "status": 200,
+        "h1": "Terms of use",
+        "sandbox": true,
+        "ok": true
+      },
+      "footer": [
+        "/design",
+        "/privacy",
+        "/terms"
+      ]
+    }
+  },
+  {
+    "id": "X2 the site nav is on every Studio page",
+    "ok": true,
+    "detail": {
+      "/studio": 1,
+      "/studio/orders": 1,
+      "/studio/dashboard": 1,
+      "/studio/dashboard?tab=builder": 1
+    }
+  },
+  {
+    "id": "X3 a demo variant sold down to 0 restocks at once; the demo reset restocks every demo shop",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_dokuzfpefhkh",
+      "stockAfterSale": 20,
+      "availableToAgents": true,
+      "reset": {
+        "products": 4,
+        "variants": 6,
+        "ms": 48
+      },
+      "belowTwentyAfterReset": []
+    }
+  },
+  {
+    "id": "X4 'Simulate a refund' still works after a service restart",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_ndd3lkyjhrkh",
+      "botSaid": "↩️ Refund request · $37.00\nItems: 1 × Practice copper-red cup\nReason: damaged · “It arrived with a chipped rim (practice",
+      "refundRequest": {
+        "status": "pending",
+        "decision": "needs_seller"
+      }
+    }
+  }
+]

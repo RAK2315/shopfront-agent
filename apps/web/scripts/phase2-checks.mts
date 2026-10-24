@@ -317,8 +317,21 @@ try {
       await live.close();
       await pay.close();
     } finally {
-      await paypal.updateWebhookUrl(hook.id, goodUrl);
-      log("E: webhook URL restored");
+      // Restore with retries: on 2026-10-25 a one-off "fetch failed" here left the webhook on the wrong URL for 8 min.
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await paypal.updateWebhookUrl(hook.id, goodUrl);
+          log("E: webhook URL restored");
+          break;
+        } catch (err) {
+          if (attempt >= 6) {
+            console.error("E: COULD NOT RESTORE THE PAYPAL WEBHOOK URL; set it back to", goodUrl, "by hand now");
+            throw err;
+          }
+          log(`E: restoring the webhook URL failed (attempt ${attempt}); retrying`);
+          await sleep(5000 * attempt);
+        }
+      }
     }
   });
 

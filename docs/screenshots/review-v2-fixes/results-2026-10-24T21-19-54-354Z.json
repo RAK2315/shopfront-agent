@@ -1,0 +1,80 @@
+[
+  {
+    "id": "R2a search: mugs only for a blue mug; the housewarming starter finds vases and linens",
+    "ok": true,
+    "detail": {
+      "mug": [
+        "Blue crackle mug",
+        "Speckled stoneware mug"
+      ],
+      "home": [
+        "Block-print table runner",
+        "Bud vase trio",
+        "Indigo linen napkins",
+        "Shibori tea towel"
+      ],
+      "towel": [
+        "Shibori tea towel"
+      ]
+    }
+  },
+  {
+    "id": "R2b the mug listing matches its photo: one photo, served, titled Blue crackle mug",
+    "ok": true,
+    "detail": {
+      "title": "Blue crackle mug",
+      "images": 1,
+      "loaded": true,
+      "heading": "Blue crackle mug",
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "R2c /shop: the agent's blue-mug search shows mug cards only",
+    "ok": true,
+    "detail": {
+      "cards": [
+        "Blue crackle mug",
+        "Speckled stoneware mug"
+      ],
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "R8 a quiet wire shows its 4-lane guide; it steps aside once events fill it",
+    "ok": true,
+    "detail": {
+      "lanesShown": 4,
+      "guideAfterSearch": false,
+      "wireRows": 9,
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "R6 Get paid: 3 steps, which login, demo vs real shop, payouts state; Verified banner after PayPal",
+    "ok": true,
+    "detail": {
+      "steps": 3,
+      "payouts": "Payouts to your own PayPal: not enabled on this demo shop",
+      "banner": "Verified by PayPal Account B83JSV9ELHV74 , copy B83JSV9ELHV74 s…@business.example.com Payouts on this demo shop: not enabled (it stays on the platform account).",
+      "loginShown": true,
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  }
+]

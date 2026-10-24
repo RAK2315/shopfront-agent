@@ -83,10 +83,23 @@ dash.on("response", async (r) => {
 });
 const studio = <T,>(fn: string) => dash.evaluate(`(() => { const api = window.__shopfrontStudio; return (${fn})(api); })()`) as Promise<T>;
 async function openDashboard() {
-  // The AG Studio canvas and its AI assistant live on the Builder tab since D-089.
-  await dash.goto(`${base}/studio/dashboard?tab=builder`, { waitUntil: "load", timeout: 180_000 });
-  await dash.locator(".ag-row").first().waitFor({ timeout: 120_000 });
+  // The AG Studio report and its AI assistant live on the Report tab (D-089, D-101). Its first page has no grid since
+  // Phase AG, so wait for the report itself, not a grid row.
+  await dash.goto(`${base}/studio/dashboard?tab=report`, { waitUntil: "load", timeout: 180_000 });
+  await dash.getByTestId("dashboard").waitFor({ timeout: 120_000 });
   await until("the Studio API", () => studio<boolean>("(api) => !!api"), 60_000, 1000);
+}
+/** The ledger lives on the report's Orders page since Phase AG (D-101), below the grid: open it and bring it into view. */
+async function toLedger() {
+  await dash.getByTestId("report-page-orders").click();
+  await until("the Orders page", () => studio<boolean>("(api) => api.getState().selectedPageId === 'orders'"), 20_000, 500);
+  await sleep(4000);
+  const box = await dash.getByTestId("dashboard").boundingBox();
+  if (box) await dash.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  for (let k = 0; k < 6 && !(await dash.locator('.ag-row[row-id^="chk_"]').count()); k++) {
+    await dash.mouse.wheel(0, 600);
+    await sleep(1200);
+  }
 }
 async function ask(prompt: string) {
   const before = turns.length;
@@ -176,6 +189,7 @@ try {
   // ── 2 ──
   if (only.has("2")) {
     const note = `Gift wrap · ${Date.now().toString().slice(-5)}`;
+    await toLedger();
     const firstRow = dash.locator('.ag-row[row-id^="chk_"]').first();
     const orderId = (await firstRow.getAttribute("row-id"))!;
     const cell = firstRow.locator('[col-id="note"]');
@@ -196,6 +210,7 @@ try {
     await studio("(api) => { const s = api.getState(); s.pages[0].widgetLayout.revenue.xSpan = 9; s.pages[0].widgetLayout.orders.xTrack = 9; s.pages[0].widgetLayout.orders.xSpan = 3; window.__shopfrontApplyState(s); }");
     await until("the layout to save", async () => (await q1<{ x: number }>("select (dashboard_state->'state'->'pages'->0->'widgetLayout'->'revenue'->>'xSpan')::int x from sellers where handle='juniper_clay'"))?.x === 9, 20_000, 1000);
     await openDashboard();
+    await toLedger();
     const noteAfter = await dash.locator(`.ag-row[row-id="${orderId}"] [col-id="note"]`).first().innerText();
     const span = await studio<number>("(api) => api.getState().pages[0].widgetLayout.revenue.xSpan");
     record("2 inline ledger edit and custom layout survive a reload", noteAfter.trim() === note && span === 9, { orderId, note: noteAfter.trim(), revenueTileSpan: span });
@@ -205,6 +220,7 @@ try {
   if (only.has("5") || only.has("3")) {
     await dash.evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true));
     const buyer = { email: e.SANDBOX_BUYER2_EMAIL || e.SANDBOX_BUYER_EMAIL, password: e.SANDBOX_BUYER2_PASSWORD || e.SANDBOX_BUYER_PASSWORD };
+    await toLedger();
     const order = await buy("JCS-MUG-COBALT", 4, buyer);
     const row = await until("the new order in the live ledger", async () => (await dash.locator(`.ag-row[row-id="${order.checkout_id}"]`).count()) > 0, 90_000, 1000).catch(() => false);
     const noReload = await dash.evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload === true);

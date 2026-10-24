@@ -68,6 +68,8 @@ async function uploadAndWait(files: string[]) {
 }
 
 const created: string[] = [];
+// Everything this run creates for the demo seller (drafts included) is archived at the end, even after a failure.
+const runStart = (await db.query("select now() as t")).rows[0].t as Date;
 try {
   // Sign in as the demo seller and clear old drafts so the counts are exact.
   await page.goto(`${base}/studio`, { waitUntil: "load", timeout: 180_000 });
@@ -108,11 +110,11 @@ try {
 
   // ── 3 + 4: approve through the UI, PayPal catalog mirror, search ──
   const card = page.getByTestId("draft-card").first();
-  const title = (await card.getByLabel("Title").inputValue()).trim();
+  const title = (await card.getByLabel("Title", { exact: true }).inputValue()).trim();
   await card.getByRole("button", { name: "Confirm price" }).first().click();
   const approvedAt = Date.now();
   await card.getByTestId("publish").click();
-  await page.getByText(/is live and mirrored to PayPal/).waitFor({ timeout: 60_000 });
+  await page.getByText(/Mirrored to PayPal/).waitFor({ timeout: 60_000 });
   await page.screenshot({ path: join(out, "studio-published-desktop.png"), fullPage: true });
   const [p] = (await db.query("select id, paypal_catalog_id, status, price_confirmed from products where seller_id=$1 and title=$2 and status='approved' order by approved_at desc limit 1", [seller, title])).rows;
   created.push(p.id);
@@ -157,6 +159,7 @@ try {
   await page.screenshot({ path: join(out, "_error.png"), fullPage: true }).catch(() => {});
 } finally {
   if (!keep && created.length) await db.query("update products set status='archived' where id = any($1)", [created]);
+  if (!keep) await db.query("update products set status='archived' where seller_id = (select id from sellers where handle='juniper_clay') and created_at >= $1 and status <> 'archived'", [runStart]);
   await browser.close();
   await mcp.close();
   await db.end();
