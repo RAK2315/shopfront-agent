@@ -231,3 +231,17 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** none (docs).
 - **Risks:** the sandbox-validation table is a snapshot; rerun the generator after the Nov 4–5 regression.
 - **Next:** the Nov 4–5 full regression (including phase6 #6 on a local replay server), DEMO-SCRIPT, review v3 pack.
+
+## Step 1: Studio money shows $33.00 (2026-10-25, D-103)
+- **Done:** the "$33.0" was clipping, not formatting: AG Grid 36's overlay scroll strip (opaque, 16 px) covered the last column's final digit when the browser uses overlay scrollbars. One CSS rule makes it transparent (Studio and Overview grids). Money fields now use Studio's format string `"$#,##0.00"`. The new AG key (expires 1 Dec) is confirmed on Render (hash match, L1 PASS); OWNER-TODO #7a updated.
+- **Tests:** `ag-checks` P1–P5 now also fail on any dollar amount without two decimals or with something painted over it: red on the old build (P2, P3), green on Render (`c973b70`). New unit test pins every `*_usd` field (198 unit tests).
+- **Screenshots:** `docs/screenshots/ag/` (P1–P5 at desktop, 1920, mobile).
+- **Risks:** none new; the key still needs the extension for Dec 1–15 (owner, Nov 25).
+- **Next:** step 2.
+
+## Step 2: phone note on the Report tab (2026-10-25, D-103)
+- **Done:** under 768 px the Report tab shows one line, "Best viewed on desktop. Open the overview"; Studio is neither downloaded nor mounted. A window that narrows after Studio opened hides it without losing edits.
+- **Tests:** `ag-checks` P6 on Render: one line at 390 px, the link lands on the Overview, no Studio element or API; L1–L3 and P1–P5 still pass (9/9); reconcile PASS (119 matched, 0 mismatches).
+- **Screenshots:** `docs/screenshots/ag/P6-phone-note-mobile.png`; the P* mobile shots now show the note.
+- **Risks:** none.
+- **Next:** step 3, the final full regression and the feature freeze.
