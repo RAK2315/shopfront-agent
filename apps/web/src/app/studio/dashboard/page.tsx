@@ -12,6 +12,7 @@ import { kpisFrom, listingsGrid, ordersGrid } from "@/server/dashboard-v2";
 import { reconciliationFor } from "@/server/ledger";
 import { testOrdersSwitch } from "@/server/run-context";
 import { currentSeller } from "@/server/seller-session";
+import { licenseSimulation } from "@/lib/ag-license";
 import { cn } from "@/lib/cn";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,8 @@ export const metadata: Metadata = { title: "Dashboard", robots: { index: false }
 export default async function DashboardPage({ searchParams }: PageProps<"/studio/dashboard">) {
   const seller = await currentSeller();
   if (!seller) redirect("/studio");
-  const tab = (await searchParams).tab === "builder" ? "builder" : "overview";
+  const sp = await searchParams;
+  const tab = sp.tab === "builder" ? "builder" : "overview";
   const [testSwitch, reconciled] = await Promise.all([testOrdersSwitch(seller.id), reconciliationFor(seller)]);
   const tabs = (
     <nav aria-label="Dashboard views" className="flex gap-1 rounded-md bg-surface-2 p-1 text-sm font-medium">
@@ -59,7 +61,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
         <SiteNav tone="bar" />
         {header}
         <div className="min-h-0 p-2">
-          <DashboardClient initialData={data} savedState={saved?.preset === PRESET_VERSION ? saved.state : null} />
+          <DashboardClient initialData={data} savedState={saved?.preset === PRESET_VERSION ? saved.state : null} licenseSim={licenseSimulation(sp.aglicense)} />
         </div>
       </main>
     );

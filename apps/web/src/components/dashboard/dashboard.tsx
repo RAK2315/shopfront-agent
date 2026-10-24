@@ -2,15 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgStudio, createWidgets } from "ag-studio-react";
-import { AgStudioAiModule, AgStudioLicenseManager, AgStudioModuleRegistry, createAiHarness, directLlmRunner, type AgAiParamsBuilder, type AgAiToolContext, type AgStudioApi } from "ag-studio";
+import { AgStudioAiModule, AgStudioModuleRegistry, createAiHarness, directLlmRunner, type AgAiParamsBuilder, type AgAiToolContext, type AgStudioApi } from "ag-studio";
 import type { ShopEvent } from "@/server/events";
 import { shopfrontLlmAdapter } from "@/components/studio/llm-adapter";
 import { PRESET_VERSION, presetState, spikeAlertWidget } from "./preset";
 import { makeStudioTheme } from "./theme";
+import type { LicenseSimulation } from "@/lib/ag-license";
+import { checkStudioLicense } from "./studio-license";
+import { StudioFallback } from "./studio-fallback";
 import { LedgerWidget, RefundQueueWidget, TimelineWidget, useLiveEvents } from "./widgets";
 
 AgStudioModuleRegistry.registerModules([AgStudioAiModule]);
-if (process.env.NEXT_PUBLIC_AG_LICENSE_KEY) AgStudioLicenseManager.setLicenseKey(process.env.NEXT_PUBLIC_AG_LICENSE_KEY);
 
 type Sources = { orders: Record<string, unknown>[]; lines: Record<string, unknown>[]; refunds: Record<string, unknown>[] };
 
@@ -85,7 +87,14 @@ const INSIGHTS_INSTRUCTIONS = [
   "Be brief.",
 ].join("\n");
 
-export function SellerDashboard({ initialData, savedState }: { initialData: Sources; savedState: unknown }) {
+/** The report tab: AG Studio only with a valid licence (D-100); otherwise the Community overview and a notice. */
+export function StudioReport(props: { initialData: Sources; savedState: unknown; licenseSim: LicenseSimulation }) {
+  const [license] = useState(() => checkStudioLicense(props.licenseSim));
+  if (!license.ok) return <StudioFallback reason={license.reason} />;
+  return <SellerDashboard initialData={props.initialData} savedState={props.savedState} />;
+}
+
+function SellerDashboard({ initialData, savedState }: { initialData: Sources; savedState: unknown }) {
   const [data, setData] = useState(initialData);
   const apiRef = useRef<AgStudioApi | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);

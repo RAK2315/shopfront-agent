@@ -103,6 +103,12 @@
 | D-092 | 2026-10-18 | Phase 9 screens + Log in with PayPal (built; button gated until PayPal accepts the Return URL) and the full Phase 10 Telegram copilot incl. judge mode | ACCEPTED | J1, J3, J4, G1, P7 |
 | D-093 | 2026-10-18 | Final regression findings: an accessibility regression fixed; five older ATs updated to the behaviour decided in D-086/D-087/D-091; phase9-checks superseded; Log in with PayPal still rejected by PayPal | ACCEPTED | J1, J2, G1 |
 | D-094 | 2026-10-18 | Owner evening list: /privacy and /terms, demo stock never runs out, judge refunds survive restarts, site nav on Studio, account verification status as a Log in with PayPal signal; plus two bugs found by the new AT (restock SQL, a capture guard) | ACCEPTED | J1, J2, G1 |
+| D-095 | 2026-10-18 | Orphaned captures refunded; reconciliation with PayPal | ACCEPTED | J1, J4, G1 |
+| D-096 | 2026-10-18 | Review v2 fixes approved; Phase 11 re-added; Phase 12 only with time to spare | ACCEPTED | J1, J2 |
+| D-097 | 2026-10-18 | Competitive re-plan: Vault cancelled; Cart API v1, AG Studio, Gauntlet, proof docs; up through Dec 15 | ACCEPTED | P8, J1–J4, G1 |
+| D-098 | 2026-10-18 | Spike C verdict: Go; capture-on-ship for both seller kinds | ACCEPTED | P8, J1, J4 |
+| D-099 | 2026-10-18 | Phase C delivered: PayPal Cart API v1 merchant contract for every store | ACCEPTED | P8, J1, J4, R2 |
+| D-100 | 2026-10-24 | The new AG key is Studio-only (expires 29 Nov); graceful expiry: Studio not mounted, Community overview + notice; `?aglicense=` simulation | ACCEPTED | J2, G1 |
 
 ---
 
@@ -1655,6 +1661,21 @@
   - `cart-checks` K1–K14 pass on Render: K1–K5, K10–K12 in run 1; K4 and K6–K9 after two fixes; K12–K14 after the screens. The reconciliation is clean after every run.
   - Regression after the refactor: `shop-checks` 6/6. `phase6-checks` 1–5, 7 and 8 pass; 8 needed a rerun, because the spare sandbox buyer's PayPal login flaked 3× and a probe showed the account works. #6 needs the local replay server (Nov 4–5 regression).
 - **Serves:** P8, J1, J4, R2, D-002, D-083, D-095.
+---
+
+## D-100: The 2026-10-24 AG key is a Studio-only licence; graceful expiry for the Studio report (2026-10-24; owner, OWNER-TODO #7a)
+- **Verdict on the key** (each package's own validator run in Node; the script printed only verdict fields, never the key):
+  - `ag-studio` 3.0.0: **valid, `STUDIO-PRO-AI`, trial, expiry 29 November 2026** (two days before the 1 Dec the owner was told). The value on Render is byte-identical (hash compared), so this is the same trial D-080 analysed.
+  - `ag-grid-enterprise` 36.2.0: `valid: false`. `ag-charts-enterprise` 14.2.0 accepts only `CHARTS` / `BOTH` keys.
+  - **So it unlocks AG Studio only**: Studio's own Enterprise-backed widgets (pivot grid, every chart type, KPI sparklines, Studio AI) stay unwatermarked inside Studio (D-080). Standalone AG Grid / AG Charts Enterprise (our overview grids, custom widgets) still need a `BOTH` key; they stay Community (OWNER-TODO #1 remains open).
+- **Graceful expiry (decided here):**
+  - Before Studio mounts, the client runs Studio's own validator (`AgStudioLicenseManager.getLicenseDetails(key, {PRO-AI})`) through a pure guard, `studioLicense()` in `lib/ag-license.ts`. It also checks the expiry date itself.
+  - Licensed: the Studio report renders as now. Within 14 days of expiry, the report shows no notice to visitors; the date is only in OWNER-TODO.
+  - Missing, invalid or expired: **Studio is not mounted at all**, so Studio never prints its licence banner to the console and never draws a watermark. The report tab shows a short notice and the Community overview (AG Grid + AG Charts Community: same data, same reconciliation badge).
+  - **Simulation:** `?aglicense=missing|expired` on the report tab feeds the same guard an empty key, or a clock one day past the key's expiry. It can only switch Studio off, so it is safe in production. AT-AG runs it on Render, and once locally with the key really removed from the dev server's environment.
+  - `components/studio/studio-spike.tsx` (unused since Spike S) is deleted, so only one file reads the key.
+- **Owner:** the extension request must go in before **29 Nov** (the planned Nov 25 still works).
+- **Serves:** J2, G1 (site works through judging), D-080, D-097.
 ---
 
 ## Requirement updates

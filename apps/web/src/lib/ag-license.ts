@@ -27,3 +27,34 @@ export function gridEdition(key: string | undefined, d: LicenseDetails | null, n
   if (d.incorrectLicenseType || d.suppliedLicenseType !== "BOTH") return { enterprise: false, reason: "wrong-type" };
   return { enterprise: true, reason: "licensed", expiry: d.expiry };
 }
+
+// AG Studio's licence (D-100). The Studio key licenses Studio only. When it is missing, invalid or past its expiry,
+// the report is not mounted at all (no watermark, no console banner); the page shows the Community overview instead.
+export interface StudioLicenseDetails {
+  valid: boolean;
+  missing?: boolean;
+  expired?: boolean;
+  trialExpired?: boolean;
+  incorrectLicenseType?: boolean;
+  isTrial?: boolean;
+  expiry?: string | null;
+}
+
+export type StudioLicense = { ok: true; trial: boolean; expiry?: string } | { ok: false; reason: "no-key" | "invalid" | "expired" };
+
+/** Pure decision on Studio's own AgStudioLicenseManager.getLicenseDetails() output. `now` lets a test move the clock. */
+export function studioLicense(key: string | undefined, d: StudioLicenseDetails | null, now = new Date()): StudioLicense {
+  if (!key || !d || d.missing) return { ok: false, reason: "no-key" };
+  if (!d.valid) return { ok: false, reason: "invalid" };
+  if (d.expired || d.trialExpired) return { ok: false, reason: "expired" };
+  if (d.expiry) {
+    const t = Date.parse(d.expiry);
+    // A key works through its expiry day.
+    if (Number.isFinite(t) && t + 86_400_000 <= now.getTime()) return { ok: false, reason: "expired" };
+  }
+  return { ok: true, trial: !!d.isTrial, expiry: d.expiry ?? undefined };
+}
+
+/** The `?aglicense=` simulation (D-100): it can only switch Studio off. */
+export type LicenseSimulation = "missing" | "expired" | null;
+export const licenseSimulation = (v: string | string[] | undefined): LicenseSimulation => (v === "missing" || v === "expired" ? v : null);
