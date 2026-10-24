@@ -2,6 +2,22 @@
 
 **Your storefront, ready for AI agents.**
 
+## In 60 seconds
+
+**What it is:** a seller with only product photos and a PayPal account gets a store that **any AI agent can buy from over MCP**. The agent picks ids and quantities, the server sets the price, **the buyer approves in PayPal**, and the seller runs the rest from a chat. No model can move money.
+
+**Try it** at **https://shopfront-agent.onrender.com** (PayPal sandbox; buyer `sb-kaj47u53384870@personal.example.com` / `6cXh>ZcZ`):
+
+| 1 · Buy with an agent (30 s) | 2 · Try to break it (20 s) | 3 · Be the seller (desktop) |
+|---|---|---|
+| [/shop](https://shopfront-agent.onrender.com/shop) → "a handmade blue mug under $40" → PayPal → **Payment complete, webhook verified** | [/gauntlet](https://shopfront-agent.onrender.com/gauntlet): 31 attacks, a naive shop vs Shopfront with the same model → **31/31 blocked** | [/studio](https://shopfront-agent.onrender.com/studio) → *Continue as Juniper Clay Studio* → Dashboard → *Report · AG Studio* → ask the Shop Manager |
+
+**Why believe it:** every feature is an acceptance test **run against this deployment with real PayPal sandbox calls** (counts and proofs [below](#whats-real-and-verified)); our books are **reconciled with PayPal** after every test run; every PayPal endpoint we call is listed with debug ids in [docs/sandbox-validation.md](docs/sandbox-validation.md).
+
+**Video:** the 2:45 demo is linked here on Nov 10 · **More:** the [5-minute path](#judges-the-5-minute-path), [Telegram judge mode](https://t.me/juniper_clay_copilot_bot?start=judge), [threat model](docs/threat-model.md).
+
+---
+
 Makers who sell through social posts have no website and no product feed, so AI shopping agents can't buy from them. Shopfront turns a seller's product photos into a PayPal-backed store that any MCP-capable agent can search, order from and pay through. **The agent shops; the human approves the payment in PayPal.** After the sale, the seller's own AI copilot (in the Studio and on Telegram) pings new orders, reads shipping labels into PayPal tracking and asks before any refund outside the seller's policy. Every money step is done by deterministic code and shows up on a live timeline with real PayPal ids.
 
 Built for *Build What's Next with PayPal and AI* (2026). Everything runs in the **PayPal sandbox**: no real money moves.
@@ -36,7 +52,7 @@ The same login is shown, with copy buttons, under every PayPal button.
      - Ask *"unshipped orders over $50 this week"*. The grid, filter chips and chart change, and a banner lists exactly what changed, with **Undo**.
      - Ask *"What sold this week?"* for figures labelled `[db]` and `[paypal]`.
      - Click an order for its full PayPal history. Edit a listing's description and it updates PayPal's catalog.
-   - **Dashboard → Report · AG Studio**: a five-page report (Overview, Orders, Payments & reconciliation, Inventory, Agents & Cart API) with our own widgets (PayPal reconciliation, the Cart API funnel, the live wire). Ask the **Shop Manager** *"What needs my attention?"* or *"Are my payments reconciled with PayPal?"*: it answers with `[db]` / `[paypal]` figures from read-only tools, refuses *"refund order X"* (it has no tool that moves money), and every change it makes to the report is listed in a strip tagged **AI**, with **Undo**.
+   - **Dashboard → Report · AG Studio** (desktop; on a phone this tab points to the Overview): a five-page report (Overview, Orders, Payments & reconciliation, Inventory, Agents & Cart API) with our own widgets (PayPal reconciliation, the Cart API funnel, the live wire). Ask the **Shop Manager** *"What needs my attention?"* or *"Are my payments reconciled with PayPal?"*: it answers with `[db]` / `[paypal]` figures from read-only tools, refuses *"refund order X"* (it has no tool that moves money), and every change it makes to the report is listed in a strip tagged **AI**, with **Undo**.
 4. **Run the shop from Telegram (90 s).** Open the **[judge-mode link](https://t.me/juniper_clay_copilot_bot?start=judge)** → *Start*. You're linked to an isolated practice shop.
    - Tap **🧪 Simulate a buyer**, approve the PayPal link as the test buyer, and the **order ping** arrives.
    - Tap **Simulate a refund request**: the policy decides, or you get **Approve / Decline** buttons.

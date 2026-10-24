@@ -1,60 +1,62 @@
 # SUBMISSION — live checklist
 
-> The living tracker for everything the judges need. Tick an item only when it's verified (link or evidence).
-> Every line cites its requirement ID in `REQUIREMENTS.md`.
+> Everything the judges need, each line citing its requirement id in `REQUIREMENTS.md` (frozen).
+> **[x]** verified (evidence in brackets) · **[ ] OWNER** only the owner can do it · **[ ] VIDEO** waits for the video (Nov 6–10).
+> Draft 2026-10-25: ticks reflect the regression so far; final once the regression completes and the freeze is declared.
 
-## Day-1 admin
-- [ ] Registered on Devpost for the hackathon.
-- [x] **Read the Official Rules**; confirmed eligibility from India; noted anything new in DECISIONS "Requirement updates" (R6, D4). *(owner, 2026-10-16)*
-- [ ] Joined the PayPal Discord (G17).
-- [ ] Checked the AG Grid, Render and APIMatic sponsor resource pages for licences and credits (P9, P13).
+## Admin
+- [ ] **OWNER** Registered on Devpost for the hackathon (S1).
+- [x] Read the Official Rules; entrants from India are eligible (R6, D4). *(owner, 2026-10-16)*
+- [ ] **OWNER** (optional) Joined the PayPal Discord (G17).
+- [x] AG Grid sponsor resources read; AG Studio trial key in use, expires 1 Dec; extension asked on Nov 25 (P9; OWNER-TODO #7a, D-103).
+- [ ] **OWNER** Render workspace: `shopfront-agent` is the only free service, so keep-warm fits the 750 h month (P13; OWNER-TODO #8a, `docs/OPS.md`).
+- [ ] **OWNER** UptimeRobot monitor on `/api/health/live` every 2 min (`docs/OPS.md`).
 
 ## Project (S1, R0–R8)
-- [x] PayPal is central, not bolted on (G1). The APIs actually called are listed in the README with the reason for each. *(README "PayPal APIs used", 2026-10-15)*
-- [x] AI is meaningful (R3). The README lists each AI component and what it decides versus what code decides. *(README "AI used" + "Guardrails")*
-- [x] Everything runs on the PayPal **sandbox** (R1). *(env refuses non-sandbox base URLs)*
-- [x] Working prototype, not a mockup (R4, S3.x). *(AT-1…AT-6 on Render)*
+- [x] PayPal is central, not bolted on (R0, R2, G1). *(README "PayPal APIs used": 9 APIs, each with its use)*
+- [x] AI is meaningful (R3, R8). *(README "Tools used"; DEVPOST "Tools")*
+- [x] Sandbox only (R1). *(env refuses non-sandbox base URLs; README "Honest limitations")*
+- [x] Working prototype, not a mockup (R4, S3.x). *(final regression on Render, `docs/screenshots/final-regression.log`)*
+- [x] Documented for judges (R5). *(README top section, threat model, sandbox validation, development with AI)*
+- [x] New project built during the hackathon (R7, S8). *(first commit 2026-10-15)*
 
-## Devpost form
-- [ ] Project name (S7).
-- [ ] Elevator pitch, 2–3 sentences (S7). **Lead with the Telegram seller copilot (owner, D-072)** once AT-10 passes; the draft is in `docs/DEVPOST.md`. If Spike T fails, keep the current pitch.
-- [ ] Project story: inspiration, how built, tools, why, challenges, what's next (S7).
-- [ ] Text description of features and functionality (S2).
-  - **Planned for Phases 9–13, in the re-planned order (2026-10-17, D-071). Add each line only once its AT passes on Render; never describe a cut phase. The Telegram line goes first in the description:**
-    - **Seller copilot on Telegram (the lead):** the seller runs the shop from her phone. A photo becomes a listing, the price is confirmed by tap, and the listing is mirrored to PayPal and agent-buyable. Order pings, a label photo becomes tracking on the PayPal order, refunds are approved by tap, and "what sold this week?" is answered with sourced figures. Every money action is a deterministic button, never the model. *(Phase 10; Spike T decides.)*
-    - **Each seller paid directly:** per-seller payee routing into the seller's own PayPal, with no Shopfront cut. Refunds for routed sellers are a one-tap handoff to the seller's own PayPal, tracked by webhook. Partner onboarding and platform fees are gated by PayPal for non-approved partners (403/422, verified), so they are not claimed. This retires the single-account caveat (D-006). *(Phase 9, Partial path, D-076.)*
-    - **Agent reorder with consent:** the buyer saves PayPal once (Vault v3) with a spend cap; their agent reorders with no popup inside the cap; above the cap, or once revoked or expired, the popup returns; there is a per-agent audit log and instant revoke. *(Phase 11; Spike V decides.)*
-    - **Dispute defense agent:** code assembles an evidence pack (tracking, delivery, chat, photos), the agent drafts the words, and the seller approves before it's submitted through the Disputes API. *(Phase 12)*
-    - **Adversarial agent arena:** 50 live attacks against our own MCP server, each shown BLOCKED with the guardrail that caught it. *(Phase 13)*
-- [ ] **Tools section**: each model or AI service and how it's used (S4). Add when shipped: the **Telegram Bot API** (Phase 10; the chat interface, with no AI of its own), **Partner Referrals / multiparty** (Phase 9), **PayPal Vault v3 payment tokens and merchant-initiated Orders** (Phase 11), and the **Disputes API** (Phase 12). The arena (Phase 13) uses no new tool: it is our own MCP client. Draft in `docs/DEVPOST.md`: Groq (agents), Gemini (vision, large Studio turns, fallback), Vercel AI SDK, MCP SDK, AG Studio + Studio Agent Framework, AG Grid Community, Render, Neon, PayPal AI Toolkit (development). **Not** the PayPal Agent Toolkit: the build calls PayPal's REST APIs directly.
-- [ ] Hosted demo URL (S3.b), plus **testing notes**: sandbox buyer email and password (already in the README and on `/pay`, D-069), judge-seller login, and the **Telegram judge-mode link** (D-073, once AT-10 passes).
-- [ ] **One real public purchase before Nov 8, and again on Nov 11 before judging** (owner, D-073), so the public wire isn't empty.
-- [ ] GitHub repo URL (S5).
-- [ ] YouTube video URL (S6.3).
-- [ ] Prize categories selected: main, Agentic Commerce, PayPal + AI, Best Demo, Most Creative, Most Impactful, AG Grid, Render.
+## Devpost form (S2, S4, S7) — text ready in `docs/DEVPOST.md`
+- [x] Project name: Shopfront Agent (S7).
+- [x] Elevator pitch, 197 of 200 characters (S7).
+- [x] Project story: inspiration, what it does, how built, challenges, accomplishments, learned, what's next (S7).
+- [x] Text description of features and functionality (S2). *(DEVPOST "What it does"; every line has a passing check)*
+- [x] Tools section: each model or AI service and how it's used (S4).
+- [x] "Built with" tags.
+- [x] Judge testing notes: demo URL, sandbox buyer, the 60-second path, Telegram judge mode, MCP URL (S3.b).
+- [ ] **OWNER** Paste the text into Devpost; add the YouTube link (S6.3) and the repo link (S5).
+- [ ] **OWNER** Prize categories: main, Best Use of Agentic Commerce, Best Use of PayPal + AI, Best Demo Delivery, Most Creative, Most Impactful, Best Use of AG Grid, Best Use of Render (P1–P9, P13).
+- [ ] **OWNER** One real public purchase on Nov 11 before submitting, so `/live` isn't empty for the first judge (PLAN §5).
 
 ## Repository (S5)
-- [x] Public (S5.2).
-- [ ] MIT `LICENSE` at the root **and visible in the About section** (S5.2).
-- [ ] All source, assets, seed photos and instructions are included (S5.1).
-- [ ] README: problem, demo URL, judge credentials, architecture, PayPal APIs, AI tools, local run, env vars, limitations (D-006), roadmap. *(Judge credentials and the 60-second path published 2026-10-16, D-069; Docker dropped, D-056. Still missing: the Phase 3 photo proof.)*
-- [x] Claude Desktop / claude.ai MCP connector snippet. *(README; owner to verify in Claude)*
-- [x] No secrets in history. *(2026-10-15: the full `git log -p` was scanned for every secret value in `.env` (9 values) plus key patterns, with 0 hits; gitleaks itself not run.)*
+- [x] Public on GitHub: https://github.com/RAK2315/shopfront-agent (S5, S5.2).
+- [x] MIT `LICENSE` at the root, detected by GitHub and shown in the About panel (S5.2). *(GitHub API: `license: MIT`, 2026-10-25)*
+- [ ] **OWNER** (suggested) Set the About panel's website to the demo URL and add topics (`paypal`, `mcp`, `ai-agents`, `ag-grid`, `hackathon`).
+- [x] All source, seed photos (CC0, credited), migrations and instructions included (S5.1). *(fresh clone, below)*
+- [x] README: problem, demo URL, judge credentials and path, criteria table, APIs, tools, guardrails, limitations, local run, credits (R5).
+- [x] MCP connector instructions for Claude and other clients.
+- [x] No secrets in history (2026-10-15 scan of `git log -p` for every `.env` value: 0 hits); `.env` is ignored.
 
 ## Functional demo (S3)
-- [ ] The hosted URL works from an incognito window, on desktop and mobile (S3.b).
-- [x] A full judge path completes in under 3 minutes (AT-6: 33 s automated). Re-check with the README once credentials are in.
-- [x] Local run verified from a fresh clone with only the README (S3.a, D-056). *(2026-10-16, D-059: one fix needed, then health, MCP and pages OK)*
-- [ ] Services stay up **through results announcement**: Render free + Neon free (D-022), keep-warm ping in the PLAN §5 windows, nightly demo reset.
-- [ ] Sandbox buyer passwords are not changed after submission.
+- [x] Hosted URL works (S3.b). *(final regression on Render; `final-screens` at desktop, 1920 and mobile)*
+- [x] Fresh clone from the README alone builds and runs (S3.a). *(2026-10-25: install, migrate, seed on a throwaway DB, `pnpm test` 198/198, `pnpm build`, `pnpm start`: health ok, MCP search, 8 pages 200)*
+- [x] Judge path under 3 minutes (AT-6 #1). *(phase6-checks, final regression)*
+- [x] Test runs never show on public views (isolation, `fixes-checks` I1–I6).
+- [ ] **OWNER** Hosted URL checked from an incognito window on the owner's own phone and laptop.
+- [x] Up through judging (Dec 15): keep-warm Action every 10 min + UptimeRobot (owner) + the AG key fallback; see `docs/OPS.md`.
+- [ ] **OWNER** Never change the published sandbox buyer's password after submitting.
 
-## Video (S6)
-- [ ] Under 3:00. Target is **2:45** (S6.1, D-057; beat sheet in `DEMO-SCRIPT.md`).
-- [ ] Shows the real build functioning (S6.2).
-- [ ] Public on YouTube (S6.3).
-- [ ] No third-party logos or UIs; music is licensed or absent (S6.4, D-015). **No real Telegram UI: the Telegram beats are a rebuilt chat strip from real transcripts, labelled (D-073). The video is deferred until the owner's product and UI review.**
-- [ ] Captions, readable at 1080p.
+## Video (S6) — Nov 6–10
+- [ ] **VIDEO** Under 3:00; target 2:45 (S6.1; `docs/DEMO-SCRIPT.md`).
+- [ ] **VIDEO** Shows the real build working (S6.2): real captures of the deployed app.
+- [ ] **VIDEO** Public on YouTube (S6.3).
+- [ ] **VIDEO** No third-party marks or brand UIs beyond the host and sponsor tools used; music licensed or absent (S6.4). Telegram beats are a rebuilt chat strip from real transcripts, labelled.
+- [ ] **VIDEO** Captions readable at 1080p.
 
 ## Final
-- [ ] Submitted by **Nov 11, 2026** (hard deadline Nov 13 01:30 IST) (D-004).
-- [ ] Every link re-tested after submitting.
+- [ ] **OWNER** Submitted by **Nov 11, 2026** (binding deadline Nov 13, 01:30 IST; D2, D3).
+- [ ] **OWNER** Every link re-tested after submitting.
