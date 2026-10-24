@@ -1,5 +1,6 @@
 // AT-C: PayPal Cart API v1 merchant contract (D-097, D-098) on the DEPLOYED app, real PayPal sandbox, no mocks.
-//   K1  JWKS published (EdDSA)                      K2  missing / garbage / alg:none / expired / other-store / forged
+//   K1  JWKS published (EdDSA)
+//   K2  tokens refused: missing / garbage / alg:none / expired / other-store / forged
 //   K3  no address → REQUIRES_ADDITIONAL_INFORMATION, in PayPal's own schema (payPalCartSchema)
 //   K4  validation issues + resolution options: unknown and other-store items, quantity cap, low stock, a $0.01 agent
 //       price (→ PRICE_MISMATCH, no PayPal order), non-US address, coupon

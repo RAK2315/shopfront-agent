@@ -5,6 +5,7 @@
 //   L3  the developer card shows the MCP endpoint; the live feed is on the page
 //   L4  the site nav: desktop links; on a phone the menu opens and lists the same places
 //   L5  no sideways scroll at 390 / 1440 / 1920; screenshots
+//   L6  review v2 fix #3: hero sub-text >= 22 px, a larger live panel, card body >= 16 px, the page uses the width at 1920
 // Usage: pnpm --filter web landing-checks -- --base https://shopfront-agent.onrender.com
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

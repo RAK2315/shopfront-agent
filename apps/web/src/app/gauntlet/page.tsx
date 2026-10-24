@@ -34,7 +34,7 @@ export default async function GauntletPage() {
           <p className="w-fit rounded-pill border border-line bg-surface px-3 py-1 text-sm text-ink-2">The Gauntlet</p>
           <h1 className="max-w-[20ch] font-display text-display font-medium tracking-[-0.02em]">31 attacks. Two shops. The same AI model.</h1>
           <p className="max-w-[68ch] text-lg text-ink-2">
-            On the left, a naive shop: its agent tools accept a price, its order code trusts it, its cart and webhook handlers check nothing. On the right, Shopfront. The attacks hide in chat, in product photos and in shipping-label photos read by the vision step, or go straight at the APIs. Every result is a real answer: real model calls, real PayPal sandbox requests, real server responses.
+            Two shops face the same attacks with the same model. A naive shop, whose agent tools accept a price, whose order code trusts it and whose cart and webhook handlers check nothing. And Shopfront. The attacks hide in chat, in product photos and in shipping-label photos read by the vision step, or go straight at the APIs. Every result is a real answer: real model calls, real PayPal sandbox requests, real server responses.
           </p>
         </header>
         <GauntletBoard initial={initial} />
