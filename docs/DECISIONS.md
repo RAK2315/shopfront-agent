@@ -109,6 +109,7 @@
 | D-098 | 2026-10-18 | Spike C verdict: Go; capture-on-ship for both seller kinds | ACCEPTED | P8, J1, J4 |
 | D-099 | 2026-10-18 | Phase C delivered: PayPal Cart API v1 merchant contract for every store | ACCEPTED | P8, J1, J4, R2 |
 | D-100 | 2026-10-24 | The new AG key is Studio-only (expires 29 Nov); graceful expiry: Studio not mounted, Community overview + notice; `?aglicense=` simulation | ACCEPTED | J2, G1 |
+| D-101 | 2026-10-24 | Phase AG: 5-page Studio report (host page tabs), reconcile + Cart API funnel widgets, read-only Shop Manager, AI changes tagged with Undo; overview stays default | ACCEPTED | J2, J1, J4 |
 
 ---
 
@@ -1676,6 +1677,21 @@
   - `components/studio/studio-spike.tsx` (unused since Spike S) is deleted, so only one file reads the key.
 - **Owner:** the extension request must go in before **29 Nov** (the planned Nov 25 still works).
 - **Serves:** J2, G1 (site works through judging), D-080, D-097.
+---
+
+## D-101: Phase AG build choices: a 5-page Studio report with host-owned page tabs, two new custom widgets, the read-only Shop Manager, AI changes made visible with Undo (2026-10-24; D-097)
+- **Report (preset v3, `shopfront-report-v3`):** Overview · Orders · Payments & reconciliation · Inventory · Agents & Cart API. Bumping the version resets saved layouts to the new preset once.
+  - **Data model** (`components/dashboard/sources.ts`, pattern from PayPal's boilerplate, credited): six sources (orders, lines, refunds, checkout attempts, listings, Cart API carts); joins lines → orders and refunds → orders; one calendar bound to every date; two measures (refund rate, conversion rate).
+  - Attempts and carts are **not** joined to orders: an attempt that never paid has no order row, and a join would make a date filter drop unpaid attempts.
+  - Studio's own widget types carry the showcase (KPI sparklines, combo, donut, stacked columns and bars, radial gauge, button filters, date filter, grid, pivot grid); two custom widgets are added: **PayPal reconciliation** (latest check, its three sources, every mismatch, a "Check again" that re-runs at most every 5 minutes) and the **Cart API funnel** (built → valid → approved → authorized → captured on ship, with where carts stopped). Pure logic in `lib/cart-funnel.ts`.
+  - **Page tabs are ours:** Studio's state has no page names and leaves navigation to the host (as in the boilerplate).
+- **Tabs and default:** the dashboard keeps **Overview** (AG Grid + AG Charts, fast on phones) as the default tab; the second tab is renamed **"Report · AG Studio"** (`?tab=report`; `?tab=builder` still works). Reason: the overview is what a seller needs first and what the v2 review approved; the report is one labelled click away for judges. Revisit at review v3.
+- **Shop Manager agent** replaces the old insights agent as the primary agent: six read-only shop tools (`db_sales_summary`, `paypal_transactions`, `agent_activity`, `orders_needing_action`, `stock_levels`, `reconciliation_status`), the deterministic `add_chart`, Studio's `viewReport` and delegation to Studio's built-in page agent. It has **no tool that can refund, ship, cancel or change prices or stock**; its instructions tell it to say so and point to where the seller does it. Same LLM path as before (`/api/studio/turn`, free tiers, budget guard).
+- **Review fix #5 (AI change made visible):**
+  - Report: a "what changed" strip above the report after every durable change (widgets, layout, filters, pages; not page switches). Changes made during an agent run are attributed with Studio's **telemetry observers** (`run_started` / `run_finished` of the top-level run) and tagged **AI**; the whole run undoes in one step (`api.undo(firstEntry)`, then a state check that restores the snapshot if a programmatic change had no history entry). Pure diff in `lib/report-diff.ts`.
+  - Overview: the change banner gets the AI tag, AI-set filter chips are outlined and tagged, Undo says what it restores ("Undo goes back to: …"), a test-order count and a one-line `[db]` / `[paypal]` legend sit above the KPIs.
+- **Review fix #4 (width):** the overview spans up to 1760 px with 24–32 px gutters; its grids use 14 px type and taller rows. The report fills the window.
+- **Serves:** J2 (AG Grid prize: custom widgets, theming, layout, Studio Agent Framework), J1, J4, D-002 (no money tool), D-095, D-097, D-100.
 ---
 
 ## Requirement updates

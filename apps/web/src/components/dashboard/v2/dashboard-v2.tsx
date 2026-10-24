@@ -16,7 +16,7 @@ import { ListingsGrid } from "./listings-grid";
 import { OrdersGrid, rowsInView } from "./orders-grid";
 
 type Data = { orders: OrderRow[]; kpis: Kpis; listings: ListingRow[] };
-type Banner = { title: string; changes: string[]; source?: string } | null;
+type Banner = { title: string; changes: string[]; source?: string; ai: boolean; restores: string } | null;
 
 const SUGGESTIONS = ["What sold this week?", "Unshipped orders over $50", "Group by product, biggest first", "Refunds by product this month"];
 const label = (s: string) => s.replace(/_/g, " ");
@@ -33,6 +33,14 @@ function chipsOf(v: GridView): Array<{ key: keyof GridView; text: string }> {
   return out;
 }
 
+/** What Undo brings back, in words (review v2 fix #5): "Back to: Last 7 days, Paid". */
+function viewWords(v: GridView): string {
+  const parts = chipsOf(v).map((c) => c.text);
+  if (v.group_by) parts.push(`grouped by ${label(v.group_by)}`);
+  if (v.sort) parts.push(`sorted by ${label(v.sort.field)}`);
+  return parts.length ? parts.join(", ") : "all orders, newest first";
+}
+
 export function DashboardV2({ initial }: { initial: Data }) {
   const reduce = useReducedMotion();
   const [data, setData] = useState(initial);
@@ -44,12 +52,16 @@ export function DashboardV2({ initial }: { initial: Data }) {
   const [banner, setBanner] = useState<Banner>(null);
   const [answer, setAnswer] = useState<Extract<AskAnswer, { kind: "question" }> | null>(null);
   const [askError, setAskError] = useState<string | null>(null);
+  // Filters the assistant set in its last change: their chips carry an "AI" tag until the view changes again.
+  const [aiKeys, setAiKeys] = useState<ReadonlySet<string>>(new Set());
 
   const change = (next: GridView, title?: string, source?: string) => {
     const changes = describeViewChange(view, next);
     if (!changes.length) return;
+    const ai = Boolean(source);
     setHistory((h) => [...h.slice(-19), view]);
-    setBanner(title || source ? { title: title ?? "View updated", changes, source } : null);
+    setBanner(title || source ? { title: title ?? "View updated", changes, source, ai, restores: viewWords(view) } : null);
+    setAiKeys(ai ? new Set((Object.keys(next) as Array<keyof GridView>).filter((k) => JSON.stringify(next[k] ?? null) !== JSON.stringify(view[k] ?? null))) : new Set());
     setView(next);
   };
   const undo = () => {
@@ -57,6 +69,7 @@ export function DashboardV2({ initial }: { initial: Data }) {
     if (!prev) return;
     setView(prev);
     setBanner(null);
+    setAiKeys(new Set());
     setHistory((h) => h.slice(0, -1));
   };
 
@@ -92,7 +105,7 @@ export function DashboardV2({ initial }: { initial: Data }) {
       if (!r.ok) throw new Error(out.error?.message ?? "The assistant is unavailable right now.");
       if (out.kind === "view") {
         const next = mergeView(view, out.view);
-        if (!describeViewChange(view, next).length) setBanner({ title: out.title, changes: ["Already showing this view"], source: out.source });
+        if (!describeViewChange(view, next).length) setBanner({ title: out.title, changes: ["Already showing this view"], source: out.source, ai: true, restores: viewWords(view) });
         else change(next, out.title, out.source);
       } else setAnswer(out);
       setAskText("");
@@ -104,8 +117,9 @@ export function DashboardV2({ initial }: { initial: Data }) {
   };
 
   const chips = chipsOf(view);
+  const testCount = data.orders.filter((o) => o.is_test).length;
   return (
-    <div className="mx-auto grid w-full max-w-[96rem] gap-4 px-3 py-4 sm:px-5" data-testid="dashboard-v2" data-wire={wire}>
+    <div className="mx-auto grid w-full max-w-[110rem] gap-4 px-3 py-4 sm:px-6 lg:px-8" data-testid="dashboard-v2" data-wire={wire}>
       {/* Ask: the AI changes the view; deterministic code applies it; Undo restores the last one. */}
       <section className="grid gap-3 rounded-lg border border-line bg-surface p-3 sm:p-4" aria-label="Ask your dashboard">
         <form
@@ -147,7 +161,13 @@ export function DashboardV2({ initial }: { initial: Data }) {
             <motion.div key="banner" initial={reduce ? { opacity: 0 } : { opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-clay/30 bg-clay-soft/60 px-3 py-2.5" role="status" data-testid="dash-change-banner">
               <div className="grid gap-1">
                 <p className="text-sm font-semibold text-ink">
-                  <Sparkles aria-hidden className="mr-1 inline size-3.5 text-clay" />
+                  {banner.ai ? (
+                    <span className="mr-1.5 inline-flex items-center gap-1 rounded-sm bg-clay px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white" data-testid="dash-ai-tag">
+                      <Sparkles aria-hidden className="size-3" /> AI
+                    </span>
+                  ) : (
+                    <Sparkles aria-hidden className="mr-1 inline size-3.5 text-clay" />
+                  )}
                   {banner.title}
                 </p>
                 <ul className="flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-ink-2">
@@ -157,7 +177,9 @@ export function DashboardV2({ initial }: { initial: Data }) {
                     </li>
                   ))}
                 </ul>
-                <p className="text-xs text-muted">The assistant changed the view only. It can&apos;t change orders, prices or refunds.</p>
+                <p className="text-xs text-muted">
+                  {banner.ai ? "The assistant changed the view only. It can't change orders, prices or refunds. " : ""}Undo goes back to: <span className="font-medium text-ink-2" data-testid="dash-undo-target">{banner.restores}</span>
+                </p>
               </div>
               <div className="flex gap-1">
                 <Button size="sm" variant="secondary" onClick={undo} disabled={!history.length} data-testid="dash-undo">
@@ -194,6 +216,16 @@ export function DashboardV2({ initial }: { initial: Data }) {
         </AnimatePresence>
       </section>
 
+      <p className="-mb-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-2" data-testid="kpi-legend">
+        {testCount > 0 && (
+          <span data-testid="kpi-test-note">
+            Includes <span className="tabular font-medium text-ink">{testCount}</span> sandbox test order{testCount === 1 ? "" : "s"}, tagged “test” in the grid (switch: Include test orders).
+          </span>
+        )}
+        <span>
+          <span className="font-mono">[db]</span> live from Shopfront&apos;s database · <span className="font-mono">[paypal]</span> PayPal&apos;s own records, which can lag about 3 hours
+        </span>
+      </p>
       <KpiCards k={data.kpis} />
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)]">
@@ -239,7 +271,14 @@ export function DashboardV2({ initial }: { initial: Data }) {
             <ul className="flex flex-wrap gap-1.5" data-testid="filter-chips">
               {chips.map((c) => (
                 <li key={c.key}>
-                  <button type="button" onClick={() => change({ ...view, [c.key]: null })} className="inline-flex h-7 items-center gap-1 rounded-pill border border-clay/30 bg-clay-soft px-2.5 text-sm text-clay-strong hover:border-clay" data-testid="filter-chip">
+                  <button
+                    type="button"
+                    onClick={() => change({ ...view, [c.key]: null })}
+                    className={cn("inline-flex h-7 items-center gap-1 rounded-pill border bg-clay-soft px-2.5 text-sm text-clay-strong hover:border-clay", aiKeys.has(c.key) ? "border-clay ring-1 ring-clay" : "border-clay/30")}
+                    data-testid="filter-chip"
+                    data-ai={aiKeys.has(c.key) ? "1" : undefined}
+                  >
+                    {aiKeys.has(c.key) && <span className="rounded-sm bg-clay px-1 text-[10px] font-semibold text-white">AI</span>}
                     {c.text} <X aria-hidden className="size-3" />
                     <span className="sr-only">remove filter</span>
                   </button>
@@ -247,7 +286,7 @@ export function DashboardV2({ initial }: { initial: Data }) {
               ))}
             </ul>
           )}
-          <div className="h-[460px]">
+          <div className="h-[520px]">
             <OrdersGrid rows={inView} view={view} onSortChange={(s) => change({ ...view, sort: s })} />
           </div>
           <p className="text-xs text-muted">Click an order for its full PayPal history. Notes and ship-by dates are yours to edit; nothing here changes money.</p>

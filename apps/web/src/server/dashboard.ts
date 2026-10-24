@@ -108,6 +108,9 @@ export async function dashboardData(sellerId: string) {
     outcome: outcomeOf(c.status),
     status: c.status,
     total_usd: c.totalCents / 100,
+    // For the report's conversion-rate measure (sum of converted / sum of attempt).
+    converted: ["paid", "authorized", "refunded"].includes(outcomeOf(c.status)) ? 1 : 0,
+    attempt: 1,
   }));
   const listings = listingRows.map(({ v, p }) => ({
     listing: p.title,

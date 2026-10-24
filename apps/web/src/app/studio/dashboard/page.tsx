@@ -25,13 +25,14 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
   const seller = await currentSeller();
   if (!seller) redirect("/studio");
   const sp = await searchParams;
-  const tab = sp.tab === "builder" ? "builder" : "overview";
+  // "report" (Phase AG); "builder" is the older name, still accepted.
+  const tab = sp.tab === "report" || sp.tab === "builder" ? "builder" : "overview";
   const [testSwitch, reconciled] = await Promise.all([testOrdersSwitch(seller.id), reconciliationFor(seller)]);
   const tabs = (
     <nav aria-label="Dashboard views" className="flex gap-1 rounded-md bg-surface-2 p-1 text-sm font-medium">
       {(["overview", "builder"] as const).map((t) => (
-        <Link key={t} href={t === "overview" ? "/studio/dashboard" : "/studio/dashboard?tab=builder"} aria-current={tab === t ? "page" : undefined} className={cn("rounded-sm px-3 py-1.5 transition-colors", tab === t ? "bg-surface text-ink shadow-sm" : "text-ink-2 hover:text-ink")} data-testid={`tab-${t}`}>
-          {t === "overview" ? "Overview" : "Builder · AG Studio"}
+        <Link key={t} href={t === "overview" ? "/studio/dashboard" : "/studio/dashboard?tab=report"} aria-current={tab === t ? "page" : undefined} className={cn("rounded-sm px-3 py-1.5 transition-colors", tab === t ? "bg-surface text-ink shadow-sm" : "text-ink-2 hover:text-ink")} data-testid={`tab-${t}`}>
+          {t === "overview" ? "Overview" : "Report · AG Studio"}
         </Link>
       ))}
     </nav>
@@ -57,10 +58,10 @@ export default async function DashboardPage({ searchParams }: PageProps<"/studio
     const data = await dashboardData(seller.id);
     const saved = seller.dashboardState as { preset?: string; state?: unknown } | null;
     return (
-      <main className="grid h-dvh grid-rows-[auto_auto_minmax(0,1fr)] bg-canvas">
+      <main className="grid h-dvh grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_minmax(0,1fr)] bg-canvas">
         <SiteNav tone="bar" />
         {header}
-        <div className="min-h-0 p-2">
+        <div className="min-h-0 min-w-0 px-2 py-2 sm:px-4">
           <DashboardClient initialData={data} savedState={saved?.preset === PRESET_VERSION ? saved.state : null} licenseSim={licenseSimulation(sp.aglicense)} />
         </div>
       </main>

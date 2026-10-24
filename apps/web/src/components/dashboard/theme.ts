@@ -58,11 +58,13 @@ export function makeStudioTheme() {
   } as never);
 }
 
-export function makeLedgerTheme() {
+/** `size: "lg"` is the overview's larger table type (review v2 fix #4); widgets inside Studio keep 13 px. */
+export function makeLedgerTheme(size: "md" | "lg" = "md") {
   const t = (n: string, f: string) => tokenHex(n, f);
   return themeQuartz.withParams({
     fontFamily: fontFamily(),
-    fontSize: 13,
+    fontSize: size === "lg" ? 14 : 13,
+    headerFontSize: size === "lg" ? 14 : 13,
     backgroundColor: t("surface", "#ffffff"),
     foregroundColor: t("ink", "#2b2622"),
     borderColor: t("line", "#e3dfdb"),
@@ -72,6 +74,6 @@ export function makeLedgerTheme() {
     rowHoverColor: t("clay-soft", "#fbefea"),
     selectedRowBackgroundColor: t("clay-soft", "#fbefea"),
     wrapperBorderRadius: 8,
-    spacing: 6,
+    spacing: size === "lg" ? 7 : 6,
   });
 }

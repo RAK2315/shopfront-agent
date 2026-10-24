@@ -171,7 +171,7 @@ export function OrdersGrid({ rows, view, onSortChange }: { rows: OrderRow[]; vie
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const seen = useRef<Set<string> | null>(null);
-  const theme = useMemo(() => makeLedgerTheme(), []);
+  const theme = useMemo(() => makeLedgerTheme("lg"), []);
 
   const toggleGroup = useCallback((id: string) => setCollapsed((s) => (s.has(id) ? new Set([...s].filter((x) => x !== id)) : new Set([...s, id]))), []);
   const data = useMemo(() => buildRows(rows, view, open, collapsed), [rows, view, open, collapsed]);
@@ -254,7 +254,7 @@ export function OrdersGrid({ rows, view, onSortChange }: { rows: OrderRow[]; vie
         getRowId={(p: GetRowIdParams<Row>) => p.data.id}
         isFullWidthRow={(p) => p.rowNode.data?.kind !== "order"}
         fullWidthCellRenderer={(p: ICellRendererParams<Row>) => (p.data?.kind === "group" ? <GroupHeader data={p.data} onToggle={toggleGroup} /> : p.data?.kind === "detail" ? <DetailPanel order={p.data.order} /> : null)}
-        getRowHeight={(p: RowHeightParams<Row>) => (p.data?.kind === "detail" ? 300 : p.data?.kind === "group" ? 40 : 48)}
+        getRowHeight={(p: RowHeightParams<Row>) => (p.data?.kind === "detail" ? 300 : p.data?.kind === "group" ? 42 : 52)}
         postSortRows={postSortRows}
         onSortChanged={(e) => {
           const s = e.api.getColumnState().find((c) => c.sort);

@@ -50,7 +50,7 @@ function SyncCell(p: ICellRendererParams<Row>) {
 export function ListingsGrid({ initial }: { initial: ListingRow[] }) {
   useMemo(() => gridModules(), []);
   const [rows, setRows] = useState<Row[]>(initial);
-  const theme = useMemo(() => makeLedgerTheme(), []);
+  const theme = useMemo(() => makeLedgerTheme("lg"), []);
   const patch = (variant: string, p: Partial<Row>) => setRows((all) => all.map((r) => (r.variant === variant ? { ...r, ...p } : r)));
 
   const onEdit = useCallback(async (e: CellValueChangedEvent<Row>) => {
