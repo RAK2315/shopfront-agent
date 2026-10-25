@@ -153,19 +153,21 @@ export function Cursor({ clicks, start, toScreen, fade = true }: { clicks: Array
   const p = toScreen(pos);
   const o = fade ? interpolate(f, [0, 8], [0, 1], { extrapolateRight: "clamp" }) : 1;
   const r = ring ? toScreen(ring.pt) : null;
+  const rad = ring ? interpolate(ring.age, [0, 16], [8, 36], { easing: ease.out }) : 0;
   return (
     <>
       {r && ring && (
         <div
           style={{
             position: "absolute",
-            left: r.x,
-            top: r.y,
-            width: 0,
-            height: 0,
-            borderRadius: 999,
-            boxShadow: `0 0 0 ${interpolate(ring.age, [0, 16], [6, 34], { easing: ease.out })}px ${c.clay}`,
-            opacity: interpolate(ring.age, [0, 16], [0.35, 0]),
+            left: r.x - rad,
+            top: r.y - rad,
+            width: rad * 2,
+            height: rad * 2,
+            borderRadius: "50%",
+            border: `3px solid ${c.clay}`,
+            background: "oklch(0.56 0.14 40 / 0.12)",
+            opacity: interpolate(ring.age, [0, 16], [0.7, 0]),
           }}
         />
       )}

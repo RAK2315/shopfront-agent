@@ -1,5 +1,5 @@
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
-import { voTimeline } from "../config";
+import { beat as beatOf, voTimeline } from "../config";
 import { c, ease, FPS, ui } from "../theme";
 import type { Word } from "./clip";
 
@@ -48,13 +48,16 @@ export function Captions({ beat, dark = false }: { beat: number; dark?: boolean 
   const f = useCurrentFrame();
   const t = f / FPS;
   const lines = captionLines(beat);
-  const i = lines.findIndex((l, k) => t >= l.start - 0.08 && t < (lines[k + 1]?.start ?? l.end + 0.6) - 0.08);
+  // A line shows while spoken and briefly after; it leaves early if the next sentence is placed later (a pause).
+  const i = lines.findIndex((l, k) => t >= l.start - 0.08 && t < Math.min(lines[k + 1]?.start ?? Infinity, l.end + 0.7) - 0.08);
   if (i < 0) return null;
   const l = lines[i]!;
   const age = (t - (l.start - 0.08)) * FPS;
   const o = interpolate(age, [0, 5], [0, 1], { extrapolateRight: "clamp", easing: ease.out });
+  // Some moments need the bottom of the frame (an input at the page bottom): the caption sits at the top there.
+  const top = (beatOf(beat).capTop ?? []).some(([a, b]) => l.start >= a - 0.1 && l.start < b);
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 54, pointerEvents: "none" }}>
+    <AbsoluteFill style={{ justifyContent: top ? "flex-start" : "flex-end", alignItems: "center", paddingBottom: 54, paddingTop: 48, pointerEvents: "none" }}>
       <div
         style={{
           opacity: o,

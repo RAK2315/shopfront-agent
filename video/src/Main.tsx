@@ -6,6 +6,9 @@ import { BeatFrame } from "./lib/motion";
 import { B01Hook } from "./scenes/B01Hook";
 import { B02Promise } from "./scenes/B02Promise";
 import { B03Listing } from "./scenes/B03Listing";
+import { B04AgentBuys } from "./scenes/B04AgentBuys";
+import { B05Phone } from "./scenes/B05Phone";
+import { B06PaidDirect } from "./scenes/B06PaidDirect";
 import { B09Trust } from "./scenes/B09Trust";
 import { B10Close } from "./scenes/B10Close";
 import { c } from "./theme";
@@ -15,6 +18,9 @@ const SCENES: Record<number, { C: ComponentType; dark?: boolean }> = {
   1: { C: B01Hook, dark: false },
   2: { C: B02Promise },
   3: { C: B03Listing },
+  4: { C: B04AgentBuys },
+  5: { C: B05Phone },
+  6: { C: B06PaidDirect },
   9: { C: B09Trust },
   10: { C: B10Close },
 };

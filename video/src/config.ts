@@ -1,4 +1,5 @@
 import voice from "../public/voice/voice.json";
+import cuts from "../public/voice/cuts.json";
 import words from "../public/voice/words.json";
 import { FPS } from "./theme";
 import type { Word } from "./lib/clip";
@@ -8,14 +9,14 @@ import type { Word } from "./lib/clip";
 // `vo`: when the beat's voice starts. `parts`: optional sentence placement, [first word of the sentence, beat
 // seconds, nth occurrence]: each sentence of the voice file plays at its own time so it lands on its footage.
 type Part = readonly [string, number, number?];
-type Beat = { n: number; id: string; sec: number; vo: number; parts?: readonly Part[] };
+type Beat = { n: number; id: string; sec: number; vo: number; parts?: readonly Part[]; capTop?: ReadonlyArray<readonly [number, number]> };
 export const BEATS: readonly Beat[] = [
   { n: 1, id: "hook", sec: 10, vo: 0.3 },
   { n: 2, id: "promise", sec: 6, vo: 0.35 },
   { n: 3, id: "listing", sec: 18, vo: 0.4, parts: [["She", 0.4], ["Gemini", 2.6], ["The", 6.6, 2], ["One", 13.1]] },
-  { n: 4, id: "agent-buys", sec: 24, vo: 0.5 },
-  { n: 5, id: "phone", sec: 18, vo: 0.5 },
-  { n: 6, id: "paid-direct", sec: 17, vo: 0.4 },
+  { n: 4, id: "agent-buys", sec: 24, vo: 0.35, parts: [["A", 0.35], ["The", 4.5, 1], ["The", 8.9, 2], ["The", 11.3, 3], ["The", 15.0, 4]], capTop: [[0, 4.45]] },
+  { n: 5, id: "phone", sec: 18, vo: 0.5, parts: [["She", 0.5], ["The", 2.5], ["She", 4.3, 2], ["A", 8.4, 2], ["Small", 12.6]] },
+  { n: 6, id: "paid-direct", sec: 17, vo: 0.4, parts: [["Sellers", 0.4], ["Every", 7.2], ["here,", 10.1], ["So", 13.4]] },
   { n: 7, id: "gauntlet", sec: 21, vo: 0.5 },
   { n: 8, id: "dashboard", sec: 36, vo: 0.5 },
   { n: 9, id: "trust", sec: 12, vo: 0.5 },
@@ -41,15 +42,18 @@ export function voTimeline(n: number) {
     if (i < 0) throw new Error(`beat ${n}: no word "${word}" #${nth} for a part`);
     return { i, at };
   });
+  // Cut where the audio is quiet before each sentence (voice/gaps.mjs), not at Whisper's overlapping word times.
+  const cutAt = (i: number) => (cuts as Record<string, Record<string, number>>)[String(n)]?.[String(i)] ?? Math.max(0, ws[i]!.start - 0.06);
   const parts = starts.map((p, k) => {
-    const from = k === 0 ? 0 : Math.max(0, ws[p.i]!.start - 0.06);
-    const to = k + 1 < starts.length ? Math.max(from, ws[starts[k + 1]!.i]!.start - 0.06) : fileEnd;
+    const from = k === 0 ? 0 : cutAt(p.i);
+    const to = k + 1 < starts.length ? Math.max(from, cutAt(starts[k + 1]!.i)) : fileEnd;
     const shift = (k === 0 ? b.vo : p.at) - from;
     return { from, to, at: from + shift, shift, firstWord: p.i, lastWord: k + 1 < starts.length ? starts[k + 1]!.i - 1 : ws.length - 1 };
   });
   const placed = ws.map((w, i) => {
     const p = parts.find((q) => i >= q.firstWord && i <= q.lastWord)!;
-    return { w: w.w, start: w.start + p.shift, end: Math.min(w.end, p.to) + p.shift };
+    const start = Math.max(w.start, p.from + 0.04);
+    return { w: w.w, start: start + p.shift, end: Math.max(start + 0.05, Math.min(w.end, p.to)) + p.shift };
   });
   return { parts, words: placed, end: parts.at(-1)!.at + (parts.at(-1)!.to - parts.at(-1)!.from) };
 }
