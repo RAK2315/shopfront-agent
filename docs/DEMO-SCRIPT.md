@@ -1,7 +1,6 @@
 # Demo script — v6 (2:50, a directed re-edit of the working-prototype demo)
 
-> **Status:** DRAFT for the owner's approval (2026-10-25). Replaces v5.1 after the owner rejected the first cut (D-110).
-> Nothing is regenerated until the owner approves the voiceover text below.
+> **Status:** voiceover text APPROVED by the owner (2026-10-25). Replaces v5.1 after the owner rejected the first cut (D-110).
 > **Requirements it serves:**
 > - Under 3:00 (S6.1; target 2:50).
 > - The real build working on desktop web and a phone (S6.2).
@@ -23,6 +22,7 @@
   - Static, full-frame and readable by default (the captures are 1.5× scale, so full frame is sharp).
   - At most one gentle push-in per shot, 1.1–1.25×, about 1.5 s with an ease-out, then it settles and holds.
   - No drift, no sideways pans, no scale pop at scene start.
+  - Framing never cuts through UI: every crop or push-in ends on whole elements (a card, panel or row, with its text whole) and a clean margin. No half-words or clipped buttons at the frame edge, and no page edge or neighbouring panel creeping in. If a push-in cannot frame a whole element, stay at full frame.
   - To point at something: a soft spotlight (the rest of the frame dims about 35%) and a thin outline, removed before the next action.
 - **Time:**
   - Real speed. Waits are removed with clean jump cuts. No "N× speed" labels.
