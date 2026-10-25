@@ -245,3 +245,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/ag/P6-phone-note-mobile.png`; the P* mobile shots now show the note.
 - **Risks:** none.
 - **Next:** step 3, the final full regression and the feature freeze.
+
+## Step 3: final regression and FEATURE FREEZE (2026-10-25, D-104)
+- **Done:** every acceptance suite on Render (28 suite runs + reruns), the isolation checks, reconciliation after each (0 mismatches, 147 matched), a fresh clone from the README alone (throwaway DB: install, migrate, seed, 198/198 tests, build, start), phase6 #6 on a local replay server, `final-screens` (19 screens × 3 sizes), sandbox-validation and test-counts regenerated, demo reset. **Feature freeze declared.**
+- **Tests:** all green after reruns. Failures were test-side or sandbox: phase3/phase5 updated for the current UI, phase2's webhook restore now retries (one network error had left the sandbox webhook on a wrong URL for 8 min; restored by hand), recovery R2 uses a pool, phase4 hit PayPal's sandbox login and a 15-min-late refund webhook. One product bug found and fixed: `/developers` showed `%7Bstore%7D`.
+- **Screenshots:** `docs/screenshots/final/` (57), plus every suite's folder; log in `docs/screenshots/final-regression.log`.
+- **Risks:** this machine lost connections to Neon for ~7 h (21:30–04:50 UTC) while Render stayed healthy; the Render workspace has a second active free service (`hacknite`), see OWNER-TODO #8a.
+- **Next:** step 4, the submission pack.

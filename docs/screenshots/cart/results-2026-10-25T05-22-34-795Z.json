@@ -1,0 +1,228 @@
+[
+  {
+    "id": "K1 JWKS published (EdDSA / Ed25519)",
+    "ok": true,
+    "detail": {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "acmj8pCHCgEuuFo4p_HrI9XCv6cmtie2JNz2ksowMNQ",
+      "kid": "nmixwXiLflOOOstr",
+      "alg": "EdDSA",
+      "use": "sig"
+    }
+  },
+  {
+    "id": "K2 tokens: missing, garbage, alg:none, expired, other store, forged audience all refused and logged",
+    "ok": true,
+    "detail": {
+      "missing": 401,
+      "garbage": 401,
+      "algNone": 401,
+      "expired": "401 TOKEN_EXPIRED",
+      "otherStore": "403 PERMISSION_DENIED",
+      "forgedAudience": 401,
+      "loggedBlocked": 6
+    }
+  },
+  {
+    "id": "K3 no address → REQUIRES_ADDITIONAL_INFORMATION (PayPal's own schema)",
+    "ok": true,
+    "detail": {
+      "status": 200,
+      "validation": "REQUIRES_ADDITIONAL_INFORMATION",
+      "issues": [
+        {
+          "issue": "MISSING_SHIPPING_ADDRESS",
+          "actions": [
+            "UPDATE_ADDRESS",
+            "PROVIDE_MISSING_FIELD"
+          ]
+        }
+      ],
+      "schemaOk": true
+    }
+  },
+  {
+    "id": "K4 validation issues with resolution options; a $0.01 agent price creates no order",
+    "ok": true,
+    "detail": {
+      "checks": {
+        "unknown": true,
+        "otherStore": true,
+        "tooMany": true,
+        "lowStock": true,
+        "priceMismatch": true,
+        "abroad": true,
+        "coupon": true,
+        "allInvalid": true,
+        "noOrdersCreated": true
+      },
+      "priceTotal": "33.00",
+      "priceIssue": [
+        {
+          "issue": "PRICE_MISMATCH",
+          "actions": [
+            "ACCEPT_NEW_PRICE",
+            "REMOVE_ITEM"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "K5 PUT is a full replacement: same cart keeps its order, a changed cart gets a new one, the old closes",
+    "ok": true,
+    "detail": {
+      "created": 201,
+      "sameToken": true,
+      "newToken": true,
+      "oldOrder": "cancelled",
+      "totalChanged": "61.00",
+      "afterDroppingAddress": "REQUIRES_ADDITIONAL_INFORMATION"
+    }
+  },
+  {
+    "id": "K6 PayPal's client completes a real order: authorized, stock reserved, hold at PayPal",
+    "ok": true,
+    "detail": {
+      "holdPanel": {
+        "1920": {
+          "panel": 1,
+          "button": 0,
+          "overflow": 0
+        },
+        "desktop": {
+          "panel": 1,
+          "button": 0,
+          "overflow": 0
+        },
+        "mobile": {
+          "panel": 1,
+          "button": 0,
+          "overflow": 0
+        }
+      },
+      "steps": [
+        "POST /merchant-cart 200",
+        "PUT /merchant-cart/{id} 200",
+        "GET /merchant-cart/{id} 200",
+        "POST /merchant-cart/{id}/checkout 200"
+      ],
+      "checkout": "chk_10azlsn3br54",
+      "status": "authorized",
+      "authorization": "5WN475233N300973M CREATED",
+      "expires": "2026-11-23T05:20:29Z",
+      "stock": "20 → 19",
+      "wire": [
+        "cart_checkout_opened",
+        "order_created",
+        "cart_updated",
+        "order_approved",
+        "authorized",
+        "cart_completed"
+      ],
+      "schemaOk": true,
+      "review": "https://shopfront-agent.onrender.com/pay/chk_10azlsn3br54?t=…"
+    }
+  },
+  {
+    "id": "K7 a replayed checkout returns the same completed cart; exactly one hold",
+    "ok": true,
+    "detail": {
+      "status": 200,
+      "cart": "COMPLETED",
+      "authorizations": 1
+    }
+  },
+  {
+    "id": "K8 ship → the hold is captured at PayPal, order shipped, tracking added",
+    "ok": true,
+    "detail": {
+      "status": "shipped",
+      "capture": "6CL43327CJ338082C COMPLETED",
+      "authorization": "CAPTURED"
+    }
+  },
+  {
+    "id": "K9 direct-paid Fern & Loom: authorized with payee = seller 2, captured on ship into seller 2's PayPal",
+    "ok": true,
+    "detail": {
+      "checkout": "chk_c7ua8y17b9o5",
+      "payee": "B83JSV9ELHV74",
+      "hold": "CREATED",
+      "shipped": {
+        "status": "shipped",
+        "cap": "7D066119TV279773E",
+        "payee": "B83JSV9ELHV74"
+      }
+    }
+  },
+  {
+    "id": "K10 cancel before shipping: platform hold VOIDED + stock back; direct-paid → seller handoff",
+    "ok": true,
+    "detail": {
+      "platform": {
+        "outcome": "voided",
+        "status": "cancelled",
+        "paypal": "VOIDED",
+        "stock": "19 → 20"
+      },
+      "direct": {
+        "outcome": "handoff",
+        "stillHeld": "authorized",
+        "link": "https://www.sandbox.paypal.com/activity/payment/…"
+      }
+    }
+  },
+  {
+    "id": "K11 another agent's cart (same store) is invisible: 404",
+    "ok": true,
+    "detail": {
+      "get": 404,
+      "put": 404
+    }
+  },
+  {
+    "id": "K12 screens at 3 sizes: /cart/approved, /pay after shipping, /live (the hold panel is shot in K6)",
+    "ok": true,
+    "detail": {
+      "overflow": {
+        "approved@desktop": 0,
+        "approved@1920": 0,
+        "approved@mobile": 0,
+        "live@desktop": 0,
+        "live@1920": 0,
+        "live@mobile": 0,
+        "pay-shipped@desktop": 0,
+        "pay-shipped@1920": 0,
+        "pay-shipped@mobile": 0
+      }
+    }
+  },
+  {
+    "id": "K13 /developers: demo token + the printed curl works against the live API",
+    "ok": true,
+    "detail": {
+      "status": 200,
+      "validation": "REQUIRES_ADDITIONAL_INFORMATION",
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  },
+  {
+    "id": "K14 Studio card: a seller-issued key works on its own store, 403 elsewhere",
+    "ok": true,
+    "detail": {
+      "own": "200 REQUIRES_ADDITIONAL_INFORMATION",
+      "other": 403,
+      "overflow": {
+        "1920": 0,
+        "desktop": 0,
+        "mobile": 0
+      }
+    }
+  }
+]

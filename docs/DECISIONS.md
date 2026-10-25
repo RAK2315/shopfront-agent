@@ -1719,6 +1719,23 @@
 - **Serves:** J2 (AG Grid polish), J4, D-100.
 ---
 
+## D-104: Feature freeze after the final regression (2026-10-25; owner's step 3, D-079)
+- **Freeze:** from 2026-10-25 no new features. Allowed until submission: bug fixes with a test, copy fixes, docs, video, ops. Earlier than planned (D-079 said end of Nov 5) because the owner's list put the regression and freeze before the submission pack.
+- **Evidence:** every acceptance suite green on Render (`docs/screenshots/final-regression.log`), reconciliation 0 mismatches after every suite, fresh clone from the README alone, phase6 #6 on a local replay server, `final-screens` 19 screens × 3 sizes with no sideways scroll, sandbox-validation (13 endpoints, 9,358 calls) and test counts (198 unit, 24 suites / 147 checks) regenerated.
+- **Deviations during the run (test-side, no product change):**
+  - `phase3-checks`: the Title field is matched exactly and the publish banner by its current wording; the run archives everything it created even after a failure (a failed run had left a test listing live until the demo reset removed it).
+  - `phase5-checks`: written for the old Builder tab; it now opens the Report tab and the ledger on the report's Orders page (D-101).
+  - `phase2-checks` E: restoring the PayPal webhook URL retries (a one-off "fetch failed" left the sandbox webhook on `/webhooks/paypal-wrong` for ~8 min, 21:25–21:33 UTC; restored by hand, PATCH 200, debug id `f243769d98975`; fallback checks and reconciliation covered the gap: 0 mismatches).
+  - `recovery-checks`: a pg pool instead of one client (an idle connection was reset during R2's Render restart).
+  - `final-screens`: adds `/gauntlet`, `/developers` and the Report tab.
+- **Product fix found by the run:** `/developers` showed the Cart API base as `…/stores/%7Bstore%7D` (`new URL` encodes braces); it now shows `{store}` (`cart-checks` 14/14 after).
+- **AT-3** ran on three CC0 seed photos plus the Gauntlet's sticker-price photo (6/6); the owner's own photos (OWNER-TODO #3) are still pending and are not claimed.
+- **Repo hygiene:** removed an empty root file `ZcZ` (a shell redirect of the published sandbox password, committed in D-069's change) and the committed Vitest output (`.vitest/` now ignored).
+- **Incident (not the product):** from ~21:30 to ~04:50 UTC this machine's Postgres connections to Neon timed out or reset (also Neon's HTTPS SQL endpoint intermittently) while Render's own connections stayed healthy; one live image request hung 60 s during that window. Reruns waited for it.
+- **Owner answers (2026-10-25):** #8 "check" → checked through the Render API: the workspace also has `hacknite` (free web service, active) besides `shopfront-agent`; three more are suspended. #9 "not sure" → treated as not submitted; the README claims no request.
+- **Serves:** S3, S5.1, R4, R5, J1, D-079.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

@@ -53,4 +53,4 @@ pnpm paypal:toolkit-token     # refresh PayPal AI Toolkit sandbox token in ~/.cl
 ## Working style for this repo
 - Planning docs are the memory. When something changes, update PLAN, ARCHITECTURE or SUBMISSION and add a DECISIONS entry in the same change.
 - Delete files only with `node scripts/safe-rm.mjs [-r] <path>` (it prints the absolute path, refuses anything outside the repo). Never raw `rm` (D-084).
-- Prefer the smallest change that passes the phase's acceptance tests. Respect the feature freeze (end of Nov 5, D-079) and the cut list.
+- Prefer the smallest change that passes the phase's acceptance tests. Respect the feature freeze (in effect since 2026-10-25, D-104: bug fixes with a test, copy, docs, video and ops only) and the cut list.
