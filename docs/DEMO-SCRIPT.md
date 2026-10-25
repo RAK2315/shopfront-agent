@@ -39,6 +39,9 @@
   - Strong contrast, no faint grey, no "a · b · c" lists.
   - The app's own fonts stay inside the footage.
 - **Captions:** one line, Alegreya Sans Medium. Fade in and out (about 6 frames each), shown for at least 1.2 s, never hard-swapped, timed from the sentence files.
+- **Optional polish (owner suggestions, only where they fit):**
+  - Counter glow: a soft glow builds as a counter climbs; red for "harmed", green for "blocked". Used on the trust-board counters, or as an overlay on the Gauntlet counters that never alters the real UI.
+  - Card pulse: one soft pulse when a card starts working (an agent or tool-call card, an architecture node). No bounce, never looping.
 - **Cursor:**
   - Human paths: a soft arc that slows as it arrives.
   - A short pause before important clicks.
