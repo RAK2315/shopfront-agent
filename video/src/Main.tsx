@@ -9,6 +9,8 @@ import { B03Listing } from "./scenes/B03Listing";
 import { B04AgentBuys } from "./scenes/B04AgentBuys";
 import { B05Phone } from "./scenes/B05Phone";
 import { B06PaidDirect } from "./scenes/B06PaidDirect";
+import { B07Gauntlet } from "./scenes/B07Gauntlet";
+import { B08Dashboard } from "./scenes/B08Dashboard";
 import { B09Trust } from "./scenes/B09Trust";
 import { B10Close } from "./scenes/B10Close";
 import { c } from "./theme";
@@ -21,6 +23,8 @@ const SCENES: Record<number, { C: ComponentType; dark?: boolean }> = {
   4: { C: B04AgentBuys },
   5: { C: B05Phone },
   6: { C: B06PaidDirect },
+  7: { C: B07Gauntlet },
+  8: { C: B08Dashboard },
   9: { C: B09Trust },
   10: { C: B10Close },
 };

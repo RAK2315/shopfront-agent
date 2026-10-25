@@ -36,7 +36,7 @@ export function B09Trust() {
             <li style={{ color: c.ink, fontWeight: 600 }}>Only this code moves money</li>
           </ul>
         </Node>
-        <Edge at={0.85} d="M1440 455 H1560" label="Orders" lx={24} />
+        <Edge at={0.85} d="M1440 455 H1560" label="Orders" lx={30} ly={-24} />
         <Edge at={1.0} d="M1560 590 H1440" label="Webhooks" lx={-112} ly={44} dashed />
         <PayPalNode at={0.8} />
         <Edge at={tModel + 0.2} d="M1145 700 V662" dashed />

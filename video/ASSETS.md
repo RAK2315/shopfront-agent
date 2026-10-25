@@ -15,7 +15,11 @@ third-party marks or copyrighted material without permission). Built in Remotion
 | `products/mug.jpg`, `mug-hand.jpg` | The photo that becomes a live listing on camera (kept unpublished for that) | Owner's ChatGPT stand-ins (`docs/demo-photos/`, D-106) |
 | `products/bowl.jpg`, `vase.jpg`, `napkins.jpg` | Products already live in the shop | Owner's ChatGPT stand-ins, published as listings (D-106) |
 | `voice/beat-01.mp3` … `beat-10.mp3`, `voice.json` | The voiceover, one file per beat, with durations and captions | Generated with ElevenLabs (free tier, voice "Chris", eleven_v3) by `voice/make-vo.mjs` from `voice/lines.mjs`; credit "Voice: ElevenLabs" (D-108) |
-| `clips/` (ignored by git) | Real screen captures of the deployed app | `capture/capture.mts`; re-generated from https://shopfront-agent.onrender.com |
+| `voice/words.json`, `voice/cuts.json` | Word timings (for captions and cues) and quiet cut points between sentences | `voice/words.mjs` (Groq's free Whisper, a dev step) and `voice/gaps.mjs` (the audio's own loudness) |
+| `sfx/click.wav` | The quiet click on every cursor press | Synthesised in code by `voice/make-click.mjs`; no licence needed |
+| `clips/*.mp4` (ignored by git) | Real screen captures of the deployed app, 1.5× scale, 30 fps | `capture/capture.mts` (D-109); re-generated from https://shopfront-agent.onrender.com |
+| `clips/*.json` | Each take's tracks (windows), click and moment marks | Written by `capture/capture.mts` with the take |
+| `clips/cart-agent.json` | The real output of PayPal's own Cart API client against the live store, with timings | `apps/web/scripts/video-cart.mts` (D-109) |
 
 
 ## Built in code (no files)
@@ -27,7 +31,8 @@ a real session", with no Telegram interface or logo · callouts, counters and on
 
 ## Rules for every frame
 
-- Real footage of the working app wherever a feature is shown (S6.2). PayPal's own approval popup appears as it is: PayPal is the host.
+- Real footage of the working app wherever a feature is shown (S6.2). PayPal's own approval popup and login page appear as they are: PayPal is the host. The card-brand image in the popup's saved-card row is blurred.
+- Sped-up footage carries a speed label ("2× speed"); cut waits are said on screen (the Cart API terminal).
 - No third-party logos or app interfaces other than PayPal's (S6.4). No music.
 - Voiceover: ElevenLabs free tier, voice "Chris" on eleven_v3, sped to 1.1x (D-108); credit "Voice: ElevenLabs" in the YouTube description as its terms require. The owner may replace it with their own voice later.
 - Captions: one line at the bottom, same words as the voiceover.

@@ -17,8 +17,8 @@ export const BEATS: readonly Beat[] = [
   { n: 4, id: "agent-buys", sec: 24, vo: 0.35, parts: [["A", 0.35], ["The", 4.5, 1], ["The", 8.9, 2], ["The", 11.3, 3], ["The", 15.0, 4]], capTop: [[0, 4.45]] },
   { n: 5, id: "phone", sec: 18, vo: 0.5, parts: [["She", 0.5], ["The", 2.5], ["She", 4.3, 2], ["A", 8.4, 2], ["Small", 12.6]] },
   { n: 6, id: "paid-direct", sec: 17, vo: 0.4, parts: [["Sellers", 0.4], ["Every", 7.2], ["here,", 10.1], ["So", 13.4]] },
-  { n: 7, id: "gauntlet", sec: 21, vo: 0.5 },
-  { n: 8, id: "dashboard", sec: 36, vo: 0.5 },
+  { n: 7, id: "gauntlet", sec: 21, vo: 0.4, parts: [["Can", 0.4], ["We", 3.0], ["injections", 8.3], ["The", 14.7, 2], ["Shopfront", 18.3, 2]] },
+  { n: 8, id: "dashboard", sec: 36, vo: 0.4 },
   { n: 9, id: "trust", sec: 12, vo: 0.5 },
   { n: 10, id: "close", sec: 8, vo: 0.6 },
 ];
