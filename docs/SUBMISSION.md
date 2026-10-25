@@ -2,21 +2,21 @@
 
 > Everything the judges need, each line citing its requirement id in `REQUIREMENTS.md` (frozen).
 > **[x]** verified (evidence in brackets) · **[ ] OWNER** only the owner can do it · **[ ] VIDEO** waits for the video (Nov 6–10).
-> Draft 2026-10-25: ticks reflect the regression so far; final once the regression completes and the freeze is declared.
+> Final 2026-10-25, after the final regression and the feature freeze (D-104). Only OWNER and VIDEO items remain.
 
 ## Admin
 - [ ] **OWNER** Registered on Devpost for the hackathon (S1).
 - [x] Read the Official Rules; entrants from India are eligible (R6, D4). *(owner, 2026-10-16)*
 - [ ] **OWNER** (optional) Joined the PayPal Discord (G17).
 - [x] AG Grid sponsor resources read; AG Studio trial key in use, expires 1 Dec; extension asked on Nov 25 (P9; OWNER-TODO #7a, D-103).
-- [ ] **OWNER** Render workspace: `shopfront-agent` is the only free service, so keep-warm fits the 750 h month (P13; OWNER-TODO #8a, `docs/OPS.md`).
+- [ ] **OWNER** Render workspace: suspend `hacknite` until Dec 16 so keep-warm fits the 750 h month (checked 2026-10-25: it is the other active free service; P13; OWNER-TODO #8a, `docs/OPS.md`).
 - [ ] **OWNER** UptimeRobot monitor on `/api/health/live` every 2 min (`docs/OPS.md`).
 
 ## Project (S1, R0–R8)
 - [x] PayPal is central, not bolted on (R0, R2, G1). *(README "PayPal APIs used": 9 APIs, each with its use)*
 - [x] AI is meaningful (R3, R8). *(README "Tools used"; DEVPOST "Tools")*
 - [x] Sandbox only (R1). *(env refuses non-sandbox base URLs; README "Honest limitations")*
-- [x] Working prototype, not a mockup (R4, S3.x). *(final regression on Render, `docs/screenshots/final-regression.log`)*
+- [x] Working prototype, not a mockup (R4, S3.x). *(final regression on Render, all green: `docs/screenshots/final-regression.log`, D-104)*
 - [x] Documented for judges (R5). *(README top section, threat model, sandbox validation, development with AI)*
 - [x] New project built during the hackathon (R7, S8). *(first commit 2026-10-15)*
 

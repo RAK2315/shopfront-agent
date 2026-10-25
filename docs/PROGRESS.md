@@ -252,3 +252,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** `docs/screenshots/final/` (57), plus every suite's folder; log in `docs/screenshots/final-regression.log`.
 - **Risks:** this machine lost connections to Neon for ~7 h (21:30–04:50 UTC) while Render stayed healthy; the Render workspace has a second active free service (`hacknite`), see OWNER-TODO #8a.
 - **Next:** step 4, the submission pack.
+
+## Step 4: submission pack (2026-10-25)
+- **Done:** `docs/DEVPOST.md` final (name, 197-character pitch, story, built-with tags, J1–J5 table, tools incl. Claude Code and the PayPal AI Toolkit, the 60-second judge path with the published sandbox buyer); `docs/SUBMISSION.md` with every S*/R* item ticked with evidence or flagged OWNER/VIDEO; the README opens with "In 60 seconds" (what it is, three links, the buyer login, why to believe it).
+- **Tests:** claims cross-checked against the regression log and `test-counts` (198 unit, 24 suites / 147 checks); the README anchors resolve on GitHub.
+- **Screenshots:** none (docs).
+- **Risks:** the video link and Devpost entry wait for the owner (Nov 10–11); the About panel has no website link yet (suggested in SUBMISSION).
+- **Next:** step 5, video prep.
