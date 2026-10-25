@@ -1785,6 +1785,37 @@
 - **Serves:** S6.2, S6.4, J5, P9.
 ---
 
+## D-110: Video v2: a directed re-edit after the owner rejected the first cut (2026-10-25; owner-approved)
+- **Why:** the owner's review of the 2:50 render found these problems:
+  - The voiceover overlapped itself in two places (0.84 s each, beats 4 and 5) and split a sentence after "She runs". It clipped "She drops in a photo" and left unexplained gaps of 1.2–3.7 s (beat 3).
+  - There were 68 camera keyframes (eased moves) with steep ease-in-out, sideways pans and a constant drift, plus a scale pop on every beat.
+  - Fifteen sped-up segments carried "N× speed" labels.
+  - The click was a synthesised beep.
+  - Supporting text was in grey Geist with "a · b · c" lists.
+  - The payment success was never clearly shown: the camera left the buyer's card while PayPal's overlay still covered it.
+  - The Gauntlet scroll was choppy: the CDP capture runs 1–26 new frames a second there, and the edit played it at 2.5×.
+  - The voice said "under forty dollars" over a $41.00 total.
+- **Changes from D-108 and D-109 and from DEMO-SCRIPT v5.1:**
+  - **Script v6:** about 15% shorter (417 → 353 words), warmer and plainer. No price in the beat 4 line. The dashboard beat keeps its three strongest demos.
+  - **Voice:**
+    - One file per sentence, at most 1.05× tempo (owner limit). Sentences are never cut or overlapped.
+    - Pauses vary from 0.3 to 0.8 s, and the footage is fitted to the voice.
+    - Same voice (Chris, `eleven_v3`), with lower stability (about 0.3–0.35) for a more expressive delivery. The owner picks from 2–3 sample takes of beats 1–3 first.
+  - **No speed labels:** actions play at real speed, and waits are removed with jump cuts. The YouTube description says once that "waits are trimmed; nothing is staged". This replaces the labelling rule in `video/ASSETS.md` and the v5.1 honesty checks.
+  - **Music:** a quiet CC0 ambient track chosen by the owner from a shortlist. It sits well under the voice, drops further during speech, and fades in and out. This is allowed under the CC0-or-self-made music rule (S6.4) and replaces "no music" from D-108.
+  - **Click:** a recorded CC0 click replaces the synthesised one.
+  - **Type:** Alegreya for headlines and Alegreya Sans for supporting text, captions and the phone screens (open-source, the same family). The app's own fonts stay inside the footage. No dot-separated lists.
+  - **Motion:**
+    - Footage stays static and full-frame by default, with at most one gentle push-in (1.1–1.25×) per shot when it serves the story.
+    - Spotlight and dimming do the pointing.
+    - Ease-out curves only, no overshoot, no drift, no scale pop.
+    - Cuts within a beat, a short crossfade between beats.
+  - **Footage:**
+    - The beat 4 payment shows in order: PayPal window, review amount held, Complete Purchase, then the buyer's card clearly Paid before the webhook. Retake if the current take can't show it.
+    - The Gauntlet's long results become a smooth scroll over a full-page screenshot of the real finished run, after a short real-time run.
+- **Serves:** S6.1, S6.2, S6.4, J5, P9.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
