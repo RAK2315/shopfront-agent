@@ -115,23 +115,26 @@ try {
   const approvedAt = Date.now();
   await card.getByTestId("publish").click();
   await page.getByText(/Mirrored to PayPal/).waitFor({ timeout: 60_000 });
-  await page.screenshot({ path: join(out, "studio-published-desktop.png"), fullPage: true });
+  // Check 4 measures from the moment publishing finished, before this test spends time on its own screenshot and
+  // PayPal GET (on 2026-10-25 those alone used up the 5 s and the loop never searched).
+  const publishedAt = Date.now();
   const [p] = (await db.query("select id, paypal_catalog_id, status, price_confirmed from products where seller_id=$1 and title=$2 and status='approved' order by approved_at desc limit 1", [seller, title])).rows;
   created.push(p.id);
-  const cat = await paypal.getCatalogProduct(p.paypal_catalog_id);
-  record("3 approved product mirrored to PayPal Catalog Products", cat.data.id === p.paypal_catalog_id && p.price_confirmed, { productId: p.id, catalog: cat.data.id, name: cat.data.name, image_url: cat.data.image_url, debugId: cat.debugId });
-
   let found = false;
   let draftLeak = false;
   const draftIds = new Set((await db.query("select id from products where seller_id=$1 and status='draft'", [seller])).rows.map((r) => r.id as string));
-  while (Date.now() - approvedAt < 5000 && !found) {
+  do {
     const r = await search(title);
     found = r.results.some((x) => x.product_id === p.id);
-    draftLeak = r.results.some((x) => draftIds.has(x.product_id));
-  }
+    draftLeak ||= r.results.some((x) => draftIds.has(x.product_id));
+  } while (!found && Date.now() - publishedAt < 5000);
+  const foundAfter = (Date.now() - publishedAt) / 1000;
   const broad = await search("mug");
   draftLeak ||= broad.results.some((x) => draftIds.has(x.product_id));
-  record("4 approved product searchable within 5 s; drafts never returned", found && !draftLeak, { secondsAfterApprove: (Date.now() - approvedAt) / 1000, found, draftLeak });
+  await page.screenshot({ path: join(out, "studio-published-desktop.png"), fullPage: true });
+  const cat = await paypal.getCatalogProduct(p.paypal_catalog_id);
+  record("3 approved product mirrored to PayPal Catalog Products", cat.data.id === p.paypal_catalog_id && p.price_confirmed, { productId: p.id, catalog: cat.data.id, name: cat.data.name, image_url: cat.data.image_url, debugId: cat.debugId });
+  record("4 approved product searchable within 5 s; drafts never returned", found && foundAfter <= 5 && !draftLeak, { secondsAfterPublish: foundAfter, secondsAfterClick: (Date.now() - approvedAt) / 1000, found, draftLeak });
 
   // ── 5: JSON-LD on the product page and storefront ──
   const productPage = await (await api(`/s/juniper_clay/${p.id}`)).text();

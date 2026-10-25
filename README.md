@@ -227,7 +227,7 @@ docs/             requirements, decisions (D-001…), plan, progress, phase proo
 
 ## Credits
 
-- **Listing photos:** every seeded listing uses a public-domain museum photograph released under **CC0 1.0** (from the Art Institute of Chicago, LACMA, The Metropolitan Museum of Art and rawpixel's public-domain collection, found through Openverse). The objects stand in for the demo sellers' work. The source page and licence for each file are in [`apps/web/seed-photos/CREDITS.md`](apps/web/seed-photos/CREDITS.md). The bud-vase image is our composite of three of them.
+- **Listing photos:** every seeded listing uses a public-domain museum photograph released under **CC0 1.0** (from the Art Institute of Chicago, LACMA, The Metropolitan Museum of Art and rawpixel's public-domain collection, found through Openverse). The objects stand in for the demo sellers' work. The source page and licence for each file are in [`apps/web/seed-photos/CREDITS.md`](apps/web/seed-photos/CREDITS.md). The bud-vase image is our composite of three of them. The five photos in [`docs/demo-photos/`](docs/demo-photos/) used for the live photo-to-store demo are **AI-generated stand-ins** (made with ChatGPT), not real products.
 - **Fonts:** Alegreya and Geist (SIL Open Font License), via Google Fonts.
 
 ## License
