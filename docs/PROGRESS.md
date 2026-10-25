@@ -259,3 +259,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** none (docs).
 - **Risks:** the video link and Devpost entry wait for the owner (Nov 10–11); the About panel has no website link yet (suggested in SUBMISSION).
 - **Next:** step 5, video prep.
+
+## Step 5: video prep (2026-10-25)
+- **Done:** `docs/DEMO-SCRIPT.md` v4 for 2:45 against the frozen UI (12 beats incl. /gauntlet and the Report tab; cue sheet; a capture plan per beat with prerequisites, sidecar marks and fallbacks; honesty checks). The Remotion pipeline (`video/`) re-captured real footage of `/capture` (`/shop` + `/live`) and rendered the 20-second `TestClip` (600 frames, 2.4 MB): title → footage with captions and a zoom on the server's total → end card.
+- **Tests:** frames checked at 1, 9, 13 and 19 s. The first capture showed Cart API test orders on the public `/live`; that isolation gap was fixed with a test (`cart-checks` K15, D-104) and the footage re-captured.
+- **Screenshots:** none committed (`video/out` and `public/clips` are ignored).
+- **Risks:** new capture beats (gauntlet, report, cart-api, wire, storefront) and the chat-strip composition still need building Nov 6–10; the owner's product photo for beat 3 is pending (OWNER-TODO #3).
+- **Next:** step 6, OPS.md.

@@ -1733,6 +1733,7 @@
 - **Repo hygiene:** removed an empty root file `ZcZ` (a shell redirect of the published sandbox password, committed in D-069's change) and the committed Vitest output (`.vitest/` now ignored).
 - **Incident (not the product):** from ~21:30 to ~04:50 UTC this machine's Postgres connections to Neon timed out or reset (also Neon's HTTPS SQL endpoint intermittently) while Render's own connections stayed healthy; one live image request hung 60 s during that window. Reruns waited for it.
 - **Owner answers (2026-10-25):** #8 "check" → checked through the Render API: the workspace also has `hacknite` (free web service, active) besides `shopfront-agent`; three more are suspended. #9 "not sure" → treated as not submitted; the README claims no request.
+- **Isolation gap found after the freeze (fixed under its rules, with a test):** the PayPal Cart API SDK that `cart-checks` drives uses axios, which the test harness's fetch patch never marked, so 14 test orders (Oct 18, 24, 25) were stored as public and showed on `/live`. The SDK calls now carry the signed test-run header; new `cart-checks` K15 fails on any public row from a test run (15/15 on Render, `bd49da6`); the 14 orders, 113 events and 14 carts were re-flagged as test data. `gauntlet-victim` Cart API rows were left as they are (they include the intentionally public stored Gauntlet run).
 - **Serves:** S3, S5.1, R4, R5, J1, D-079.
 ---
 
