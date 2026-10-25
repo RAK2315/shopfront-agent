@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Shopfront">
+  <!-- Shopfront mark: a three-panel shop awning over an S. Redrawn by hand on a 100-unit grid from the owner's
+       ChatGPT concept (video/public/brand/logo-reference-chatgpt.png). Clay #B4532A, ink #1C1917. -->
+  <!-- The S as one filled shape: top bar, a round right loop around a narrow slot, a bottom bar with a rounded
+       foot. Its top-left rises under the awning. -->
+  <path fill="#1C1917" d="M25 42 H40 V45 Q40 47.5 43.6 47.5 H62.6 A12.35 12.35 0 0 1 62.6 72.2 H35.6 A10.2 10.2 0 0 1 25.4 62 H60.4 A2.25 2.25 0 0 0 60.4 57.5 H35 A10 10 0 0 1 25 47.5 Z"/>
+  <!-- The awning: three panels with scalloped bottoms. A white outline painted under the fill separates the
+       panels from each other and from the S. -->
+  <g fill="#B4532A" stroke="#FFFFFF" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">
+    <path d="M33.2 22.6 H43.2 L40.9 37.6 A8.75 8.75 0 0 1 23.4 37.6 L30.4 24.1 Q31.1 22.6 33.2 22.6 Z"/>
+    <path d="M45.6 22.6 H54.4 L57.8 37.6 A7.8 7.8 0 0 1 42.2 37.6 Z"/>
+    <path d="M56.8 22.6 H66.8 Q68.9 22.6 69.6 24.1 L76.6 37.6 A8.75 8.75 0 0 1 59.1 37.6 Z"/>
+  </g>
+</svg>
