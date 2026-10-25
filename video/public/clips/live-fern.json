@@ -1,0 +1,121 @@
+{
+  "beat": "live-fern",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": false,
+  "seconds": 131.27,
+  "tracks": {
+    "main": {
+      "file": "clips/live-fern.main.mp4",
+      "start": 0,
+      "seconds": 131.27,
+      "css": {
+        "w": 1440,
+        "h": 810
+      }
+    }
+  },
+  "marks": {
+    "query": {
+      "at": 6.469,
+      "track": "bg",
+      "box": {
+        "x": 37,
+        "y": 727,
+        "width": 632,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "send": {
+      "at": 15.528,
+      "track": "bg",
+      "box": {
+        "x": 677,
+        "y": 727,
+        "width": 44,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "checkoutCard": {
+      "at": 23.196,
+      "track": "bg",
+      "box": {
+        "x": 41,
+        "y": 321,
+        "width": 661,
+        "height": 318
+      }
+    },
+    "paypalButton": {
+      "at": 60.26,
+      "track": "bg",
+      "box": {
+        "x": 61,
+        "y": 459,
+        "width": 225,
+        "height": 45
+      },
+      "kind": "click"
+    },
+    "bg.email": {
+      "at": 64.19,
+      "track": "bg",
+      "box": {
+        "x": 28,
+        "y": 207,
+        "width": 512,
+        "height": 64
+      },
+      "kind": "click"
+    },
+    "bg.next": {
+      "at": 67.891,
+      "track": "bg",
+      "box": {
+        "x": 27,
+        "y": 348,
+        "width": 513,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "bg.login": {
+      "at": 72.053,
+      "track": "bg",
+      "box": {
+        "x": 27,
+        "y": 388,
+        "width": 513,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "bg.approve": {
+      "at": 87.86,
+      "track": "bg",
+      "box": {
+        "x": 16,
+        "y": 635,
+        "width": 521,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "ppFinal": {
+      "at": 88.544,
+      "track": "bg"
+    },
+    "paid": {
+      "at": 93.014,
+      "track": "bg",
+      "box": {
+        "x": 41,
+        "y": 301,
+        "width": 661,
+        "height": 328
+      }
+    }
+  }
+}

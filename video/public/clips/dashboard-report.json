@@ -1,0 +1,202 @@
+{
+  "beat": "dashboard-report",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 73.5,
+  "tracks": {
+    "main": {
+      "file": "clips/dashboard-report.main.mp4",
+      "start": 0,
+      "seconds": 73.5,
+      "css": {
+        "w": 1600,
+        "h": 900
+      }
+    }
+  },
+  "marks": {
+    "page-orders": {
+      "at": 2.299,
+      "track": "main",
+      "box": {
+        "x": 105,
+        "y": 133,
+        "width": 65,
+        "height": 30
+      },
+      "kind": "click"
+    },
+    "page-payments": {
+      "at": 5.214,
+      "track": "main",
+      "box": {
+        "x": 174,
+        "y": 133,
+        "width": 181,
+        "height": 30
+      },
+      "kind": "click"
+    },
+    "page-inventory": {
+      "at": 7.819,
+      "track": "main",
+      "box": {
+        "x": 359,
+        "y": 133,
+        "width": 81,
+        "height": 30
+      },
+      "kind": "click"
+    },
+    "page-agents": {
+      "at": 10.351,
+      "track": "main",
+      "box": {
+        "x": 444,
+        "y": 133,
+        "width": 132,
+        "height": 30
+      },
+      "kind": "click"
+    },
+    "page-overview": {
+      "at": 12.838,
+      "track": "main",
+      "box": {
+        "x": 20,
+        "y": 133,
+        "width": 81,
+        "height": 30
+      },
+      "kind": "click"
+    },
+    "attentionInput": {
+      "at": 15.874,
+      "track": "main",
+      "box": {
+        "x": 38,
+        "y": 794,
+        "width": 333,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "attentionSend": {
+      "at": 18.186,
+      "track": "main",
+      "box": {
+        "x": 316,
+        "y": 838,
+        "width": 55,
+        "height": 32
+      },
+      "kind": "click"
+    },
+    "attentionAnswer": {
+      "at": 24.961,
+      "track": "main",
+      "box": {
+        "x": 16,
+        "y": 176,
+        "width": 1568,
+        "height": 716
+      }
+    },
+    "refundInput": {
+      "at": 34.061,
+      "track": "main",
+      "box": {
+        "x": 38,
+        "y": 794,
+        "width": 333,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "refundSend": {
+      "at": 38.252,
+      "track": "main",
+      "box": {
+        "x": 316,
+        "y": 838,
+        "width": 55,
+        "height": 32
+      },
+      "kind": "click"
+    },
+    "refundAnswer": {
+      "at": 44.959,
+      "track": "main",
+      "box": {
+        "x": 16,
+        "y": 176,
+        "width": 1568,
+        "height": 716
+      }
+    },
+    "donutInput": {
+      "at": 50.968,
+      "track": "main",
+      "box": {
+        "x": 38,
+        "y": 794,
+        "width": 333,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "donutSend": {
+      "at": 55.442,
+      "track": "main",
+      "box": {
+        "x": 316,
+        "y": 838,
+        "width": 55,
+        "height": 32
+      },
+      "kind": "click"
+    },
+    "donutAnswer": {
+      "at": 62.141,
+      "track": "main",
+      "box": {
+        "x": 16,
+        "y": 262,
+        "width": 1568,
+        "height": 630
+      }
+    },
+    "strip": {
+      "at": 63.67,
+      "track": "main",
+      "box": {
+        "x": 16,
+        "y": 176,
+        "width": 1568,
+        "height": 78
+      }
+    },
+    "changeUndo": {
+      "at": 67.8,
+      "track": "main",
+      "box": {
+        "x": 1432,
+        "y": 184,
+        "width": 97,
+        "height": 32
+      },
+      "kind": "click"
+    },
+    "reconciled": {
+      "at": 70.483,
+      "track": "main",
+      "box": {
+        "x": 802,
+        "y": 67,
+        "width": 204,
+        "height": 44
+      }
+    }
+  }
+}

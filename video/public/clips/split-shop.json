@@ -1,0 +1,139 @@
+{
+  "beat": "split-shop",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 114.27,
+  "tracks": {
+    "main": {
+      "file": "clips/split-shop.main.mp4",
+      "start": 0,
+      "seconds": 114.27,
+      "css": {
+        "w": 1600,
+        "h": 900
+      }
+    },
+    "paypal": {
+      "file": "clips/split-shop.paypal.mp4",
+      "start": 63.197,
+      "seconds": 51.08,
+      "css": {
+        "w": 568,
+        "h": 750
+      }
+    }
+  },
+  "marks": {
+    "query": {
+      "at": 3.752,
+      "track": "main",
+      "box": {
+        "x": 37,
+        "y": 827,
+        "width": 674,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "send": {
+      "at": 9.359,
+      "track": "main",
+      "box": {
+        "x": 719,
+        "y": 827,
+        "width": 44,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "checkoutCard": {
+      "at": 13.922,
+      "track": "main",
+      "box": {
+        "x": 41,
+        "y": 411,
+        "width": 672,
+        "height": 318
+      }
+    },
+    "paypalButton": {
+      "at": 62.341,
+      "track": "main",
+      "box": {
+        "x": 61,
+        "y": 560,
+        "width": 225,
+        "height": 45
+      },
+      "kind": "click"
+    },
+    "paypal.email": {
+      "at": 67.807,
+      "track": "paypal",
+      "box": {
+        "x": 28,
+        "y": 207,
+        "width": 512,
+        "height": 64
+      },
+      "kind": "click"
+    },
+    "paypal.next": {
+      "at": 76.326,
+      "track": "paypal",
+      "box": {
+        "x": 27,
+        "y": 348,
+        "width": 513,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "paypal.login": {
+      "at": 80.979,
+      "track": "paypal",
+      "box": {
+        "x": 27,
+        "y": 388,
+        "width": 513,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "paypal.approve": {
+      "at": 98.3,
+      "track": "paypal",
+      "box": {
+        "x": 16,
+        "y": 635,
+        "width": 521,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "ppFinal": {
+      "at": 98.986,
+      "track": "paypal"
+    },
+    "paid": {
+      "at": 104.283,
+      "track": "main",
+      "box": {
+        "x": 41,
+        "y": 373,
+        "width": 672,
+        "height": 464
+      }
+    },
+    "back": {
+      "at": 105.119,
+      "track": "main"
+    },
+    "webhook": {
+      "at": 105.216,
+      "track": "main",
+      "found": true
+    }
+  }
+}

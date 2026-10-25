@@ -1,4 +1,4 @@
 node_modules/
 out/
-public/clips/
+public/clips/*.mp4
 .frames/

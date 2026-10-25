@@ -1,0 +1,61 @@
+{
+  "beat": "gauntlet",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 33.71,
+  "tracks": {
+    "main": {
+      "file": "clips/gauntlet.main.mp4",
+      "start": 0,
+      "seconds": 33.71,
+      "css": {
+        "w": 1440,
+        "h": 810
+      }
+    }
+  },
+  "marks": {
+    "run": {
+      "at": 2.671,
+      "track": "main",
+      "box": {
+        "x": 48,
+        "y": 655,
+        "width": 191,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "rows": {
+      "at": 6.898,
+      "track": "main",
+      "box": {
+        "x": 48,
+        "y": 332,
+        "width": 1329,
+        "height": 145
+      }
+    },
+    "done": {
+      "at": 24.973,
+      "track": "main"
+    },
+    "counters": {
+      "at": 29.689,
+      "track": "main",
+      "box": {
+        "x": 69,
+        "y": 496,
+        "width": 615,
+        "height": 48
+      },
+      "blocked": {
+        "x": 741,
+        "y": 496.47918701171875,
+        "width": 615,
+        "height": 48
+      }
+    }
+  }
+}

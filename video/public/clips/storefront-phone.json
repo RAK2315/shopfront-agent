@@ -1,0 +1,24 @@
+{
+  "beat": "storefront-phone",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 8.24,
+  "tracks": {
+    "main": {
+      "file": "clips/storefront-phone.main.mp4",
+      "start": 0,
+      "seconds": 8.24,
+      "css": {
+        "w": 390,
+        "h": 844
+      }
+    }
+  },
+  "marks": {
+    "scroll": {
+      "at": 1.51,
+      "track": "main"
+    }
+  }
+}

@@ -1771,6 +1771,20 @@
 - **Serves:** S6.1, S6.4, J5.
 ---
 
+## D-109: Video footage captured; what differs from the capture list (2026-10-25)
+- **Takes (real public sessions on Render, not test-marked):** beat 3 publishes "Handmade Green Glazed Mug" once (live Gemini read 3.7 s, AI guessed $34, confirmed $36, stock 6, PayPal catalog id on screen); beat 4 split screen (agent search → checkout $36 + $5 shipping = $41.00 → PayPal popup → card paid → webhook signature-verified); storefront at phone width; Log in with PayPal → "Verified by PayPal"; a Fern & Loom order on the live wire ("paid directly to Fern & Loom's PayPal"); the Gauntlet (27/31 harmed, 31/31 blocked) plus a read-only scroll of its photo-injection rows; the AG Grid overview (grouping, drill-down, a live sale from another window, Ask + Undo) and the AG Studio report (5 pages, a sourced answer, a refused refund, an AI change tagged AI + Undo). Real orders made: 3 green mugs (beat 4 twice, PayPal's sandbox failed after login on the first try, D-048; one Cart API order, authorized), 1 napkins (Fern & Loom), 2 oatmeal bowls. Reconcile after the takes: 160 matched, 0 mismatches.
+- **Capture scale 1.5×, not 2×:** CDP screencast at 2× drops to ~17 fps in motion; 1.5× keeps ~25–35 fps and still gives 2160–2400 px frames for push-ins. A visible window ignores the emulated scale (Windows display scaling), so Chromium runs with `--force-device-scale-factor`.
+- **Wide pages at 1600 × 900, not 1920:** the split screen and the dashboard; 1920 at 1.5× is too slow for the screencast, and the UI reads larger on the 1920 canvas.
+- **Pay in the checkout card, not on /pay:** the card's own PayPal button, so the card turning green is on camera.
+- **Gauntlet:** its model answers came from the cache (the page labels each "Answered before"; PayPal calls are live), so the run took 18 s and needs no speed-up.
+- **Shop Manager question:** "What sold this week?" instead of "What needs my attention?", because its answer carries both a `[db]` and a `[paypal]` line, as the voiceover says.
+- **Chat strip amounts:** the newest real transcript has a $37.00 order and a $37.00 refund needing approval (practice shop), not the script's $36 / $95; the strip shows the real values (DEMO-SCRIPT honesty rule: amounts match the DB).
+- **Cart API beat:** `apps/web/scripts/video-cart.mts` (new, dev only) drives PayPal's own client: a $0.01 item price → `PRICE_MISMATCH → ACCEPT_NEW_PRICE`, total stays $41.00, no PayPal order; accept the shop's price → approve → `COMPLETED`. The edit shows its real output as a terminal.
+- **PayPal popup:** shown as is (PayPal is the host), except its saved-card row's small card-brand image, which the edit softens (S6.4).
+- **Demo state:** the mug's stock set to 20 like the other listings, then `freeze`, so resets keep it live at $36.
+- **Serves:** S6.2, S6.4, J5, P9.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

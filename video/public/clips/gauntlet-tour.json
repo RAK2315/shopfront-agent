@@ -1,0 +1,40 @@
+{
+  "beat": "gauntlet-tour",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 14.88,
+  "tracks": {
+    "main": {
+      "file": "clips/gauntlet-tour.main.mp4",
+      "start": 0,
+      "seconds": 14.88,
+      "css": {
+        "w": 1440,
+        "h": 810
+      }
+    }
+  },
+  "marks": {
+    "photo": {
+      "at": 4.199,
+      "track": "main",
+      "box": {
+        "x": 48,
+        "y": 164,
+        "width": 1329,
+        "height": 182
+      }
+    },
+    "counters": {
+      "at": 11.875,
+      "track": "main",
+      "box": {
+        "x": 69,
+        "y": 496,
+        "width": 615,
+        "height": 48
+      }
+    }
+  }
+}

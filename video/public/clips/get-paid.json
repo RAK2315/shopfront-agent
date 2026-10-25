@@ -1,0 +1,84 @@
+{
+  "beat": "get-paid",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 71.16,
+  "tracks": {
+    "main": {
+      "file": "clips/get-paid.main.mp4",
+      "start": 0,
+      "seconds": 71.16,
+      "css": {
+        "w": 1440,
+        "h": 810
+      }
+    }
+  },
+  "marks": {
+    "card": {
+      "at": 1.596,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 239,
+        "width": 1152,
+        "height": 304
+      }
+    },
+    "connect": {
+      "at": 2.758,
+      "track": "main",
+      "box": {
+        "x": 1066,
+        "y": 259,
+        "width": 202,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "main.email": {
+      "at": 7.716,
+      "track": "main",
+      "box": {
+        "x": 537,
+        "y": 310,
+        "width": 365,
+        "height": 64
+      },
+      "kind": "click"
+    },
+    "main.next": {
+      "at": 12.68,
+      "track": "main",
+      "box": {
+        "x": 529,
+        "y": 441,
+        "width": 367,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "main.login": {
+      "at": 16.773,
+      "track": "main",
+      "box": {
+        "x": 529,
+        "y": 450,
+        "width": 367,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "verified": {
+      "at": 66.144,
+      "track": "main",
+      "box": {
+        "x": 157,
+        "y": 351,
+        "width": 1111,
+        "height": 46
+      }
+    }
+  }
+}

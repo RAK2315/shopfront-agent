@@ -1,0 +1,258 @@
+{
+  "beat": "dashboard-overview",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 79.54,
+  "tracks": {
+    "main": {
+      "file": "clips/dashboard-overview.main.mp4",
+      "start": 0,
+      "seconds": 79.54,
+      "css": {
+        "w": 1600,
+        "h": 900
+      }
+    }
+  },
+  "marks": {
+    "start": {
+      "at": 2.036,
+      "track": "main",
+      "box": {
+        "x": 45,
+        "y": 523,
+        "width": 994,
+        "height": 520
+      }
+    },
+    "group": {
+      "at": 3.166,
+      "track": "main",
+      "box": {
+        "x": 708,
+        "y": 487,
+        "width": 103,
+        "height": 19
+      },
+      "kind": "click"
+    },
+    "grouped": {
+      "at": 5.726,
+      "track": "main",
+      "box": {
+        "x": 45,
+        "y": 523,
+        "width": 994,
+        "height": 520
+      }
+    },
+    "ungroup": {
+      "at": 8.348,
+      "track": "main",
+      "box": {
+        "x": 619,
+        "y": 487,
+        "width": 103,
+        "height": 19
+      },
+      "kind": "click"
+    },
+    "row": {
+      "at": 11.514,
+      "track": "main",
+      "box": {
+        "x": 345,
+        "y": 568,
+        "width": 220,
+        "height": 51
+      },
+      "kind": "click"
+    },
+    "detail": {
+      "at": 14.089,
+      "track": "main",
+      "box": {
+        "x": 45,
+        "y": 620,
+        "width": 978,
+        "height": 299
+      }
+    },
+    "rowClose": {
+      "at": 18.234,
+      "track": "main",
+      "box": {
+        "x": 345,
+        "y": 568,
+        "width": 220,
+        "height": 51
+      },
+      "kind": "click"
+    },
+    "query": {
+      "at": 22.353,
+      "track": "bg",
+      "box": {
+        "x": 37,
+        "y": 727,
+        "width": 632,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "send": {
+      "at": 26.135,
+      "track": "bg",
+      "box": {
+        "x": 677,
+        "y": 727,
+        "width": 44,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "checkoutCard": {
+      "at": 30.41,
+      "track": "bg",
+      "box": {
+        "x": 41,
+        "y": 311,
+        "width": 661,
+        "height": 318
+      }
+    },
+    "paypalButton": {
+      "at": 36.362,
+      "track": "bg",
+      "box": {
+        "x": 61,
+        "y": 460,
+        "width": 225,
+        "height": 45
+      },
+      "kind": "click"
+    },
+    "bg.email": {
+      "at": 39.956,
+      "track": "bg",
+      "box": {
+        "x": 28,
+        "y": 160,
+        "width": 512,
+        "height": 64
+      },
+      "kind": "click"
+    },
+    "bg.next": {
+      "at": 43.035,
+      "track": "bg",
+      "box": {
+        "x": 27,
+        "y": 301,
+        "width": 513,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "bg.login": {
+      "at": 45.701,
+      "track": "bg",
+      "box": {
+        "x": 27,
+        "y": 341,
+        "width": 513,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "bg.approve": {
+      "at": 53.78,
+      "track": "bg",
+      "box": {
+        "x": 16,
+        "y": 635,
+        "width": 521,
+        "height": 48
+      },
+      "kind": "click"
+    },
+    "ppFinal": {
+      "at": 53.834,
+      "track": "bg"
+    },
+    "paid": {
+      "at": 57.765,
+      "track": "bg",
+      "box": {
+        "x": 41,
+        "y": 272,
+        "width": 661,
+        "height": 464
+      }
+    },
+    "liveRow": {
+      "at": 58.79,
+      "track": "main",
+      "box": {
+        "x": 45,
+        "y": 1340,
+        "width": 1513,
+        "height": 52
+      }
+    },
+    "askInput": {
+      "at": 63.91,
+      "track": "main",
+      "box": {
+        "x": 49,
+        "y": 154,
+        "width": 1410,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "askSubmit": {
+      "at": 66.196,
+      "track": "main",
+      "box": {
+        "x": 1467,
+        "y": 154,
+        "width": 69,
+        "height": 44
+      },
+      "kind": "click"
+    },
+    "askResult": {
+      "at": 68.811,
+      "track": "main",
+      "box": {
+        "x": 61,
+        "y": 287,
+        "width": 121,
+        "height": 18
+      }
+    },
+    "undo": {
+      "at": 73.939,
+      "track": "main",
+      "box": {
+        "x": 1402,
+        "y": 260,
+        "width": 79,
+        "height": 32
+      },
+      "kind": "click"
+    },
+    "reconciled": {
+      "at": 77.026,
+      "track": "main",
+      "box": {
+        "x": 786,
+        "y": 67,
+        "width": 204,
+        "height": 44
+      }
+    }
+  }
+}

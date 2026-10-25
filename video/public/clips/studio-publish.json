@@ -1,0 +1,155 @@
+{
+  "beat": "studio-publish",
+  "fps": 30,
+  "dpr": 1.5,
+  "ok": true,
+  "seconds": 37.85,
+  "tracks": {
+    "main": {
+      "file": "clips/studio-publish.main.mp4",
+      "start": 0,
+      "seconds": 37.85,
+      "css": {
+        "w": 1440,
+        "h": 810
+      }
+    }
+  },
+  "marks": {
+    "dropZone": {
+      "at": 3.251,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 248,
+        "width": 1152,
+        "height": 314
+      }
+    },
+    "drop": {
+      "at": 4.676,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 248,
+        "width": 1152,
+        "height": 314
+      }
+    },
+    "reading": {
+      "at": 4.796,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 652,
+        "width": 1152,
+        "height": 361
+      }
+    },
+    "draft": {
+      "at": 10.995,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 652,
+        "width": 1152,
+        "height": 905
+      }
+    },
+    "draftTop": {
+      "at": 13.336,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 317,
+        "width": 1152,
+        "height": 905
+      }
+    },
+    "aiGuess": {
+      "at": 18.394,
+      "track": "main",
+      "box": {
+        "x": 636,
+        "y": 317,
+        "width": 631,
+        "height": 175
+      }
+    },
+    "priceInput": {
+      "at": 22.031,
+      "track": "main",
+      "box": {
+        "x": 676,
+        "y": 427,
+        "width": 367,
+        "height": 37
+      },
+      "kind": "click"
+    },
+    "stockInput": {
+      "at": 23.611,
+      "track": "main",
+      "box": {
+        "x": 1154,
+        "y": 436,
+        "width": 96,
+        "height": 38
+      },
+      "kind": "click"
+    },
+    "confirmPrice": {
+      "at": 25.312,
+      "track": "main",
+      "box": {
+        "x": 1043,
+        "y": 433,
+        "width": 92,
+        "height": 24
+      },
+      "kind": "click"
+    },
+    "confirmed": {
+      "at": 26.885,
+      "track": "main",
+      "box": {
+        "x": 636,
+        "y": 317,
+        "width": 631,
+        "height": 175
+      }
+    },
+    "publish": {
+      "at": 29.05,
+      "track": "main",
+      "box": {
+        "x": 1144,
+        "y": 387,
+        "width": 124,
+        "height": 36
+      },
+      "kind": "click"
+    },
+    "published": {
+      "at": 32.803,
+      "track": "main",
+      "box": {
+        "x": 136,
+        "y": 326,
+        "width": 1152,
+        "height": 157
+      },
+      "text": "“Handmade Green Glazed Mug” is live In your storefront now, and AI shopping agents can find it over MCP. Mirrored to PayPal's catalog. PayPal catalog prd_8ooa141ooagd , copy prd_8ooa141ooagd See it in"
+    },
+    "catalogId": {
+      "at": 32.819,
+      "track": "main",
+      "box": {
+        "x": 249,
+        "y": 396,
+        "width": 827,
+        "height": 18
+      }
+    }
+  }
+}

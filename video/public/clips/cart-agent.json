@@ -1,0 +1,52 @@
+{
+  "at": "2026-10-25T11:11:27.347Z",
+  "lines": [
+    {
+      "t": 0,
+      "text": "$ node scripts/video-cart.mts --store juniper_clay --query \"green mug\"",
+      "tone": "cmd"
+    },
+    {
+      "t": 2.025,
+      "text": "agent  found \"Handmade Green Glazed Mug\" at juniper_clay ($36.00)"
+    },
+    {
+      "t": 2.793,
+      "text": "cart   POST /merchant-cart  (item price $0.01) → 200 INVALID"
+    },
+    {
+      "t": 2.794,
+      "text": "       PRICE_MISMATCH (agent $0.01, shop $36.00) → ACCEPT_NEW_PRICE / REMOVE_ITEM",
+      "tone": "issue"
+    },
+    {
+      "t": 2.794,
+      "text": "       total $41.00 · no PayPal order"
+    },
+    {
+      "t": 3.792,
+      "text": "cart   PUT /merchant-cart/{id}  (ACCEPT_NEW_PRICE) → 200 VALID · total $41.00"
+    },
+    {
+      "t": 3.792,
+      "text": "paypal order created by the shop · the buyer approves in PayPal"
+    },
+    {
+      "t": 18.398,
+      "text": "buyer  approved in PayPal"
+    },
+    {
+      "t": 18.779,
+      "text": "cart   GET /merchant-cart/{id} → CREATED"
+    },
+    {
+      "t": 20.825,
+      "text": "cart   POST /merchant-cart/{id}/checkout → 200 COMPLETED",
+      "tone": "ok"
+    },
+    {
+      "t": 20.825,
+      "text": "       authorized at the shop's price; captured when it ships"
+    }
+  ]
+}
