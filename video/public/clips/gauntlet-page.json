@@ -1,0 +1,420 @@
+{
+ "base": "deployed /gauntlet",
+ "dpr": 1.5,
+ "css": {
+  "w": 1425,
+  "h": 6507
+ },
+ "takenAt": "2026-10-25T17:26:21.227Z",
+ "pageWidth": 1425,
+ "pageHeight": 6507,
+ "harmed": {
+  "text": "27/31 harmed",
+  "box": {
+   "x": 69,
+   "y": 496,
+   "width": 615,
+   "height": 48
+  }
+ },
+ "blocked": {
+  "text": "31/31 blocked",
+  "box": {
+   "x": 741,
+   "y": 496,
+   "width": 615,
+   "height": 48
+  }
+ },
+ "score": {
+  "x": 48,
+  "y": 449,
+  "width": 1329,
+  "height": 173
+ },
+ "status": "Last run 6 h ago · target: Blue crackle mug.",
+ "families": [
+  {
+   "id": "fam-chat",
+   "label": "Injection in chat",
+   "box": {
+    "x": 48,
+    "y": 731,
+    "width": 1329,
+    "height": 903
+   }
+  },
+  {
+   "id": "fam-photo",
+   "label": "Injection in a product photo",
+   "box": {
+    "x": 48,
+    "y": 1666,
+    "width": 1329,
+    "height": 838
+   }
+  },
+  {
+   "id": "fam-label",
+   "label": "Injection in a shipping-label photo",
+   "box": {
+    "x": 48,
+    "y": 2535,
+    "width": 1329,
+    "height": 571
+   }
+  },
+  {
+   "id": "fam-schema",
+   "label": "Schema smuggling",
+   "box": {
+    "x": 48,
+    "y": 3138,
+    "width": 1329,
+    "height": 1073
+   }
+  },
+  {
+   "id": "fam-cross_store",
+   "label": "Cross-store tokens and cart ids",
+   "box": {
+    "x": 48,
+    "y": 4243,
+    "width": 1329,
+    "height": 619
+   }
+  },
+  {
+   "id": "fam-replay",
+   "label": "Replay",
+   "box": {
+    "x": 48,
+    "y": 4894,
+    "width": 1329,
+    "height": 667
+   }
+  },
+  {
+   "id": "fam-refund",
+   "label": "Refund abuse",
+   "box": {
+    "x": 48,
+    "y": 5593,
+    "width": 1329,
+    "height": 633
+   }
+  }
+ ],
+ "rows": [
+  {
+   "attack": "chat-ignore",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 805,
+    "width": 1329,
+    "height": 145
+   }
+  },
+  {
+   "attack": "chat-system",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 962,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "chat-seller",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 1138,
+    "width": 1329,
+    "height": 145
+   }
+  },
+  {
+   "attack": "chat-coupon",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 1295,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "chat-pricematch",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 1470,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "photo-sticker",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 1740,
+    "width": 1329,
+    "height": 182
+   }
+  },
+  {
+   "attack": "photo-caption",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 1934,
+    "width": 1329,
+    "height": 182
+   }
+  },
+  {
+   "attack": "photo-corner",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 2128,
+    "width": 1329,
+    "height": 182
+   }
+  },
+  {
+   "attack": "photo-coupon",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 2321,
+    "width": 1329,
+    "height": 182
+   }
+  },
+  {
+   "attack": "label-refund",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 2609,
+    "width": 1329,
+    "height": 115
+   }
+  },
+  {
+   "attack": "label-bonus",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 2737,
+    "width": 1329,
+    "height": 115
+   }
+  },
+  {
+   "attack": "label-cancel",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 2864,
+    "width": 1329,
+    "height": 115
+   }
+  },
+  {
+   "attack": "label-approve",
+   "image": true,
+   "box": {
+    "x": 48,
+    "y": 2991,
+    "width": 1329,
+    "height": 115
+   }
+  },
+  {
+   "attack": "schema-price0",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 3212,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "schema-total",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 3387,
+    "width": 1329,
+    "height": 152
+   }
+  },
+  {
+   "attack": "schema-currency",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 3551,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "schema-cents",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 3727,
+    "width": 1329,
+    "height": 152
+   }
+  },
+  {
+   "attack": "schema-coupon",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 3891,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "schema-cartprice",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 4066,
+    "width": 1329,
+    "height": 145
+   }
+  },
+  {
+   "attack": "cross-store",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 4317,
+    "width": 1329,
+    "height": 137
+   }
+  },
+  {
+   "attack": "cross-cart",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 4467,
+    "width": 1329,
+    "height": 133
+   }
+  },
+  {
+   "attack": "cross-expired",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 4612,
+    "width": 1329,
+    "height": 119
+   }
+  },
+  {
+   "attack": "cross-nokey",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 4743,
+    "width": 1329,
+    "height": 119
+   }
+  },
+  {
+   "attack": "replay-checkout",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 4968,
+    "width": 1329,
+    "height": 163
+   }
+  },
+  {
+   "attack": "replay-webhook",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 5143,
+    "width": 1329,
+    "height": 119
+   }
+  },
+  {
+   "attack": "replay-token",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 5274,
+    "width": 1329,
+    "height": 137
+   }
+  },
+  {
+   "attack": "replay-cart",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 5423,
+    "width": 1329,
+    "height": 137
+   }
+  },
+  {
+   "attack": "refund-guess",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 5667,
+    "width": 1329,
+    "height": 119
+   }
+  },
+  {
+   "attack": "refund-amount",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 5798,
+    "width": 1329,
+    "height": 133
+   }
+  },
+  {
+   "attack": "refund-unpaid",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 5943,
+    "width": 1329,
+    "height": 133
+   }
+  },
+  {
+   "attack": "refund-reason",
+   "image": false,
+   "box": {
+    "x": 48,
+    "y": 6089,
+    "width": 1329,
+    "height": 137
+   }
+  }
+ ]
+}
