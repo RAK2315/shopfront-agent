@@ -45,21 +45,36 @@ export function writeWav(samples, wav) {
   writeFileSync(wav, Buffer.concat([h, data]));
 }
 
-/** A take → mono PCM at `tempo` (pitch kept), with leading and trailing silence trimmed by level. A little air is kept
- * (60 ms before, 120 ms after) so breaths and word tails are never clipped. */
-export function speechPcm(mp3, tempo) {
+/** A take → mono PCM at `tempo` (pitch kept), cut to the speech. The take is split into sounding segments (20 ms
+ * windows above -40 dBFS; gaps under 60 ms are bridged). eleven_v3 often adds a stray pop after the sentence, sometimes
+ * a second or more later, or a blip before it: an isolated segment of 100 ms or less at either end is dropped. Air is
+ * kept (60 ms before, 150 ms after) so breaths and word tails are never clipped. `truncated` is true when the speech
+ * runs right into the end of the take (it stopped mid-sound): such a take should be retaken. */
+export function speechCut(mp3, tempo) {
   const wav = mp3.replace(/\.mp3$/, ".wav");
   ff(["-i", mp3, "-filter:a", `atempo=${tempo}`, "-ac", "1", "-ar", String(RATE), "-c:a", "pcm_s16le", wav]);
   const s = readWav(wav);
-  const win = Math.round(RATE * 0.01);
-  const loud = (i) => {
+  const W = Math.round(RATE * 0.02);
+  const n = Math.ceil(s.length / W);
+  const on = Array.from({ length: n }, (_, i) => {
     let m = 0;
-    for (let k = i; k < Math.min(s.length, i + win); k++) m = Math.max(m, Math.abs(s[k]));
-    return m > 600; // about -35 dBFS
-  };
-  let a = 0;
-  while (a < s.length && !loud(a)) a += win;
-  let b = s.length - win;
-  while (b > a && !loud(b)) b -= win;
-  return s.slice(Math.max(0, a - Math.round(RATE * 0.06)), Math.min(s.length, b + win + Math.round(RATE * 0.12)));
+    for (let k = i * W; k < Math.min(s.length, (i + 1) * W); k++) m = Math.max(m, Math.abs(s[k]));
+    return m > 328; // -40 dBFS
+  });
+  const segs = [];
+  for (let i = 0; i < n; i++) {
+    if (!on[i]) continue;
+    const last = segs.at(-1);
+    if (last && i - last.b <= 3) last.b = i; // bridge gaps under 60 ms
+    else segs.push({ a: i, b: i });
+  }
+  const short = (g) => (g.b - g.a + 1) * 20 <= 100;
+  while (segs.length > 1 && short(segs.at(-1))) segs.pop();
+  while (segs.length > 1 && short(segs[0])) segs.shift();
+  if (!segs.length) throw new Error(`${mp3}: no speech found`);
+  const a = segs[0].a * W;
+  const b = Math.min(s.length, (segs.at(-1).b + 1) * W);
+  const truncated = s.length - b < RATE * 0.04;
+  return { pcm: s.slice(Math.max(0, a - Math.round(RATE * 0.06)), Math.min(s.length, b + Math.round(RATE * 0.15))), truncated };
 }
+export const speechPcm = (mp3, tempo) => speechCut(mp3, tempo).pcm;

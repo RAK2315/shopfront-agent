@@ -1,13 +1,24 @@
 import { Audio, Sequence, interpolate, staticFile } from "remotion";
+import env from "../../../public/music/budding-of-consciousness.env.json";
 import { BEATS, frames, startOf } from "../config";
 import { FPS } from "../theme";
 
-// The voice (one file per sentence, whole, at its placed time) and the CC0 music bed under it (D-110). The bed sits low,
-// dips further while he speaks, and fades in and out. Levels: the voice is levelled to -19 dBFS speech RMS; the bed's
-// raw RMS is about -26 dBFS, so 0.18 puts it about 22 dB under speech and 0.36 about 16 dB under in the pauses.
-const UNDER = 0.18;
-const BETWEEN = 0.36;
+// The voice (one file per sentence, whole, at its placed time) and the CC0 music bed under it (D-110). The bed is held
+// at a steady level whatever the track does (it swells about 9 dB around 52 s): its gain follows the track's own
+// loudness (voice/music-env.mjs). Targets, against the voice's -19 dBFS speech RMS: -44 dBFS while he speaks (25 dB
+// under), -38 dBFS in the pauses (19 dB under). It fades in over 2 s and out over 3 s.
+const UNDER = -44;
+const BETWEEN = -38;
 const GLIDE = 0.45; // seconds to move between the two levels
+const MAX_GAIN = 1;
+
+const E = env as { step: number; db: number[] };
+const musicDb = (t: number) => {
+  const x = t / E.step;
+  const i = Math.max(0, Math.min(E.db.length - 2, Math.floor(x)));
+  const u = Math.min(1, Math.max(0, x - i));
+  return E.db[i]! + (E.db[i + 1]! - E.db[i]!) * u;
+};
 
 export function Voice({ n }: { n: number }) {
   const b = BEATS.find((x) => x.n === n)!;
@@ -33,9 +44,10 @@ export function Music({ only }: { only?: number[] }) {
     let d = Infinity;
     for (const [a, z] of speech) d = Math.min(d, t < a ? a - t : t > z ? t - z : 0);
     const u = Math.min(1, d / GLIDE);
-    const level = UNDER + (BETWEEN - UNDER) * (u * u * (3 - 2 * u));
+    const target = UNDER + (BETWEEN - UNDER) * (u * u * (3 - 2 * u));
+    const gain = Math.min(MAX_GAIN, 10 ** ((target - musicDb(t0 + t)) / 20));
     const fade = Math.min(interpolate(t, [0, 2], [0, 1], { extrapolateRight: "clamp" }), interpolate(t, [total - 3, total], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
-    return level * fade;
+    return gain * fade;
   };
   return <Audio src={staticFile("music/budding-of-consciousness.mp3")} trimBefore={frames(t0)} volume={volume} />;
 }
