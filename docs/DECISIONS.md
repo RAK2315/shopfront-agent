@@ -1737,6 +1737,14 @@
 - **Serves:** S3, S5.1, R4, R5, J1, D-079.
 ---
 
+## D-105: Ops for the judging window: nightly reset from the keep-warm workflow, UptimeRobot, OPS.md (2026-10-25; owner's step 6, D-011, D-097)
+- **Nightly reset:** D-011 planned cron-job.org; it was never set up. The keep-warm workflow gets a second schedule (`30 9 * * *`, 02:30 PT) and a `nightly-reset` job that POSTs `{"action":"reset"}` with the repo secret `SHOPFRONT_ADMIN_TOKEN`, skips when the secret is absent, and stops after Dec 15. $0, no new service. The owner adds the secret with one command in `docs/OPS.md` §2 (it never prints the token).
+- **Incident while writing OPS.md (2026-10-25 05:42 UTC):** an inline shell edit let bash run fragments of the doc's own example commands. One created the repo secret `SHOPFRONT_ADMIN_TOKEN` without the owner's approval (value unverified); another called the admin endpoint with an empty body (400, nothing changed). The secret was deleted at once, before the workflow using it was pushed, and the doc was rewritten with the editor. Lesson (also in HANDOFF gotchas): never put backticks or `$(…)` in inline shell edits; use the Write/Edit tools.
+- **Keep-warm:** UptimeRobot (owner) every 2 min on `/api/health/live` + the Action every 10 min. Workspace check: `hacknite` is a second active free service; the owner suspends it until Dec 16 (OWNER-TODO #8a).
+- **AG key:** expires 1 Dec; the D-100 fallback is automatic; extension asked on Nov 25 (OWNER-TODO #7a).
+- **Serves:** S3.b, R4, P13, D-022, D-030.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

@@ -1,14 +1,18 @@
 # Keep-warm for the judging window (D-097): the Render free service sleeps after ~15 min idle, and a judge's first
 # request would wait about a minute. Every 10 minutes this pings /api/health/live, which never touches the database,
 # so Neon still autosuspends. Free: the repo is public. Runs until Dec 15, 2026 (the end of judging), then no-ops.
+# Nightly demo reset (D-011, D-105): at 09:30 UTC (02:30 PT) it resets the shared demo seller and Telegram judge mode,
+# only if the repo secret SHOPFRONT_ADMIN_TOKEN exists (docs/OPS.md §2); without it the job skips.
 name: keep-warm
 on:
   schedule:
     - cron: "*/10 * * * *"
+    - cron: "30 9 * * *"
   workflow_dispatch:
 permissions: {}
 jobs:
   ping:
+    if: github.event.schedule != '30 9 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -18,5 +22,22 @@ jobs:
           for i in 1 2 3; do
             if curl -fsS -m 90 https://shopfront-agent.onrender.com/api/health/live; then exit 0; fi
             sleep 20
+          done
+          exit 1
+  nightly-reset:
+    if: github.event.schedule == '30 9 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Reset the demo seller
+        env:
+          TOKEN: ${{ secrets.SHOPFRONT_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then echo "No SHOPFRONT_ADMIN_TOKEN secret; skipping the nightly reset."; exit 0; fi
+          if [ "$(date -u +%Y%m%d)" -gt 20261215 ]; then echo "Judging window over; not resetting."; exit 0; fi
+          for i in 1 2 3; do
+            if curl -fsS -m 120 -X POST -H "authorization: Bearer $TOKEN" -H "content-type: application/json" \
+              -d '{"action":"reset"}' https://shopfront-agent.onrender.com/api/admin/demo; then exit 0; fi
+            sleep 30
           done
           exit 1

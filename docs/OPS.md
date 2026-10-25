@@ -13,12 +13,22 @@
 
 - `/api/health/live` **never touches the database** (D-030), so pings keep Render awake while Neon still suspends after 5 min idle.
 - Render free sleeps after ~15 min without traffic; a cold start takes about **1 minute** (73 s measured, D-076). Two independent pingers make that rare.
-- **Render hours:** the free plan gives **750 instance-hours per workspace per month**. Kept warm all month, one service uses 744 h (31-day months) or 720 h (November). That fits **only if `shopfront-agent` is the only free service in the workspace** (owner to confirm, OWNER-TODO #8a). A second always-on free service would exhaust the hours late in the month and Render would suspend both until the 1st.
+- **Render hours:** the free plan gives **750 instance-hours per workspace per month**. Kept warm all month, one service uses 744 h (31-day months) or 720 h (November). That fits **only if `shopfront-agent` is the only free service running in the workspace**. If the free services together run out of hours, Render suspends all of them until the 1st.
+- **Workspace check (2026-10-25, Render API):** `hacknite` is also an active free service; `faircore`, `cycleiq-api` and `ai-voice-detection-api` are suspended (no hours). **Owner: suspend `hacknite` until Dec 16** (Render dashboard → the service → Settings → Suspend; OWNER-TODO #8a).
 - **Neon free:** 100 CU-hours/month at 0.25 CU ≈ 400 h awake. Only real visits wake it (and the daily reconciliation while awake); expect well under the limit.
 - GitHub disables scheduled workflows in a public repo after 60 days with no commits. The last commit lands around Nov 11, so the Action keeps running through Dec 15.
 
-## 2. Nightly demo reset
-The shared demo seller ("Continue as Juniper Clay Studio") and Telegram judge mode are reset by `POST /api/admin/demo {"action":"reset"}` with the admin bearer token (D-011). Manual: `node --env-file=.env scripts/admin.mjs '{"action":"reset"}'`. Scheduled: see D-105 (the keep-warm workflow's nightly job, which runs only when the `SHOPFRONT_ADMIN_TOKEN` repo secret exists).
+## 2. Nightly demo reset (D-105)
+The shared demo seller ("Continue as Juniper Clay Studio") and Telegram judge mode are reset by `POST /api/admin/demo {"action":"reset"}` with the admin bearer token (D-011): the frozen catalog comes back, order history is kept, and `/live` shows one public row, "Demo shop reset · 4 listings restored".
+- **Scheduled:** the keep-warm workflow's `nightly-reset` job runs at **09:30 UTC (02:30 PT, 15:00 IST)** through Dec 15. **It does nothing until the owner adds the repo secret** `SHOPFRONT_ADMIN_TOKEN`.
+- **Owner, once:** from the repo root, with the GitHub CLI logged in, this stores the token without printing it:
+
+  ```bash
+  node --env-file=.env -e "process.stdout.write(require('crypto').createHmac('sha256', process.env.SESSION_SECRET).update('admin:demo-reset').digest('base64url'))" | gh secret set SHOPFRONT_ADMIN_TOKEN
+  ```
+
+  If `SESSION_SECRET` ever changes, run it again. To stop the nightly reset, delete the secret (`gh secret delete SHOPFRONT_ADMIN_TOKEN`).
+- **Manual reset any time:** `node --env-file=.env scripts/admin.mjs '{"action":"reset"}'`.
 
 ## 3. AI free tiers and the replay fallback
 

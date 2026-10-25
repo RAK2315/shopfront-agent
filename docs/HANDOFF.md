@@ -129,6 +129,7 @@
   - Never `source .env`; parse it with Node or Python.
   - Set Render env vars with Node.
   - In Git Bash, use `MSYS_NO_PATHCONV=1` for `/` paths. **Never pass `/c/...` paths to node with it:** they resolve to `D:\c\...`. That happened once in part 5, and the owner was asked to delete the stray `D:\c\` folder.
+- **Never put backticks or `$(...)` in an inline shell edit** (node -e, sed): bash runs them. On 2026-10-25 that executed example commands from a doc, created a repo secret and called the admin API (D-105). Write the text with the Write/Edit tools.
 - **Long Python heredocs in bash can fail to parse.** Write the script to the scratchpad and run the file.
 - **A transient `.git/index.lock`** (an editor's git) failed one commit. Re-run; don't delete the lock while a git.exe is running.
 - **Every push redeploys Render** (about 2–3 min). Don't push during an AT run or a cold-start measurement.

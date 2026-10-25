@@ -266,3 +266,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** none committed (`video/out` and `public/clips` are ignored).
 - **Risks:** new capture beats (gauntlet, report, cart-api, wire, storefront) and the chat-strip composition still need building Nov 6–10; the owner's product photo for beat 3 is pending (OWNER-TODO #3).
 - **Next:** step 6, OPS.md.
+
+## Step 6: OPS for the judging period (2026-10-25, D-105)
+- **Done:** `docs/OPS.md`: keep-warm (UptimeRobot every 2 min + the Action every 10 min, Render's 750 h and the `hacknite` finding, Neon's compute), the nightly demo reset (new `nightly-reset` job in `keep-warm.yml`, 09:30 UTC, skips until the owner adds the secret), AI free-tier limits and the replay fallback, the AG key expiry on 1 Dec with its automatic fallback, a Dec 1 / weekly checklist, and who does what if the site goes down.
+- **Tests:** the workflow parses (two schedules, two jobs); the reset endpoint and the fallback are covered by phase6 #4 and `ag-checks` L2–L3.
+- **Screenshots:** none (docs).
+- **Risks:** an inline shell edit ran example commands from the doc and created the repo secret without approval; it was deleted at once, before the workflow was pushed (D-105). UptimeRobot and the secret wait for the owner (OWNER-TODO #10).
+- **Next:** owner items (OWNER-TODO #3, #7a extension on Nov 25, #8a, #10), then the video Nov 6–10.
