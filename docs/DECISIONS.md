@@ -1754,6 +1754,15 @@
 - **Serves:** R4, J2, J3, S6.2.
 ---
 
+## D-107: Video v5 plan, a real logo, the README for judges (2026-10-25; owner)
+- **Video (owner):** a 2:50 working-prototype demo (S6.1 says under 3:00) with a human-sounding male US voiceover (ElevenLabs free tier, credited; the owner may swap in their own voice), one-line captions, quiet clicks and no music. Real footage of the deployed app for every feature (S6.2); the launch-motion rules only for transitions, the cursor (arcs, a ~1 s hesitation between tabs, click presses) and eased camera moves (push-ins, a pull-back on the payoff). Script: `docs/DEMO-SCRIPT.md` v5.1. The owner's coverage review added Render, Log in with PayPal, PayPal's own Cart API client and more AG Grid (grouping, drill-down, live rows) at no extra length.
+- **Logo (owner: "yes"):** the owner's ChatGPT awning-S concept, redrawn by hand as a vector (`video/public/brand/logo-mark.svg`), now in the site nav (`LogoMark`, app colour tokens) and as the tab and Apple touch icons; the default `favicon.ico` is gone. A visual change during the freeze, so `landing-checks` 6/6, `mobile-checks` 39/39 and `final-screens` (57 shots, no sideways scroll) were rerun on Render (`bcfb90e`).
+- **Assets:** the owner's generated images live in `video/public/` with sources in `video/ASSETS.md`. The first workbench image showed a branded phone (S6.4); it was removed, not retouched, and regenerated without a phone.
+- **Devpost track:** Track 1, Merchant Growth AI (owner's registration form).
+- **README:** restructured for a judge's first minute, after a winning entry's layout the owner shared: pitch, video, live links, core features, an architecture diagram (image + Mermaid + plain text), how PayPal and AI are used, safety properties, the judge path, run locally, proof.
+- **Serves:** S2, S5, S6, R5, J2, J5, P9, P13.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

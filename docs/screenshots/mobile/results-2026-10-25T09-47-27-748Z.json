@@ -1,0 +1,275 @@
+[
+  {
+    "route": "landing",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "landing",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "landing",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "shop",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 1
+  },
+  {
+    "route": "shop",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 1
+  },
+  {
+    "route": "shop",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 1
+  },
+  {
+    "route": "live",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 78
+  },
+  {
+    "route": "live",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 78
+  },
+  {
+    "route": "live",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 78
+  },
+  {
+    "route": "pay",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "pay",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "pay",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "pay-invalid",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "pay-invalid",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "pay-invalid",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "storefront",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "storefront",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "storefront",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "storefront-fern",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "storefront-fern",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "storefront-fern",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "product",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "product",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "product",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "studio-signin",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "studio-signin",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "studio-signin",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "studio",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 6
+  },
+  {
+    "route": "studio",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 6
+  },
+  {
+    "route": "studio",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 6
+  },
+  {
+    "route": "orders",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 53
+  },
+  {
+    "route": "orders",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 53
+  },
+  {
+    "route": "orders",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 53
+  },
+  {
+    "route": "dashboard",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "dashboard",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "dashboard",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "not-found",
+    "width": 360,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "not-found",
+    "width": 390,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  },
+  {
+    "route": "not-found",
+    "width": 430,
+    "overflow": 0,
+    "inner": 0,
+    "smallTargets": 0
+  }
+]
