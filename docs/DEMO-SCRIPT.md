@@ -57,6 +57,30 @@
   - No invented UI behaviour.
   - A screenshot is only animated as a screenshot (the Gauntlet scroll), never passed off as a live interaction.
 
+## Owner's scene notes (2026-10-25)
+
+Keep the existing identity: warm pottery photography, off-white textured paper, rust/clay accents, editorial Alegreya, and real product demos. Refine it; don't redesign it.
+
+- **Hook (1):**
+  - Almost no camera movement; the photography carries the emotion.
+  - "No store. No feed. No checkout." reveals one line at a time, each on its own beat of the voice.
+- **Product demos (3, 4, 6, 8):** the original UI at full frame wherever possible, with highlights instead of repeated zooms.
+- **Dense screens (the live wire, the Gauntlet results, AG Grid charts):** one focal point per shot, given enough time to read.
+- **Phone mockups (1, 5):** like a premium product commercial: a subtle scale, a clean entrance, restrained shadows, smooth transitions. No floating or bouncing.
+- **Gauntlet (7):**
+  - **31/31 blocked** is the climax of the section.
+  - The sequence goes attack (the photo-injection sticker), then the naive shop harmed, then Shopfront blocking it with its reason, then the verified result.
+  - The counters land last and hold (the counter glow goes here).
+- **Type:**
+  - Alegreya with masked reveals for headlines.
+  - Character-by-character typing only where it shows real input (and the real input is already in the footage).
+- **Architecture (9):** the flow reveals step by step, tracing agent → MCP tools → Shopfront → PayPal. It is never shown all at once. The card pulse goes on each node as it lights.
+- **Ending (10):** the logo and URL hold cleanly and confidently for 4–5 s. Nothing animates after the URL appears.
+- **Bridge between the halves:** the first half is an emotional launch and the second a technical walkthrough. To bridge them:
+  - Keep Juniper as the thread in every technical beat: it is her store, her phone, her dashboard, and the attacks are on her shop.
+  - Open the trust section (7) on paper, with a masked reveal of its own question, "Can an agent be tricked into paying less?", before the footage.
+  - The approved voice text is unchanged; the bridge is visual only.
+
 ## How the video goes
 
 Times are estimates until the voice is generated, since the edit follows the voice. Speech is about 128 s at roughly
