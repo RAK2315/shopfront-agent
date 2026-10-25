@@ -305,7 +305,7 @@ export function ShopChat({ clientId, testBuyer, headerExtra }: { clientId: strin
           id="shop-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Find me a blue mug under $40…"
+          placeholder="Find me a handmade mug under $40…"
           maxLength={800}
           className="h-11 min-w-0 flex-1 rounded-md border border-line-strong bg-surface px-3 text-md outline-none transition-colors focus:border-clay"
           data-testid="shop-input"
