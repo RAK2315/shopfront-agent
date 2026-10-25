@@ -69,7 +69,9 @@ export async function runCartAgent(o: CartAgentOptions): Promise<CartAgentResult
     token = ((await r.json()) as { token: string }).token;
   }
   client.setConfig({ baseURL: `${base}/api/paypal/v1/stores/${o.store}`, throwOnError: false });
-  const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  // Under the test harness, mark these calls as a test run too (the SDK uses axios, which the harness's fetch patch misses).
+  const testRun = (globalThis as { __shopfrontTestRunHeaders?: Record<string, string> }).__shopfrontTestRunHeaders ?? {};
+  const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...testRun };
   const steps: CartAgentResult["steps"] = [];
 
   // 3. A cart with no address yet: the merchant answers REQUIRES_ADDITIONAL_INFORMATION and says how to resolve it.

@@ -14,6 +14,7 @@
 //   K12 screens at desktop, 1920×1080, mobile: /cart/approved, /pay hold panel, /live with Cart API rows
 //   K13 /developers: the demo-token button issues a token and the curl it prints works against the live API
 //   K14 Studio "Store-Sync-ready" card: a seller-issued key works on its own store and is refused on another
+//   K15 isolation: every checkout and event this run created is flagged is_test (never on public views, D-070)
 // Every suite ends with the reconciliation (preload). Usage: pnpm --filter web cart-checks -- --base <url>
 import { createHmac } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -28,7 +29,7 @@ const args = process.argv.slice(2).filter((a) => a !== "--");
 const arg = (k: string, d?: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const base = (arg("--base") ?? "").replace(/\/$/, "");
 const out = resolve(arg("--out", "../../docs/screenshots/cart")!);
-const only = new Set((arg("--only", "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14") ?? "").split(","));
+const only = new Set((arg("--only", "K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15") ?? "").split(","));
 const e = process.env as Record<string, string>;
 if (!base.startsWith("http")) throw new Error("Pass --base https://<deployed app>");
 mkdirSync(out, { recursive: true });
@@ -78,6 +79,7 @@ async function pp(path: string) {
 const ADDR = { address_line_1: "2211 N First St", admin_area_2: "San Jose", admin_area_1: "CA", postal_code: "95131", country_code: "US" };
 const db = new pg.Client({ connectionString: e.DATABASE_URL });
 await db.connect();
+const runStart = (await db.query("select now() as t")).rows[0].t as Date;
 const browser = await chromium.launch({ headless: true });
 
 /** The buyer approves in PayPal (headless, sandbox test buyer); returns the URL PayPal sent them back to. */
@@ -370,6 +372,12 @@ try {
     const own = await cartApi("juniper_clay", "POST", "", key, { items: [{ variant_id: (await variantOf("juniper_clay")).id, quantity: 1 }] });
     const other = await cartApi("fern_and_loom", "POST", "", key, { items: [] });
     record("K14 Studio card: a seller-issued key works on its own store, 403 elsewhere", own.status === 200 && other.status === 403 && Object.values(overflow).every((o) => o <= 0), { own: `${own.status} ${own.json.validation_status}`, other: other.status, overflow });
+  }
+  if (only.has("K15")) {
+    // The PayPal Cart API SDK uses axios, which the harness's fetch patch missed until 2026-10-25 (D-104).
+    const leaked = (await db.query("select id, source from checkouts where created_at >= $1 and source = 'cart_api' and not is_test", [runStart])).rows;
+    const leakedEvents = Number((await db.query("select count(*)::int n from events e join checkouts c on c.id = e.checkout_id where c.created_at >= $1 and c.source = 'cart_api' and not e.is_test", [runStart])).rows[0].n);
+    record("K15 isolation: every checkout and event from this run is a test run", leaked.length === 0 && leakedEvents === 0, { publicCheckouts: leaked, publicEvents: leakedEvents });
   }
 } catch (err) {
   record("run", false, err instanceof Error ? err.message.split("\n")[0] : String(err));

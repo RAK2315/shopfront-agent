@@ -13,6 +13,8 @@ const secret = process.env.SESSION_SECRET;
 if (!secret) throw new Error("test-run preload: SESSION_SECRET missing (run with --env-file)");
 const HEADER = "x-shopfront-test-run";
 const SIG = createHmac("sha256", secret).update("test-run").digest("base64url");
+// For clients that bypass fetch (the PayPal Cart API SDK uses axios): they add this header themselves (D-104).
+(globalThis as { __shopfrontTestRunHeaders?: Record<string, string> }).__shopfrontTestRunHeaders = { [HEADER]: SIG };
 
 const ours = (u: string | URL) => {
   try {
