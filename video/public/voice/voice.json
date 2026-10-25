@@ -1,0 +1,71 @@
+{
+  "voice": {
+    "id": "iP95p4xoKVk53GoZ742B",
+    "name": "Chris",
+    "model": "eleven_v3",
+    "stability": 0.5,
+    "tempo": 1.1
+  },
+  "beats": [
+    {
+      "beat": 1,
+      "file": "voice/beat-01.mp3",
+      "seconds": 9.352,
+      "caption": "Millions of makers sell only through social posts, like Juniper's pottery studio. But shopping now starts with AI agents, and an agent can't buy from a DM."
+    },
+    {
+      "beat": 2,
+      "file": "voice/beat-02.mp3",
+      "seconds": 5.146,
+      "caption": "Shopfront Agent turns her photos into a store any AI agent can buy from, paid through PayPal."
+    },
+    {
+      "beat": 3,
+      "file": "voice/beat-03.mp3",
+      "seconds": 11.024,
+      "caption": "She drops in a photo. Gemini drafts the listing and marks every field it filled. The price stays a guess until she confirms it herself. One tap, and it's live in her store and mirrored into PayPal's catalog."
+    },
+    {
+      "beat": 4,
+      "file": "voice/beat-04.mp3",
+      "seconds": 16.849,
+      "caption": "A shopper asks an AI agent for a green mug under forty dollars. The agent shops her store over MCP, and it can only send product IDs and quantities. The price always comes from her catalog, on our server. The agent can't pay. The human approves in PayPal, and a signature-verified webhook confirms it."
+    },
+    {
+      "beat": 5,
+      "file": "voice/beat-05.mp3",
+      "seconds": 12.33,
+      "caption": "She runs the rest from a chat on her phone. The order pings her. She snaps the shipping label, and the tracking lands on the PayPal order. A refund outside her policy waits for her tap. Small ones follow her rules automatically."
+    },
+    {
+      "beat": 6,
+      "file": "voice/beat-06.mp3",
+      "seconds": 13.479,
+      "caption": "Sellers connect with Log in with PayPal, and only a verified account gets paid, straight into its own PayPal. Every store also speaks PayPal's Cart API: here, PayPal's own client shops through it. So every store is ready for Store Sync."
+    },
+    {
+      "beat": 7,
+      "file": "voice/beat-07.mp3",
+      "seconds": 19.331,
+      "caption": "Can an agent be tricked into a cheaper price? We ran thirty-one attacks on a naive shop and on Shopfront, with the same AI model: injections in chat, prices hidden in photos and shipping labels, forged webhooks, replays. The naive shop made real PayPal orders at the attacker's price. Shopfront blocked all thirty-one."
+    },
+    {
+      "beat": 8,
+      "file": "voice/beat-08.mp3",
+      "seconds": 34.534,
+      "caption": "Her dashboard runs on AG Grid and AG Studio. Orders group by product, a click opens the full PayPal history, and new sales appear live. She asks for unshipped orders over fifty dollars, and the grid filters itself, with one-click undo. The Studio report joins orders, payments, refunds and agent carts. Its Shop Manager agent answers from her database and from PayPal, and labels every number's source. It has no tool that moves money, so a refund request gets a polite no. Every change it makes is listed and undoable, and her books are checked against PayPal on every run."
+    },
+    {
+      "beat": 9,
+      "file": "voice/beat-09.mp3",
+      "seconds": 10.371,
+      "caption": "No model ever moves money; that's plain code. It all runs on one free Render service, and every feature is tested against this live deployment, with real PayPal sandbox calls."
+    },
+    {
+      "beat": 10,
+      "file": "voice/beat-10.mp3",
+      "seconds": 5.642,
+      "caption": "Shopfront Agent. Any seller, buyable by any AI agent, paid through PayPal. Try it live."
+    }
+  ]
+}
