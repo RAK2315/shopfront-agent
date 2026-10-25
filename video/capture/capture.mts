@@ -280,7 +280,11 @@ const beats: Record<string, (browser: Browser) => Promise<void>> = {
     // The shop card turns green and the wire shows the verified webhook; hold long enough for it to arrive.
     const ok = await wire.getByText(/signature.verified|webhook/i).last().waitFor({ timeout: 45_000 }).then(() => true, () => false);
     mark("webhook", { found: ok });
-    await sleep(9000);
+    // v6 (D-110): also hold until PayPal's capture webhook confirms the payment, so the card's "Waiting for PayPal's
+    // webhook…" resolves on camera.
+    const done = await wire.getByText(/PAYMENT\.CAPTURE\.COMPLETED/).first().waitFor({ timeout: 90_000 }).then(() => true, () => false);
+    mark("captureWebhook", { found: done });
+    await sleep(done ? 7000 : 9000);
   },
 
   // Beat 5 cut: the public storefront at phone width, a short scroll.
