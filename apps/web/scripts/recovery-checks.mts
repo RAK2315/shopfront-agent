@@ -45,8 +45,9 @@ async function until<T>(what: string, fn: () => Promise<T | null | undefined | f
 }
 const faultHeaders = (name: string) => ({ "x-shopfront-fault": name, "x-shopfront-fault-sig": createHmac("sha256", e.SESSION_SECRET).update(`fault:${name}`).digest("base64url") });
 
-const db = new pg.Client({ connectionString: e.DATABASE_URL });
-await db.connect();
+// A pool, not one client: R2 restarts Render, and an idle connection can be reset meanwhile (2026-10-25 ECONNRESET).
+const db = new pg.Pool({ connectionString: e.DATABASE_URL, max: 2 });
+db.on("error", (err) => console.log("db pool: idle connection dropped", err.message));
 const q1 = async <R = Record<string, unknown>,>(sql: string, p: unknown[] = []) => (await db.query(sql, p)).rows[0] as R | undefined;
 
 async function mcpClient(name: string, headers: Record<string, string> = {}) {

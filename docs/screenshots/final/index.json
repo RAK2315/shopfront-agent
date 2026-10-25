@@ -165,17 +165,17 @@
     "overflow": 0
   },
   {
-    "route": "12-dashboard-builder",
+    "route": "12-dashboard-report",
     "size": "desktop",
     "overflow": 0
   },
   {
-    "route": "12-dashboard-builder",
+    "route": "12-dashboard-report",
     "size": "1920",
     "overflow": 0
   },
   {
-    "route": "12-dashboard-builder",
+    "route": "12-dashboard-report",
     "size": "mobile",
     "overflow": 0
   },
@@ -251,6 +251,36 @@
   },
   {
     "route": "17-terms",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "18-gauntlet",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "18-gauntlet",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "18-gauntlet",
+    "size": "mobile",
+    "overflow": 0
+  },
+  {
+    "route": "19-developers",
+    "size": "desktop",
+    "overflow": 0
+  },
+  {
+    "route": "19-developers",
+    "size": "1920",
+    "overflow": 0
+  },
+  {
+    "route": "19-developers",
     "size": "mobile",
     "overflow": 0
   }

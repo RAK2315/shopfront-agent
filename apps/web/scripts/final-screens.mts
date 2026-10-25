@@ -33,12 +33,14 @@ const ROUTES: Array<{ name: string; path: string; seller?: boolean; wait?: numbe
   { name: "09-studio", path: "/studio", seller: true },
   { name: "10-orders", path: "/studio/orders", seller: true },
   { name: "11-dashboard-overview", path: "/studio/dashboard", seller: true, wait: 5000 },
-  { name: "12-dashboard-builder", path: "/studio/dashboard?tab=builder", seller: true, wait: 8000 },
+  { name: "12-dashboard-report", path: "/studio/dashboard?tab=report", seller: true, wait: 10000 },
   { name: "13-pay-link-invalid", path: "/pay/link-invalid" },
   { name: "14-not-found", path: "/no-such-page" },
   { name: "15-design-system", path: "/design" },
   { name: "16-privacy", path: "/privacy" },
   { name: "17-terms", path: "/terms" },
+  { name: "18-gauntlet", path: "/gauntlet", wait: 4000 },
+  { name: "19-developers", path: "/developers" },
 ];
 const SIZES = [
   { tag: "desktop", width: 1440, height: 900, full: false },

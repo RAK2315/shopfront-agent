@@ -44,7 +44,7 @@ export default async function Developers() {
     .orderBy(asc(schema.variants.priceCents));
   const variantId: Record<string, string> = {};
   for (const r of rows) if (r.stock > 0 && !variantId[r.handle]) variantId[r.handle] = r.variant;
-  const base = appUrl("/api/paypal/v1/stores/{store}");
+  const base = `${appUrl("/api/paypal/v1/stores/")}{store}`; // URL() would encode the braces (%7Bstore%7D)
 
   return (
     <div className="min-h-dvh bg-canvas">
