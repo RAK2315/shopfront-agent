@@ -14,7 +14,7 @@
 - `/api/health/live` **never touches the database** (D-030), so pings keep Render awake while Neon still suspends after 5 min idle.
 - Render free sleeps after ~15 min without traffic; a cold start takes about **1 minute** (73 s measured, D-076). Two independent pingers make that rare.
 - **Render hours:** the free plan gives **750 instance-hours per workspace per month**. Kept warm all month, one service uses 744 h (31-day months) or 720 h (November). That fits **only if `shopfront-agent` is the only free service running in the workspace**. If the free services together run out of hours, Render suspends all of them until the 1st.
-- **Workspace check (2026-10-25, Render API):** `hacknite` is also an active free service; `faircore`, `cycleiq-api` and `ai-voice-detection-api` are suspended (no hours). **Owner: suspend `hacknite` until Dec 16** (Render dashboard → the service → Settings → Suspend; OWNER-TODO #8a).
+- **Workspace check (2026-10-25, Render API):** `hacknite` is also an active free service; `faircore`, `cycleiq-api` and `ai-voice-detection-api` are suspended (no hours). **Suspended by the owner on 2026-10-25** (verified via the API), so `shopfront-agent` is the only running free service. Resume it after Dec 15 if wanted.
 - **Neon free:** 100 CU-hours/month at 0.25 CU ≈ 400 h awake. Only real visits wake it (and the daily reconciliation while awake); expect well under the limit.
 - GitHub disables scheduled workflows in a public repo after 60 days with no commits. The last commit lands around Nov 11, so the Action keeps running through Dec 15.
 
