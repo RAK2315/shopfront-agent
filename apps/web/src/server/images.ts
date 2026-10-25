@@ -1,6 +1,7 @@
 import "server-only";
 import { eq, schema } from "@shopfront/db";
 import { ImageRejected, MAX_UPLOAD_BYTES, photoSha256, processPhoto } from "@/lib/image-process";
+import { ByteLru } from "@/lib/byte-lru";
 import { appUrl } from "./env";
 import { services } from "./services";
 
@@ -33,9 +34,16 @@ export async function storeImage(input: Buffer): Promise<StoredImage> {
     .onConflictDoNothing();
   return { sha256, url: imageUrl(sha256), width: info.width, height: info.height };
 }
+// Photos are immutable by hash, so after the first read they are served from memory: a page of product cards no
+// longer needs one database read per photo (an occasional slow Neon connection left a /shop card blank, D-106).
+const memory = new ByteLru<typeof schema.images.$inferSelect>(32 * 1024 * 1024);
+
 export async function loadImage(sha256: string) {
+  const hit = memory.get(sha256);
+  if (hit) return hit;
   const { db } = services();
   const [img] = await db.select().from(schema.images).where(eq(schema.images.sha256, sha256));
+  if (img) memory.set(sha256, img);
   return img ?? null;
 }
 
