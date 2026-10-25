@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { LogoMark } from "./logo-mark";
 
 export const REPO_URL = "https://github.com/RAK2315/shopfront-agent";
 
@@ -29,7 +30,7 @@ export function SiteNav({ className, tone = "plain" }: { className?: string; ton
   return (
     <nav aria-label="Site" className={cn("relative flex items-center justify-between gap-4", tone === "bar" && "border-b border-line bg-surface px-4 py-2.5 sm:px-6", className)}>
       <Link href="/" className="inline-flex items-center gap-2 font-display text-lg font-semibold text-ink" onClick={() => setOpen(false)}>
-        <span aria-hidden className="grid size-7 place-items-center rounded-md bg-ink font-display text-base text-canvas">S</span>
+        <LogoMark className="size-8" bg={tone === "bar" ? "var(--color-surface)" : "var(--color-canvas)"} />
         Shopfront
       </Link>
       <ul className="hidden items-center gap-1 md:flex">
