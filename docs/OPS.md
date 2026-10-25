@@ -19,7 +19,7 @@
 - GitHub disables scheduled workflows in a public repo after 60 days with no commits. The last commit lands around Nov 11, so the Action keeps running through Dec 15.
 
 ## 2. Nightly demo reset (D-105)
-The shared demo seller ("Continue as Juniper Clay Studio") and Telegram judge mode are reset by `POST /api/admin/demo {"action":"reset"}` with the admin bearer token (D-011): the frozen catalog comes back, order history is kept, and `/live` shows one public row, "Demo shop reset · 4 listings restored".
+The shared demo seller ("Continue as Juniper Clay Studio") and Telegram judge mode are reset by `POST /api/admin/demo {"action":"reset"}` with the admin bearer token (D-011): the frozen catalog comes back, order history is kept, and `/live` shows one public row, "Demo shop reset · 6 listings restored".
 - **Scheduled:** the keep-warm workflow's `nightly-reset` job runs at **09:30 UTC (02:30 PT, 15:00 IST)** through Dec 15. **It does nothing until the owner adds the repo secret** `SHOPFRONT_ADMIN_TOKEN`.
 - **Owner, once:** from the repo root, with the GitHub CLI logged in, this stores the token without printing it:
 

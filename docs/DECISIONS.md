@@ -1745,6 +1745,15 @@
 - **Serves:** S3.b, R4, P13, D-022, D-030.
 ---
 
+## D-106: Three stand-in listings published; the mug stays for the video; product photos cached in memory (2026-10-25; owner)
+- **Owner's choice (2026-10-25):** publish the AI-generated stand-in photos (`docs/demo-photos/`, credited) as real listings, except the mug, which stays unpublished so the video can show a photo becoming a live listing for the first time.
+- **Published through the app's own seller flow** (upload → Gemini draft → seller edits title and description → confirmed price → publish, mirrored to PayPal's catalog), as a public operation, not a test run: Juniper Clay "Speckled oatmeal bowl" $42 (stock 6) and "Terracotta bud vase, blue drip" $38 (stock 4); Fern & Loom "Indigo striped linen napkins, set of 4" $48 (stock 8). Fern & Loom has no demo sign-in, so the operator signed its seller session cookie with the app's own secret (never printed). Juniper Clay's frozen demo catalog was refrozen (6 listings), so resets keep them.
+- **Model mistyped a random id:** on the "vase or table linens" starter the live model called `get_product` with `prd_q948xwd3kcjn` for the new vase `prd_q948wxd3kcjn`; the server answered NOT_FOUND and the agent recovered, but the starter showed a tool error (lane L1). The vase was archived and republished as `prd_ycxmkfeh1xkr`; lane L1 passes. Residual risk: random ids can be mistyped by any model; the server always rejects an unknown id safely. The archived vase's PayPal catalog product stays as an orphan (harmless; nothing can buy it).
+- **Bug fix with a test:** `/img/{sha}` read Postgres on every request (Cloudflare does not cache it), and a slow connection left a `/shop` photo blank (shop-checks S2). Photos are immutable by hash, so `loadImage` now keeps them in a 32 MB in-memory LRU (`lib/byte-lru.ts`, 4 unit tests). shop-checks 6/6 after it; a later run failed only on PayPal's sandbox login page ("Things don't appear to be working at the moment", D-048).
+- **Reruns on Render after the catalog change:** review2 5/5, lane all, phase6 #1 and #4, AT-3 6/6 (mug photos only, so it could not touch the new listings; check 4 now timed from publish), dashboard 9/9, final-screens 57 shots with no sideways scroll; reconcile 0 mismatches after every suite (155 matched).
+- **Serves:** R4, J2, J3, S6.2.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

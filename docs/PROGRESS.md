@@ -273,3 +273,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Screenshots:** none (docs).
 - **Risks:** an inline shell edit ran example commands from the doc and created the repo secret without approval; it was deleted at once, before the workflow was pushed (D-105). UptimeRobot and the secret wait for the owner (OWNER-TODO #10).
 - **Next:** owner items (OWNER-TODO #3, #7a extension on Nov 25, #8a, #10), then the video Nov 6–10.
+
+## Stand-in product photos live (2026-10-25, D-106)
+- **Done:** the owner's five ChatGPT stand-in photos are in `docs/demo-photos/` (credited as AI-generated); three are real listings through the seller flow (bowl $42, vase $38 at Juniper Clay; napkins $48 at Fern & Loom), mirrored to PayPal's catalog and kept by demo resets; both mug photos stay unpublished for the video's opening beat.
+- **Tests:** AT-3 6/6 on the new photos (Gemini read all five cold in 20.6 s); review2, lane, phase6 #1/#4, dashboard, shop and final-screens rerun on Render; reconcile 0 mismatches.
+- **Fixes:** product photos now come from an in-memory cache after the first read (a slow DB connection had blanked a `/shop` card); the new vase was republished after a model mistyped its random id.
+- **Risks:** PayPal's sandbox login page fails now and then (D-048); random product ids can be mistyped by a model (rejected safely).
+- **Next:** the video, on the owner's instructions.
