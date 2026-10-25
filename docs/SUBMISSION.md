@@ -51,11 +51,11 @@
 - [ ] **OWNER** Never change the published sandbox buyer's password after submitting.
 
 ## Video (S6) — Nov 6–10
-- [ ] **VIDEO** Under 3:00; target 2:45 (S6.1; `docs/DEMO-SCRIPT.md`).
-- [ ] **VIDEO** Shows the real build working (S6.2): real captures of the deployed app.
-- [ ] **VIDEO** Public on YouTube (S6.3).
-- [ ] **VIDEO** No third-party marks or brand UIs beyond the host and sponsor tools used; music licensed or absent (S6.4). Telegram beats are a rebuilt chat strip from real transcripts, labelled.
-- [ ] **VIDEO** Captions readable at 1080p.
+- [x] Under 3:00: 2:50.05, 5,100 frames at 30 fps (S6.1; `docs/DEMO-SCRIPT.md` v5.1, D-108) [`video/out/shopfront-agent-demo.mp4`, ffprobe].
+- [x] Shows the real build working (S6.2): real takes of the deployed app for every feature beat (D-109).
+- [ ] **OWNER** Upload `video/out/shopfront-agent-demo.mp4` to YouTube as Public, credit "Voice: ElevenLabs" in the description (S6.3); then add the link to README, DEVPOST and here.
+- [x] No third-party marks or brand UIs beyond the host and sponsor tools used; no music (S6.4). The chat beat is a rebuilt strip from a real transcript, labelled; the card-brand image in PayPal's popup is blurred. Voice credit for the YouTube description: "Voice: ElevenLabs".
+- [x] Captions readable at 1080p: one line, 36 px Geist on a dark pill (stills checked, `video/out/stills/`).
 
 ## Final
 - [ ] **OWNER** Submitted by **Nov 11, 2026** (binding deadline Nov 13, 01:30 IST; D2, D3).

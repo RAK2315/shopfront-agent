@@ -280,3 +280,10 @@ One 5-line report per item: done, tests, screenshots, risks, next. Newest last.
 - **Fixes:** product photos now come from an in-memory cache after the first read (a slow DB connection had blanked a `/shop` card); the new vase was republished after a model mistyped its random id.
 - **Risks:** PayPal's sandbox login page fails now and then (D-048); random product ids can be mistyped by a model (rejected safely).
 - **Next:** the video, on the owner's instructions.
+
+## Step 7: the demo video (2026-10-25, D-108, D-109)
+- **Done:** `video/out/shopfront-agent-demo.mp4` (2:50, 1920 × 1080, 30 fps, H.264 CRF 17 + AAC): ten beats in Remotion from real takes of the deployed app, a per-beat ElevenLabs voiceover (Chris, eleven_v3, 1.1×), one-line captions, cursor arcs with quiet clicks, eased camera moves, no music. The green mug was published once on camera at $36 and bought by the agent in beat 4.
+- **Tests:** voiceover transcripts match the script (Groq Whisper); stills checked at every beat; the joined file has 5,100 frames and audio on every 10 s window; reconcile after the takes: 160 matched, 0 mismatches.
+- **Screenshots:** stills in `video/out/stills/` and a contact sheet `video/out/stills-contact-sheet.jpg` (not committed).
+- **Risks:** a full render at concurrency 4 ran this machine out of memory; render in chunks (`--frames`, `--concurrency 2`, `--muted`) plus an audio pass (`remotion.audio.config.ts`) and join with ffmpeg stream copy.
+- **Next:** the owner reviews the cut and uploads it to YouTube; then the link goes in README, DEVPOST and SUBMISSION.
