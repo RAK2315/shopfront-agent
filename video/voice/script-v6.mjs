@@ -1,6 +1,7 @@
 // The v6 voiceover (docs/DEMO-SCRIPT.md, approved 2026-10-25), one entry per sentence. Each sentence is generated on
 // its own, so it is never cut or overlapped (D-110). `say` is what ElevenLabs reads: an optional v3 cue in [brackets]
-// plus spelling hints ("A G", "buy-able"); `caption` is the same words as shown on screen.
+// plus spelling hints ("A G", "buy-able", a comma before "in chats" so the "in" is heard); `caption` is the same words
+// as shown on screen.
 export const beats = [
   {
     beat: 1,
@@ -50,7 +51,7 @@ export const beats = [
     beat: 7,
     sentences: [
       "[curious] Can an agent be tricked into paying less?",
-      "We threw thirty-one attacks at a naive shop and at Shopfront, same AI model: fake prices in chats, photos and shipping labels, forged webhooks, replays.",
+      "We threw thirty-one attacks at a naive shop and at Shopfront, same AI model: fake prices, in chats, photos and shipping labels, forged webhooks, replays.",
       "The naive shop made real PayPal orders at the attacker's price.",
       "[confident] Shopfront blocked all thirty-one.",
     ],
@@ -77,6 +78,6 @@ export const beats = [
   ...b,
   sentences: b.sentences.map((say) => ({
     say,
-    caption: say.replace(/\[[a-z ]+\]\s*/g, "").replace(/A G /g, "AG ").replace("buy-able", "buyable"),
+    caption: say.replace(/\[[a-z ]+\]\s*/g, "").replace(/A G /g, "AG ").replace("buy-able", "buyable").replace("prices, in", "prices in"),
   })),
 }));

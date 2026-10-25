@@ -1,0 +1,2032 @@
+{
+ "voice": {
+  "id": "iP95p4xoKVk53GoZ742B",
+  "name": "Chris",
+  "model": "eleven_v3",
+  "stability": 0.3,
+  "tempo": 1.05
+ },
+ "beats": [
+  {
+   "beat": 1,
+   "sentences": [
+    {
+     "file": "voice/v6/b01-s1.mp3",
+     "seconds": 3.626,
+     "caption": "Millions of makers, like Juniper, sell only through social posts.",
+     "words": [
+      {
+       "w": "Millions",
+       "start": 0,
+       "end": 0.44
+      },
+      {
+       "w": "of",
+       "start": 0.44,
+       "end": 0.62
+      },
+      {
+       "w": "makers",
+       "start": 0.62,
+       "end": 0.94
+      },
+      {
+       "w": "like",
+       "start": 0.94,
+       "end": 1.16
+      },
+      {
+       "w": "Juniper",
+       "start": 1.16,
+       "end": 1.54
+      },
+      {
+       "w": "sell",
+       "start": 1.54,
+       "end": 2.18
+      },
+      {
+       "w": "only",
+       "start": 2.18,
+       "end": 2.56
+      },
+      {
+       "w": "through",
+       "start": 2.56,
+       "end": 2.8
+      },
+      {
+       "w": "social",
+       "start": 2.8,
+       "end": 3.14
+      },
+      {
+       "w": "posts.",
+       "start": 3.14,
+       "end": 3.58
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b01-s2.mp3",
+     "seconds": 4.68,
+     "caption": "But shopping is moving to AI agents, and an agent can't buy from a DM.",
+     "words": [
+      {
+       "w": "But",
+       "start": 0,
+       "end": 0.14
+      },
+      {
+       "w": "shopping",
+       "start": 0.14,
+       "end": 0.56
+      },
+      {
+       "w": "is",
+       "start": 0.56,
+       "end": 0.9
+      },
+      {
+       "w": "moving",
+       "start": 0.9,
+       "end": 1.18
+      },
+      {
+       "w": "to",
+       "start": 1.18,
+       "end": 1.48
+      },
+      {
+       "w": "AI",
+       "start": 1.48,
+       "end": 1.84
+      },
+      {
+       "w": "agents,",
+       "start": 1.84,
+       "end": 2.78
+      },
+      {
+       "w": "and",
+       "start": 2.78,
+       "end": 2.86
+      },
+      {
+       "w": "an",
+       "start": 2.86,
+       "end": 3
+      },
+      {
+       "w": "agent",
+       "start": 3,
+       "end": 3.3
+      },
+      {
+       "w": "can't",
+       "start": 3.3,
+       "end": 3.78
+      },
+      {
+       "w": "buy",
+       "start": 3.78,
+       "end": 4
+      },
+      {
+       "w": "from",
+       "start": 4,
+       "end": 4.2
+      },
+      {
+       "w": "a",
+       "start": 4.2,
+       "end": 4.36
+      },
+      {
+       "w": "DM.",
+       "start": 4.36,
+       "end": 4.64
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 2,
+   "sentences": [
+    {
+     "file": "voice/v6/b02-s1.mp3",
+     "seconds": 5.471,
+     "caption": "Shopfront Agent turns her photos into a store that any AI agent can buy from, paid through PayPal.",
+     "words": [
+      {
+       "w": "Shopfront",
+       "start": 0,
+       "end": 0.46
+      },
+      {
+       "w": "Agent",
+       "start": 0.46,
+       "end": 0.7
+      },
+      {
+       "w": "turns",
+       "start": 0.7,
+       "end": 1.1
+      },
+      {
+       "w": "her",
+       "start": 1.1,
+       "end": 1.26
+      },
+      {
+       "w": "photos",
+       "start": 1.26,
+       "end": 1.56
+      },
+      {
+       "w": "into",
+       "start": 1.56,
+       "end": 1.78
+      },
+      {
+       "w": "a",
+       "start": 1.78,
+       "end": 2
+      },
+      {
+       "w": "store",
+       "start": 2,
+       "end": 2.16
+      },
+      {
+       "w": "that",
+       "start": 2.16,
+       "end": 2.32
+      },
+      {
+       "w": "any",
+       "start": 2.32,
+       "end": 2.68
+      },
+      {
+       "w": "AI",
+       "start": 2.68,
+       "end": 3.02
+      },
+      {
+       "w": "agent",
+       "start": 3.02,
+       "end": 3.3
+      },
+      {
+       "w": "can",
+       "start": 3.3,
+       "end": 3.46
+      },
+      {
+       "w": "buy",
+       "start": 3.46,
+       "end": 3.64
+      },
+      {
+       "w": "from,",
+       "start": 3.64,
+       "end": 3.92
+      },
+      {
+       "w": "paid",
+       "start": 4.44,
+       "end": 4.7
+      },
+      {
+       "w": "through",
+       "start": 4.7,
+       "end": 4.98
+      },
+      {
+       "w": "PayPal.",
+       "start": 4.98,
+       "end": 5.8
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 3,
+   "sentences": [
+    {
+     "file": "voice/v6/b03-s1.mp3",
+     "seconds": 3.029,
+     "caption": "She drops in a photo, and Gemini drafts the listing for her.",
+     "words": [
+      {
+       "w": "She",
+       "start": 0,
+       "end": 0.2
+      },
+      {
+       "w": "drops",
+       "start": 0.2,
+       "end": 0.44
+      },
+      {
+       "w": "in",
+       "start": 0.44,
+       "end": 0.56
+      },
+      {
+       "w": "a",
+       "start": 0.56,
+       "end": 0.62
+      },
+      {
+       "w": "photo",
+       "start": 0.62,
+       "end": 0.9
+      },
+      {
+       "w": "and",
+       "start": 0.9,
+       "end": 1.48
+      },
+      {
+       "w": "Gemini",
+       "start": 1.48,
+       "end": 1.82
+      },
+      {
+       "w": "drafts",
+       "start": 1.82,
+       "end": 2.28
+      },
+      {
+       "w": "the",
+       "start": 2.28,
+       "end": 2.4
+      },
+      {
+       "w": "listing",
+       "start": 2.4,
+       "end": 2.72
+      },
+      {
+       "w": "for",
+       "start": 2.72,
+       "end": 2.98
+      },
+      {
+       "w": "her.",
+       "start": 2.98,
+       "end": 3.52
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b03-s2.mp3",
+     "seconds": 2.133,
+     "caption": "The price stays a guess until she confirms it.",
+     "words": [
+      {
+       "w": "The",
+       "start": 0,
+       "end": 0.14
+      },
+      {
+       "w": "price",
+       "start": 0.14,
+       "end": 0.38
+      },
+      {
+       "w": "stays",
+       "start": 0.38,
+       "end": 0.68
+      },
+      {
+       "w": "a",
+       "start": 0.68,
+       "end": 0.94
+      },
+      {
+       "w": "guess",
+       "start": 0.94,
+       "end": 1.12
+      },
+      {
+       "w": "until",
+       "start": 1.12,
+       "end": 1.38
+      },
+      {
+       "w": "she",
+       "start": 1.38,
+       "end": 1.58
+      },
+      {
+       "w": "confirms",
+       "start": 1.58,
+       "end": 2.02
+      },
+      {
+       "w": "it.",
+       "start": 2.02,
+       "end": 2.42
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b03-s3.mp3",
+     "seconds": 4.088,
+     "caption": "One tap, and it's live, in her store and in PayPal's catalog.",
+     "words": [
+      {
+       "w": "One",
+       "start": 0.02,
+       "end": 0.24
+      },
+      {
+       "w": "tap",
+       "start": 0.24,
+       "end": 0.66
+      },
+      {
+       "w": "and",
+       "start": 0.66,
+       "end": 0.94
+      },
+      {
+       "w": "it's",
+       "start": 0.94,
+       "end": 1.1
+      },
+      {
+       "w": "live",
+       "start": 1.1,
+       "end": 1.44
+      },
+      {
+       "w": "in",
+       "start": 1.44,
+       "end": 1.92
+      },
+      {
+       "w": "her",
+       "start": 1.92,
+       "end": 2.02
+      },
+      {
+       "w": "store",
+       "start": 2.02,
+       "end": 2.36
+      },
+      {
+       "w": "and",
+       "start": 2.36,
+       "end": 2.8
+      },
+      {
+       "w": "in",
+       "start": 2.8,
+       "end": 2.94
+      },
+      {
+       "w": "PayPal's",
+       "start": 2.94,
+       "end": 3.44
+      },
+      {
+       "w": "catalog.",
+       "start": 3.44,
+       "end": 3.74
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 4,
+   "sentences": [
+    {
+     "file": "voice/v6/b04-s1.mp3",
+     "seconds": 2.683,
+     "caption": "A shopper asks their AI agent for a green mug.",
+     "words": [
+      {
+       "w": "A",
+       "start": 0,
+       "end": 0.14
+      },
+      {
+       "w": "shopper",
+       "start": 0.14,
+       "end": 0.52
+      },
+      {
+       "w": "asks",
+       "start": 0.52,
+       "end": 0.9
+      },
+      {
+       "w": "their",
+       "start": 0.9,
+       "end": 1.12
+      },
+      {
+       "w": "AI",
+       "start": 1.12,
+       "end": 1.42
+      },
+      {
+       "w": "agent",
+       "start": 1.42,
+       "end": 1.74
+      },
+      {
+       "w": "for",
+       "start": 1.74,
+       "end": 1.94
+      },
+      {
+       "w": "a",
+       "start": 1.94,
+       "end": 2.14
+      },
+      {
+       "w": "green",
+       "start": 2.14,
+       "end": 2.32
+      },
+      {
+       "w": "mug.",
+       "start": 2.32,
+       "end": 2.62
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b04-s2.mp3",
+     "seconds": 1.863,
+     "caption": "The agent shops her store over MCP.",
+     "words": [
+      {
+       "w": "The",
+       "start": 0,
+       "end": 0.18
+      },
+      {
+       "w": "agent",
+       "start": 0.18,
+       "end": 0.36
+      },
+      {
+       "w": "shops",
+       "start": 0.36,
+       "end": 0.66
+      },
+      {
+       "w": "her",
+       "start": 0.66,
+       "end": 0.8
+      },
+      {
+       "w": "store",
+       "start": 0.8,
+       "end": 1.02
+      },
+      {
+       "w": "over",
+       "start": 1.02,
+       "end": 1.26
+      },
+      {
+       "w": "MCP.",
+       "start": 1.26,
+       "end": 1.84
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b04-s3.mp3",
+     "seconds": 3.272,
+     "caption": "It can choose the mug, but never the price, and it can't pay.",
+     "words": [
+      {
+       "w": "It",
+       "start": 0,
+       "end": 0.12
+      },
+      {
+       "w": "can",
+       "start": 0.12,
+       "end": 0.26
+      },
+      {
+       "w": "choose",
+       "start": 0.26,
+       "end": 0.5
+      },
+      {
+       "w": "the",
+       "start": 0.5,
+       "end": 0.68
+      },
+      {
+       "w": "mug,",
+       "start": 0.68,
+       "end": 1.12
+      },
+      {
+       "w": "but",
+       "start": 1.12,
+       "end": 1.22
+      },
+      {
+       "w": "never",
+       "start": 1.22,
+       "end": 1.72
+      },
+      {
+       "w": "the",
+       "start": 1.72,
+       "end": 1.9
+      },
+      {
+       "w": "price.",
+       "start": 1.9,
+       "end": 2.64
+      },
+      {
+       "w": "And",
+       "start": 2.58,
+       "end": 2.7
+      },
+      {
+       "w": "it",
+       "start": 2.7,
+       "end": 2.76
+      },
+      {
+       "w": "can't",
+       "start": 2.76,
+       "end": 2.98
+      },
+      {
+       "w": "pay.",
+       "start": 2.98,
+       "end": 3.7
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b04-s4.mp3",
+     "seconds": 1.728,
+     "caption": "The shopper approves in PayPal…",
+     "words": [
+      {
+       "w": "The",
+       "start": 0,
+       "end": 0.2
+      },
+      {
+       "w": "shopper",
+       "start": 0.2,
+       "end": 0.52
+      },
+      {
+       "w": "approves",
+       "start": 0.52,
+       "end": 1.04
+      },
+      {
+       "w": "in",
+       "start": 1.04,
+       "end": 1.32
+      },
+      {
+       "w": "PayPal.",
+       "start": 1.32,
+       "end": 1.6
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b04-s5.mp3",
+     "seconds": 1.052,
+     "caption": "and it's paid.",
+     "words": [
+      {
+       "w": "And",
+       "start": 0.1,
+       "end": 0.34
+      },
+      {
+       "w": "it's",
+       "start": 0.34,
+       "end": 0.54
+      },
+      {
+       "w": "paid.",
+       "start": 0.54,
+       "end": 1.28
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b04-s6.mp3",
+     "seconds": 2.15,
+     "caption": "A verified PayPal webhook confirms it.",
+     "words": [
+      {
+       "w": "A",
+       "start": 0,
+       "end": 0.18
+      },
+      {
+       "w": "verified",
+       "start": 0.18,
+       "end": 0.64
+      },
+      {
+       "w": "PayPal",
+       "start": 0.64,
+       "end": 1.04
+      },
+      {
+       "w": "webhook",
+       "start": 1.04,
+       "end": 1.44
+      },
+      {
+       "w": "confirms",
+       "start": 1.44,
+       "end": 2
+      },
+      {
+       "w": "it.",
+       "start": 2,
+       "end": 2.44
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 5,
+   "sentences": [
+    {
+     "file": "voice/v6/b05-s1.mp3",
+     "seconds": 2.149,
+     "caption": "She runs her shop from a chat on her phone.",
+     "words": [
+      {
+       "w": "She",
+       "start": 0.2,
+       "end": 0.32
+      },
+      {
+       "w": "runs",
+       "start": 0.32,
+       "end": 0.58
+      },
+      {
+       "w": "her",
+       "start": 0.58,
+       "end": 0.74
+      },
+      {
+       "w": "shop",
+       "start": 0.74,
+       "end": 0.98
+      },
+      {
+       "w": "from",
+       "start": 0.98,
+       "end": 1.14
+      },
+      {
+       "w": "a",
+       "start": 1.14,
+       "end": 1.38
+      },
+      {
+       "w": "chat",
+       "start": 1.38,
+       "end": 1.56
+      },
+      {
+       "w": "on",
+       "start": 1.56,
+       "end": 1.7
+      },
+      {
+       "w": "her",
+       "start": 1.7,
+       "end": 1.84
+      },
+      {
+       "w": "phone.",
+       "start": 1.84,
+       "end": 2.1
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b05-s2.mp3",
+     "seconds": 0.873,
+     "caption": "An order comes in.",
+     "words": [
+      {
+       "w": "An",
+       "start": 0.04,
+       "end": 0.14
+      },
+      {
+       "w": "order",
+       "start": 0.14,
+       "end": 0.34
+      },
+      {
+       "w": "comes",
+       "start": 0.34,
+       "end": 0.58
+      },
+      {
+       "w": "in.",
+       "start": 0.58,
+       "end": 0.82
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b05-s3.mp3",
+     "seconds": 3.563,
+     "caption": "She snaps the shipping label, and the tracking lands on the PayPal order.",
+     "words": [
+      {
+       "w": "She",
+       "start": 0.02,
+       "end": 0.18
+      },
+      {
+       "w": "snaps",
+       "start": 0.18,
+       "end": 0.64
+      },
+      {
+       "w": "the",
+       "start": 0.64,
+       "end": 0.82
+      },
+      {
+       "w": "shipping",
+       "start": 0.82,
+       "end": 1.08
+      },
+      {
+       "w": "label,",
+       "start": 1.08,
+       "end": 1.72
+      },
+      {
+       "w": "and",
+       "start": 1.72,
+       "end": 1.82
+      },
+      {
+       "w": "the",
+       "start": 1.82,
+       "end": 1.9
+      },
+      {
+       "w": "tracking",
+       "start": 1.9,
+       "end": 2.22
+      },
+      {
+       "w": "lands",
+       "start": 2.22,
+       "end": 2.48
+      },
+      {
+       "w": "on",
+       "start": 2.48,
+       "end": 2.64
+      },
+      {
+       "w": "the",
+       "start": 2.64,
+       "end": 2.72
+      },
+      {
+       "w": "PayPal",
+       "start": 2.72,
+       "end": 3.08
+      },
+      {
+       "w": "order.",
+       "start": 3.08,
+       "end": 3.9
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b05-s4.mp3",
+     "seconds": 2.589,
+     "caption": "A refund outside her policy waits for her tap.",
+     "words": [
+      {
+       "w": "A",
+       "start": 0.04,
+       "end": 0.16
+      },
+      {
+       "w": "refund",
+       "start": 0.16,
+       "end": 0.58
+      },
+      {
+       "w": "outside",
+       "start": 0.58,
+       "end": 0.92
+      },
+      {
+       "w": "her",
+       "start": 0.92,
+       "end": 1.1
+      },
+      {
+       "w": "policy",
+       "start": 1.1,
+       "end": 1.56
+      },
+      {
+       "w": "waits",
+       "start": 1.56,
+       "end": 1.88
+      },
+      {
+       "w": "for",
+       "start": 1.88,
+       "end": 2.08
+      },
+      {
+       "w": "her",
+       "start": 2.08,
+       "end": 2.28
+      },
+      {
+       "w": "tap.",
+       "start": 2.28,
+       "end": 2.58
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 6,
+   "sentences": [
+    {
+     "file": "voice/v6/b06-s1.mp3",
+     "seconds": 5.106,
+     "caption": "Sellers sign in with PayPal, and a verified seller can get paid straight into their own PayPal.",
+     "words": [
+      {
+       "w": "Sellers",
+       "start": 0.04,
+       "end": 0.44
+      },
+      {
+       "w": "sign",
+       "start": 0.44,
+       "end": 0.82
+      },
+      {
+       "w": "in",
+       "start": 0.82,
+       "end": 0.94
+      },
+      {
+       "w": "with",
+       "start": 0.94,
+       "end": 1.08
+      },
+      {
+       "w": "PayPal,",
+       "start": 1.08,
+       "end": 1.82
+      },
+      {
+       "w": "and",
+       "start": 1.82,
+       "end": 1.86
+      },
+      {
+       "w": "a",
+       "start": 1.86,
+       "end": 1.96
+      },
+      {
+       "w": "verified",
+       "start": 1.96,
+       "end": 2.42
+      },
+      {
+       "w": "seller",
+       "start": 2.42,
+       "end": 2.76
+      },
+      {
+       "w": "can",
+       "start": 2.76,
+       "end": 2.96
+      },
+      {
+       "w": "get",
+       "start": 2.96,
+       "end": 3.14
+      },
+      {
+       "w": "paid",
+       "start": 3.14,
+       "end": 3.32
+      },
+      {
+       "w": "straight",
+       "start": 3.32,
+       "end": 3.68
+      },
+      {
+       "w": "into",
+       "start": 3.68,
+       "end": 3.98
+      },
+      {
+       "w": "their",
+       "start": 3.98,
+       "end": 4.2
+      },
+      {
+       "w": "own",
+       "start": 4.2,
+       "end": 4.56
+      },
+      {
+       "w": "PayPal.",
+       "start": 4.56,
+       "end": 5.38
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b06-s2.mp3",
+     "seconds": 2.43,
+     "caption": "Every store also speaks PayPal's Cart API.",
+     "words": [
+      {
+       "w": "Every",
+       "start": 0,
+       "end": 0.24
+      },
+      {
+       "w": "store",
+       "start": 0.24,
+       "end": 0.52
+      },
+      {
+       "w": "also",
+       "start": 0.52,
+       "end": 0.9
+      },
+      {
+       "w": "speaks",
+       "start": 0.9,
+       "end": 1.26
+      },
+      {
+       "w": "PayPal's",
+       "start": 1.26,
+       "end": 1.8
+      },
+      {
+       "w": "cart",
+       "start": 1.8,
+       "end": 1.94
+      },
+      {
+       "w": "API.",
+       "start": 1.94,
+       "end": 2.7
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b06-s3.mp3",
+     "seconds": 3.868,
+     "caption": "Here's PayPal's own client buying through it, so every store is ready for Store Sync.",
+     "words": [
+      {
+       "w": "Here's",
+       "start": 0,
+       "end": 0.24
+      },
+      {
+       "w": "PayPal's",
+       "start": 0.24,
+       "end": 0.66
+      },
+      {
+       "w": "own",
+       "start": 0.66,
+       "end": 0.82
+      },
+      {
+       "w": "client",
+       "start": 0.82,
+       "end": 1.2
+      },
+      {
+       "w": "buying",
+       "start": 1.2,
+       "end": 1.46
+      },
+      {
+       "w": "through",
+       "start": 1.46,
+       "end": 1.7
+      },
+      {
+       "w": "it.",
+       "start": 1.7,
+       "end": 1.88
+      },
+      {
+       "w": "So",
+       "start": 2.16,
+       "end": 2.3
+      },
+      {
+       "w": "every",
+       "start": 2.3,
+       "end": 2.54
+      },
+      {
+       "w": "store",
+       "start": 2.54,
+       "end": 2.8
+      },
+      {
+       "w": "is",
+       "start": 2.8,
+       "end": 2.92
+      },
+      {
+       "w": "ready",
+       "start": 2.92,
+       "end": 3.12
+      },
+      {
+       "w": "for",
+       "start": 3.12,
+       "end": 3.34
+      },
+      {
+       "w": "StoreSync.",
+       "start": 3.34,
+       "end": 4.28
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 7,
+   "sentences": [
+    {
+     "file": "voice/v6/b07-s1.mp3",
+     "seconds": 2.067,
+     "caption": "Can an agent be tricked into paying less?",
+     "words": [
+      {
+       "w": "Can",
+       "start": 0,
+       "end": 0.16
+      },
+      {
+       "w": "an",
+       "start": 0.16,
+       "end": 0.32
+      },
+      {
+       "w": "agent",
+       "start": 0.32,
+       "end": 0.6
+      },
+      {
+       "w": "be",
+       "start": 0.6,
+       "end": 0.78
+      },
+      {
+       "w": "tricked",
+       "start": 0.78,
+       "end": 1.2
+      },
+      {
+       "w": "into",
+       "start": 1.2,
+       "end": 1.44
+      },
+      {
+       "w": "paying",
+       "start": 1.44,
+       "end": 1.74
+      },
+      {
+       "w": "less?",
+       "start": 1.74,
+       "end": 2.5
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b07-s2.mp3",
+     "seconds": 10.333,
+     "caption": "We threw thirty-one attacks at a naive shop and at Shopfront, same AI model: fake prices in chats, photos and shipping labels, forged webhooks, replays.",
+     "words": [
+      {
+       "w": "We",
+       "start": 0,
+       "end": 0.14
+      },
+      {
+       "w": "threw",
+       "start": 0.14,
+       "end": 0.32
+      },
+      {
+       "w": "31",
+       "start": 0.32,
+       "end": 0.84
+      },
+      {
+       "w": "attacks",
+       "start": 0.84,
+       "end": 1.26
+      },
+      {
+       "w": "at",
+       "start": 1.26,
+       "end": 1.6
+      },
+      {
+       "w": "a",
+       "start": 1.6,
+       "end": 1.72
+      },
+      {
+       "w": "naive",
+       "start": 1.72,
+       "end": 1.96
+      },
+      {
+       "w": "shop",
+       "start": 1.96,
+       "end": 2.34
+      },
+      {
+       "w": "and",
+       "start": 2.34,
+       "end": 2.86
+      },
+      {
+       "w": "at",
+       "start": 2.86,
+       "end": 3.04
+      },
+      {
+       "w": "Shopfront.",
+       "start": 3.04,
+       "end": 3.8
+      },
+      {
+       "w": "Same",
+       "start": 3.76,
+       "end": 3.98
+      },
+      {
+       "w": "AI",
+       "start": 3.98,
+       "end": 4.28
+      },
+      {
+       "w": "model.",
+       "start": 4.28,
+       "end": 5.06
+      },
+      {
+       "w": "Fake",
+       "start": 5.08,
+       "end": 5.24
+      },
+      {
+       "w": "prices",
+       "start": 5.24,
+       "end": 5.7
+      },
+      {
+       "w": "in",
+       "start": 5.7,
+       "end": 6.1
+      },
+      {
+       "w": "chats,",
+       "start": 6.1,
+       "end": 6.84
+      },
+      {
+       "w": "photos,",
+       "start": 6.84,
+       "end": 7
+      },
+      {
+       "w": "and",
+       "start": 7,
+       "end": 7.2
+      },
+      {
+       "w": "shipping",
+       "start": 7.2,
+       "end": 7.5
+      },
+      {
+       "w": "labels.",
+       "start": 7.5,
+       "end": 7.8
+      },
+      {
+       "w": "Forged",
+       "start": 8.56,
+       "end": 8.76
+      },
+      {
+       "w": "webhooks.",
+       "start": 8.76,
+       "end": 9.3
+      },
+      {
+       "w": "Replays.",
+       "start": 9.84,
+       "end": 10.58
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b07-s3.mp3",
+     "seconds": 3.104,
+     "caption": "The naive shop made real PayPal orders at the attacker's price.",
+     "words": [
+      {
+       "w": "The",
+       "start": 0,
+       "end": 0.16
+      },
+      {
+       "w": "naive",
+       "start": 0.16,
+       "end": 0.44
+      },
+      {
+       "w": "shop",
+       "start": 0.44,
+       "end": 0.7
+      },
+      {
+       "w": "made",
+       "start": 0.7,
+       "end": 0.96
+      },
+      {
+       "w": "real",
+       "start": 0.96,
+       "end": 1.3
+      },
+      {
+       "w": "PayPal",
+       "start": 1.3,
+       "end": 1.62
+      },
+      {
+       "w": "orders",
+       "start": 1.62,
+       "end": 1.96
+      },
+      {
+       "w": "at",
+       "start": 1.96,
+       "end": 2.12
+      },
+      {
+       "w": "the",
+       "start": 2.12,
+       "end": 2.26
+      },
+      {
+       "w": "attacker's",
+       "start": 2.26,
+       "end": 2.7
+      },
+      {
+       "w": "price.",
+       "start": 2.7,
+       "end": 3.06
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b07-s4.mp3",
+     "seconds": 1.841,
+     "caption": "Shopfront blocked all thirty-one.",
+     "words": [
+      {
+       "w": "Shopfront",
+       "start": 0,
+       "end": 0.44
+      },
+      {
+       "w": "blocked",
+       "start": 0.44,
+       "end": 0.78
+      },
+      {
+       "w": "all",
+       "start": 0.78,
+       "end": 1.2
+      },
+      {
+       "w": "31.",
+       "start": 1.2,
+       "end": 2.12
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 8,
+   "sentences": [
+    {
+     "file": "voice/v6/b08-s1.mp3",
+     "seconds": 3.07,
+     "caption": "Her dashboard is built on AG Grid and AG Studio.",
+     "words": [
+      {
+       "w": "Her",
+       "start": 0,
+       "end": 0.12
+      },
+      {
+       "w": "dashboard",
+       "start": 0.12,
+       "end": 0.5
+      },
+      {
+       "w": "is",
+       "start": 0.5,
+       "end": 0.7
+      },
+      {
+       "w": "built",
+       "start": 0.7,
+       "end": 0.88
+      },
+      {
+       "w": "on",
+       "start": 0.88,
+       "end": 1.08
+      },
+      {
+       "w": "AG",
+       "start": 1.08,
+       "end": 1.48
+      },
+      {
+       "w": "Grid",
+       "start": 1.48,
+       "end": 1.7
+      },
+      {
+       "w": "and",
+       "start": 1.7,
+       "end": 2.06
+      },
+      {
+       "w": "AG",
+       "start": 2.06,
+       "end": 2.5
+      },
+      {
+       "w": "Studio.",
+       "start": 2.5,
+       "end": 3.42
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b08-s2.mp3",
+     "seconds": 4.124,
+     "caption": "Orders group by product, and a click opens the full PayPal history.",
+     "words": [
+      {
+       "w": "orders",
+       "start": 0,
+       "end": 0.32
+      },
+      {
+       "w": "group",
+       "start": 0.32,
+       "end": 0.66
+      },
+      {
+       "w": "by",
+       "start": 0.66,
+       "end": 0.78
+      },
+      {
+       "w": "product,",
+       "start": 0.78,
+       "end": 1.72
+      },
+      {
+       "w": "and",
+       "start": 1.72,
+       "end": 1.76
+      },
+      {
+       "w": "a",
+       "start": 1.76,
+       "end": 1.9
+      },
+      {
+       "w": "click",
+       "start": 1.9,
+       "end": 2.12
+      },
+      {
+       "w": "opens",
+       "start": 2.12,
+       "end": 2.46
+      },
+      {
+       "w": "the",
+       "start": 2.46,
+       "end": 2.64
+      },
+      {
+       "w": "full",
+       "start": 2.64,
+       "end": 3.04
+      },
+      {
+       "w": "PayPal",
+       "start": 3.04,
+       "end": 3.6
+      },
+      {
+       "w": "history.",
+       "start": 3.6,
+       "end": 4.08
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b08-s3.mp3",
+     "seconds": 6.534,
+     "caption": "She asks for unshipped orders over fifty dollars, and the grid filters itself, with one-click undo.",
+     "words": [
+      {
+       "w": "She",
+       "start": 0,
+       "end": 0.18
+      },
+      {
+       "w": "asks",
+       "start": 0.18,
+       "end": 0.42
+      },
+      {
+       "w": "for",
+       "start": 0.42,
+       "end": 0.66
+      },
+      {
+       "w": "unshipped",
+       "start": 0.66,
+       "end": 1.18
+      },
+      {
+       "w": "orders",
+       "start": 1.18,
+       "end": 1.6
+      },
+      {
+       "w": "over $50,",
+       "start": 1.6,
+       "end": 3.22
+      },
+      {
+       "w": "and",
+       "start": 3.22,
+       "end": 3.24
+      },
+      {
+       "w": "the",
+       "start": 3.24,
+       "end": 3.36
+      },
+      {
+       "w": "grid",
+       "start": 3.36,
+       "end": 3.64
+      },
+      {
+       "w": "filters",
+       "start": 3.64,
+       "end": 4.12
+      },
+      {
+       "w": "itself",
+       "start": 4.12,
+       "end": 4.56
+      },
+      {
+       "w": "with",
+       "start": 4.56,
+       "end": 5.08
+      },
+      {
+       "w": "one-click",
+       "start": 5.08,
+       "end": 5.88
+      },
+      {
+       "w": "undo.",
+       "start": 5.88,
+       "end": 6.88
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b08-s4.mp3",
+     "seconds": 5.155,
+     "caption": "Her Shop Manager agent answers from her database and from PayPal, and shows every number's source.",
+     "words": [
+      {
+       "w": "Her",
+       "start": 0,
+       "end": 0.16
+      },
+      {
+       "w": "shop",
+       "start": 0.16,
+       "end": 0.42
+      },
+      {
+       "w": "manager",
+       "start": 0.42,
+       "end": 0.76
+      },
+      {
+       "w": "agent",
+       "start": 0.76,
+       "end": 1.08
+      },
+      {
+       "w": "answers",
+       "start": 1.08,
+       "end": 1.52
+      },
+      {
+       "w": "from",
+       "start": 1.52,
+       "end": 1.78
+      },
+      {
+       "w": "her",
+       "start": 1.78,
+       "end": 1.88
+      },
+      {
+       "w": "database",
+       "start": 1.88,
+       "end": 2.24
+      },
+      {
+       "w": "and",
+       "start": 2.24,
+       "end": 2.48
+      },
+      {
+       "w": "from",
+       "start": 2.48,
+       "end": 2.62
+      },
+      {
+       "w": "PayPal",
+       "start": 2.62,
+       "end": 2.9
+      },
+      {
+       "w": "and",
+       "start": 2.9,
+       "end": 3.46
+      },
+      {
+       "w": "shows",
+       "start": 3.46,
+       "end": 3.74
+      },
+      {
+       "w": "every",
+       "start": 3.74,
+       "end": 4.18
+      },
+      {
+       "w": "number's",
+       "start": 4.18,
+       "end": 4.78
+      },
+      {
+       "w": "source.",
+       "start": 4.78,
+       "end": 5.52
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b08-s5.mp3",
+     "seconds": 4.133,
+     "caption": "It has no tool that moves money, so a refund request gets a polite no.",
+     "words": [
+      {
+       "w": "It",
+       "start": 0,
+       "end": 0.14
+      },
+      {
+       "w": "has",
+       "start": 0.14,
+       "end": 0.28
+      },
+      {
+       "w": "no",
+       "start": 0.28,
+       "end": 0.56
+      },
+      {
+       "w": "tool",
+       "start": 0.56,
+       "end": 0.88
+      },
+      {
+       "w": "that",
+       "start": 0.88,
+       "end": 1.06
+      },
+      {
+       "w": "moves",
+       "start": 1.06,
+       "end": 1.32
+      },
+      {
+       "w": "money,",
+       "start": 1.32,
+       "end": 2.18
+      },
+      {
+       "w": "so",
+       "start": 2.18,
+       "end": 2.22
+      },
+      {
+       "w": "a",
+       "start": 2.22,
+       "end": 2.34
+      },
+      {
+       "w": "refund",
+       "start": 2.34,
+       "end": 2.64
+      },
+      {
+       "w": "request",
+       "start": 2.64,
+       "end": 2.98
+      },
+      {
+       "w": "gets",
+       "start": 2.98,
+       "end": 3.18
+      },
+      {
+       "w": "a",
+       "start": 3.18,
+       "end": 3.36
+      },
+      {
+       "w": "polite",
+       "start": 3.36,
+       "end": 3.68
+      },
+      {
+       "w": "no.",
+       "start": 3.68,
+       "end": 4.5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 9,
+   "sentences": [
+    {
+     "file": "voice/v6/b09-s1.mp3",
+     "seconds": 2.837,
+     "caption": "No AI model ever moves money; plain code does.",
+     "words": [
+      {
+       "w": "No",
+       "start": 0,
+       "end": 0.28
+      },
+      {
+       "w": "AI",
+       "start": 0.28,
+       "end": 0.58
+      },
+      {
+       "w": "model",
+       "start": 0.58,
+       "end": 0.9
+      },
+      {
+       "w": "ever",
+       "start": 0.9,
+       "end": 1.2
+      },
+      {
+       "w": "moves",
+       "start": 1.2,
+       "end": 1.46
+      },
+      {
+       "w": "money.",
+       "start": 1.46,
+       "end": 2.22
+      },
+      {
+       "w": "Plain",
+       "start": 1.88,
+       "end": 2.12
+      },
+      {
+       "w": "code",
+       "start": 2.12,
+       "end": 2.38
+      },
+      {
+       "w": "does.",
+       "start": 2.38,
+       "end": 3.32
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b09-s2.mp3",
+     "seconds": 5.18,
+     "caption": "It all runs on one free Render service, tested live with real PayPal sandbox calls.",
+     "words": [
+      {
+       "w": "It",
+       "start": 0,
+       "end": 0.14
+      },
+      {
+       "w": "all",
+       "start": 0.14,
+       "end": 0.26
+      },
+      {
+       "w": "runs",
+       "start": 0.26,
+       "end": 0.52
+      },
+      {
+       "w": "on",
+       "start": 0.52,
+       "end": 0.64
+      },
+      {
+       "w": "one",
+       "start": 0.64,
+       "end": 0.88
+      },
+      {
+       "w": "free",
+       "start": 0.88,
+       "end": 1.28
+      },
+      {
+       "w": "render",
+       "start": 1.28,
+       "end": 1.6
+      },
+      {
+       "w": "service,",
+       "start": 1.6,
+       "end": 2.52
+      },
+      {
+       "w": "tested",
+       "start": 2.52,
+       "end": 2.74
+      },
+      {
+       "w": "live",
+       "start": 2.74,
+       "end": 3.14
+      },
+      {
+       "w": "with",
+       "start": 3.14,
+       "end": 3.42
+      },
+      {
+       "w": "real",
+       "start": 3.42,
+       "end": 3.8
+      },
+      {
+       "w": "PayPal",
+       "start": 3.8,
+       "end": 4.26
+      },
+      {
+       "w": "sandbox",
+       "start": 4.26,
+       "end": 4.7
+      },
+      {
+       "w": "calls.",
+       "start": 4.7,
+       "end": 5.1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "beat": 10,
+   "sentences": [
+    {
+     "file": "voice/v6/b10-s1.mp3",
+     "seconds": 1.155,
+     "caption": "Shopfront Agent.",
+     "words": [
+      {
+       "w": "Shopfront",
+       "start": 0.1,
+       "end": 0.56
+      },
+      {
+       "w": "Agent.",
+       "start": 0.56,
+       "end": 1.42
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b10-s2.mp3",
+     "seconds": 3.425,
+     "caption": "Any seller, buyable by any AI agent, paid through PayPal.",
+     "words": [
+      {
+       "w": "Any",
+       "start": 0,
+       "end": 0.2
+      },
+      {
+       "w": "seller,",
+       "start": 0.2,
+       "end": 0.8
+      },
+      {
+       "w": "buyable",
+       "start": 0.8,
+       "end": 1.04
+      },
+      {
+       "w": "by",
+       "start": 1.04,
+       "end": 1.24
+      },
+      {
+       "w": "any",
+       "start": 1.24,
+       "end": 1.54
+      },
+      {
+       "w": "AI",
+       "start": 1.54,
+       "end": 1.84
+      },
+      {
+       "w": "agent,",
+       "start": 1.84,
+       "end": 2.58
+      },
+      {
+       "w": "paid",
+       "start": 2.58,
+       "end": 2.72
+      },
+      {
+       "w": "through",
+       "start": 2.72,
+       "end": 2.92
+      },
+      {
+       "w": "PayPal.",
+       "start": 2.92,
+       "end": 3.2
+      }
+     ]
+    },
+    {
+     "file": "voice/v6/b10-s3.mp3",
+     "seconds": 0.718,
+     "caption": "Try it live.",
+     "words": [
+      {
+       "w": "Try",
+       "start": 0.02,
+       "end": 0.2
+      },
+      {
+       "w": "it",
+       "start": 0.2,
+       "end": 0.34
+      },
+      {
+       "w": "live.",
+       "start": 0.34,
+       "end": 1.16
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
