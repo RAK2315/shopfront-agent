@@ -89,4 +89,4 @@ The PayPal **Agent Toolkit** is not used: the server calls PayPal's REST APIs di
 3. **[/studio](https://shopfront-agent.onrender.com/studio)** → *Continue as Juniper Clay Studio* → **Dashboard** → *Report · AG Studio* (desktop) → ask the Shop Manager "What needs my attention?".
 4. **Telegram judge mode:** https://t.me/juniper_clay_copilot_bot?start=judge → *Simulate a buyer*.
 - **MCP endpoint for your own agent:** `https://shopfront-agent.onrender.com/mcp` (Claude: Settings → Connectors → Add custom connector).
-- **Repo:** https://github.com/RAK2315/shopfront-agent (MIT). **Video:** OWNER (YouTube link).
+- **Repo:** https://github.com/RAK2315/shopfront-agent (MIT). **Video:** https://youtu.be/oJgww4Vydew

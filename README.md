@@ -29,7 +29,7 @@ Built for *Build What's Next with PayPal and AI* (2026), Track 1: Merchant Growt
 
 **Why believe it:** every feature is an acceptance test **run against this deployment with real PayPal sandbox calls** (counts and proofs [below](#whats-real-and-verified)); our books are **reconciled with PayPal** after every test run; every PayPal endpoint we call is listed with debug ids in [docs/sandbox-validation.md](docs/sandbox-validation.md).
 
-**Video:** [the 2:50 demo](#demo-video) (linked on Nov 10) · **More:** the [5-minute path](#judges-the-5-minute-path), [Telegram judge mode](https://t.me/juniper_clay_copilot_bot?start=judge), [threat model](docs/threat-model.md).
+**Video:** [the 3-minute demo](https://youtu.be/oJgww4Vydew) · **More:** the [5-minute path](#judges-the-5-minute-path), [Telegram judge mode](https://t.me/juniper_clay_copilot_bot?start=judge), [threat model](docs/threat-model.md).
 
 **Endpoints:**
 
@@ -40,7 +40,9 @@ Built for *Build What's Next with PayPal and AI* (2026), Track 1: Merchant Growt
 
 ## Demo video
 
-The 2:50 demo is linked here on Nov 10 (YouTube). Script and shot list: [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md).
+[![Shopfront Agent demo video](https://img.youtube.com/vi/oJgww4Vydew/maxresdefault.jpg)](https://youtu.be/oJgww4Vydew)
+
+**[Watch the demo on YouTube](https://youtu.be/oJgww4Vydew)** (2:56). Script and shot list: [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md).
 
 ## Core features
 

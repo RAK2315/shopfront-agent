@@ -1,8 +1,8 @@
 # SUBMISSION — live checklist
 
 > Everything the judges need, each line citing its requirement id in `REQUIREMENTS.md` (frozen).
-> **[x]** verified (evidence in brackets) · **[ ] OWNER** only the owner can do it · **[ ] VIDEO** waits for the video (Nov 6–10).
-> Final 2026-10-25, after the final regression and the feature freeze (D-104). Only OWNER and VIDEO items remain.
+> **[x]** verified (evidence in brackets) · **[ ] OWNER** only the owner can do it.
+> Final 2026-10-25, after the final regression and the feature freeze (D-104); video v2 added 2026-10-26. Only OWNER items remain.
 
 ## Admin
 - [ ] **OWNER** Registered on Devpost for the hackathon (S1).
@@ -28,7 +28,7 @@
 - [x] Tools section: each model or AI service and how it's used (S4).
 - [x] "Built with" tags.
 - [x] Judge testing notes: demo URL, sandbox buyer, the 60-second path, Telegram judge mode, MCP URL (S3.b).
-- [ ] **OWNER** Paste the text into Devpost; add the YouTube link (S6.3) and the repo link (S5).
+- [ ] **OWNER** Paste the text into Devpost with the YouTube link https://youtu.be/oJgww4Vydew (S6.3) and the repo link (S5).
 - [ ] **OWNER** Prize categories: main, Best Use of Agentic Commerce, Best Use of PayPal + AI, Best Demo Delivery, Most Creative, Most Impactful, Best Use of AG Grid, Best Use of Render (P1–P9, P13).
 - [ ] **OWNER** One real public purchase on Nov 11 before submitting, so `/live` isn't empty for the first judge (PLAN §5).
 
@@ -50,12 +50,14 @@
 - [x] Up through judging (Dec 15): keep-warm Action every 10 min + UptimeRobot (owner) + the AG key fallback; see `docs/OPS.md`.
 - [ ] **OWNER** Never change the published sandbox buyer's password after submitting.
 
-## Video (S6) — Nov 6–10
-- [x] Under 3:00: 2:50.05, 5,100 frames at 30 fps (S6.1; `docs/DEMO-SCRIPT.md` v5.1, D-108) [`video/out/shopfront-agent-demo.mp4`, ffprobe].
-- [x] Shows the real build working (S6.2): real takes of the deployed app for every feature beat (D-109).
-- [ ] **OWNER** Upload `video/out/shopfront-agent-demo.mp4` to YouTube as Public, credit "Voice: ElevenLabs" in the description (S6.3); then add the link to README, DEVPOST and here.
-- [x] No third-party marks or brand UIs beyond the host and sponsor tools used; no music (S6.4). The chat beat is a rebuilt strip from a real transcript, labelled; the card-brand image in PayPal's popup is blurred. Voice credit for the YouTube description: "Voice: ElevenLabs".
-- [x] Captions readable at 1080p: one line, 36 px Geist on a dark pill (stills checked, `video/out/stills/`).
+## Video (S6)
+- [x] Under 3:00: 2:56 (176.2 s), 5,286 frames at 30 fps (S6.1; video v2, D-110, D-111) [`video/out/shopfront-agent-demo-v2-master.mp4`, ffprobe].
+- [x] Shows the real build working (S6.2): real takes of the deployed app for every feature beat; waits are cut, never sped up or staged (D-110).
+- [x] Uploaded to YouTube: https://youtu.be/oJgww4Vydew, "Shopfront Agent - PayPal AI hackathon demo" (S6.3; reachable logged out, 2026-10-26). Linked in the README and `docs/DEVPOST.md`. The description credits "Voice: ElevenLabs. Music: 'The Budding of Consciousness' by Yoiyami (CC0). Click sound: Kenney (CC0)." and says "Waits are trimmed; nothing is staged."
+- [x] No third-party marks or brand UIs beyond the host and sponsor tools used (S6.4). Music and click are CC0 (D-110). The chat beat is a rebuilt strip from a real transcript, labelled; the card-brand image in PayPal's popup is softened.
+- [x] Captions readable at 1080p: one line of Alegreya Sans on a dark pill (D-110).
+- [x] Loudness: −15.3 LUFS integrated, true peak −1.75 dB (D-111).
+- [ ] **OWNER** In YouTube Studio, confirm visibility is **Public** (not Unlisted) and the description has the credits above; watch it once logged out in 1080p.
 
 ## Final
 - [ ] **OWNER** Submitted by **Nov 11, 2026** (binding deadline Nov 13, 01:30 IST; D2, D3).
