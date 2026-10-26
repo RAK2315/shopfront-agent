@@ -55,6 +55,58 @@ Every step, plus Telegram, PayPal's Cart API and the live wire.
 
 ![Shopfront architecture](docs/architecture.svg)
 
+It's **one Next.js service on Render's free plan** with a Neon Postgres database. Only the money code (green in the diagram) calls PayPal to create, capture, refund or track, and it reads every price from the database. The LLM router (purple) drafts, suggests and answers, but has no tool that moves money.
+
+**Plain-text version**
+
+```
+ shopper + AI agent ─┐            ┌──────────── Shopfront (Render, Next.js) ─────────────┐
+ any MCP client ─────┼── MCP ───▶ │ /mcp: ids + quantities only                          │
+ PayPal Cart client ─┴─ Cart API ▶│ Cart API v1: store-bound JWT, PayPal validation codes │
+                                  │                                                       │
+ seller (web) ──────────────────▶ │ studio · AG Grid / AG Studio dashboard                │
+ seller (Telegram) ─────────────▶ │ Telegram webhook (single-use action buttons)          │
+                                  │                                                       │
+                                  │ MONEY CODE (deterministic) ──── create / capture ────▶│──▶ PayPal sandbox
+                                  │   prices from Postgres          refund / track        │    Orders v2, Payments v2,
+                                  │ LLM ROUTER (advises only) ──▶ Groq, Gemini            │    JS SDK v6, Catalog,
+                                  │ /webhooks/paypal ◀──────── signed events ─────────────│◀── Webhooks, Transaction
+                                  │ reconciliation · live wire (SSE)                      │    Search, Log in with PayPal
+                                  └───────────────────────── Neon Postgres ──────────────┘
+```
+
+**Mermaid version**
+
+```mermaid
+flowchart LR
+  subgraph Users
+    A[Shopper + hosted AI agent]
+    B[Any MCP client]
+    C[PayPal Cart API client]
+    D[Seller: web]
+    E[Seller: Telegram]
+  end
+  subgraph Shopfront["Shopfront · one Render web service"]
+    M["/mcp · ids + quantities only"]
+    K["Cart API v1 · store-bound JWT"]
+    S["Studio · AG Grid + AG Studio dashboard"]
+    Y["Money code · prices from DB"]
+    L["LLM router · advises only"]
+    W["/webhooks/paypal · verified, once"]
+  end
+  P[(PayPal sandbox)]
+  G[Groq · Gemini]
+  N[(Neon Postgres)]
+  A & B --> M
+  C --> K
+  D & E --> S
+  M & K & S --> Y
+  Y -- create · capture · refund · track --> P
+  P -- signed webhook events --> W
+  S & M --> L --> G
+  Y & W & S --> N
+```
+
 - **Photos → store.** Gemini drafts each listing from a photo and flags text in it that looks like an instruction. The seller confirms the price; publishing mirrors the product into PayPal's catalog.
 - **Agents buy over MCP.** One public endpoint serves every seller. Agents send only product ids and quantities; the server prices the order from the database and opens a PayPal Orders v2 order.
 - **The buyer approves in PayPal.** Payment happens only in PayPal's popup (JS SDK v6). A signature-verified webhook confirms it, processed exactly once, with a fallback that asks PayPal directly.
@@ -62,8 +114,6 @@ Every step, plus Telegram, PayPal's Cart API and the live wire.
 - **Store-Sync-ready.** Every store also answers PayPal's Cart API v1 merchant contract, tested with PayPal's own Cart API client.
 - **After the sale.** A Telegram copilot pings orders, turns a label photo into tracking on the PayPal order, and runs refunds inside the seller's policy (others wait for an Approve tap). An AG Grid + AG Studio dashboard answers questions; the AI changes the view, never the data.
 - **Reconciled with PayPal.** Every PayPal capture of the last 30 days is matched against our orders; the dashboard says **Reconciled with PayPal ✓** or lists the mismatches.
-
-It's **one Next.js service on Render's free plan** with a Neon Postgres database. Only the money code (green in the diagram) calls PayPal to create, capture, refund or track, and it reads every price from the database. The LLM router (purple) drafts, suggests and answers, but has no tool that moves money.
 
 ### Safety: the model proposes, code decides the money
 

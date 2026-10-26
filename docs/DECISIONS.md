@@ -1876,6 +1876,11 @@
 - **Serves:** R5, J5.
 ---
 
+## D-117: Plain-text and Mermaid architecture diagrams back in the README (2026-10-26; owner)
+- **Change to D-112:** the plain-text and Mermaid copies of the architecture diagram are restored under the SVG, unchanged from before D-112, as normal sections (not collapsed, per D-116).
+- **Serves:** R5, J5.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
