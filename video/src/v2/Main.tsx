@@ -19,7 +19,7 @@ import { c, sans } from "./theme";
 // held last frame of the one before. `only` renders a subset (the preview of beats 3-4).
 const SCENES: Record<number, ComponentType> = { 1: B01Hook, 2: B02Promise, 3: B03Listing, 4: B04AgentBuys, 5: B05Phone, 6: B06PaidDirect, 7: B07Gauntlet, 8: B08Dashboard, 9: B09Trust, 10: B10Close };
 
-export function MainV2({ only }: { only?: number[] }) {
+export function MainV2({ only, captions = true }: { only?: number[]; captions?: boolean }) {
   const beats = BEATS.filter((b) => !only || only.includes(b.n));
   const t0 = startOf(beats[0]!.n);
   return (
@@ -41,7 +41,7 @@ export function MainV2({ only }: { only?: number[] }) {
               <S />
             </FadeIn>
             <Voice n={b.n} />
-            {b.captions !== false && <Captions n={b.n} />}
+            {captions && b.captions !== false && <Captions n={b.n} />}
           </Sequence>
         );
       })}
