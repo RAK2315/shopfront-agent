@@ -8,6 +8,9 @@ export async function register() {
   const { sweepUnprocessedWebhooks } = await import("./server/webhooks");
   const { rearmHandoffs } = await import("./server/handoff");
   const { scheduleReconciliation } = await import("./server/ledger");
+  const { startKeepWarm } = await import("./server/keep-warm");
+  // Self-ping on Render through the judging window, so a judge's first visit isn't a cold start (D-114).
+  startKeepWarm();
   setTimeout(() => {
     rearmOpenCheckouts()
       .then((n) => console.log(`[fallback] re-armed checks for ${n} open checkout(s)`))

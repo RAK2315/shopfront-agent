@@ -29,6 +29,9 @@ export interface RouterOptions {
   maxRetries?: number;
   baseDelayMs?: number;
   maxDelayMs?: number;
+  /** When another provider is left, a wait longer than this (e.g. Groq's retry-after on its per-minute token cap)
+   *  switches to that provider now instead of making the visitor wait (D-114). */
+  maxWaitBeforeFallbackMs?: number;
   sleep?: (ms: number) => Promise<void>;
   random?: () => number;
   now?: () => number;
@@ -45,6 +48,7 @@ export class LlmRouter {
       maxRetries: 2,
       baseDelayMs: 600,
       maxDelayMs: 8000,
+      maxWaitBeforeFallbackMs: 2500,
       sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       random: Math.random,
       now: () => performance.now(),
@@ -181,7 +185,10 @@ export class LlmRouter {
           if (!retryable || attempt === this.o.maxRetries) break; // next provider
           const backoff = Math.min(this.o.maxDelayMs, this.o.baseDelayMs * 2 ** attempt);
           const jittered = backoff / 2 + this.o.random() * (backoff / 2);
-          await this.o.sleep(Math.max(err?.retryAfterMs ?? 0, jittered));
+          const wait = Math.max(err?.retryAfterMs ?? 0, jittered);
+          // A long retry-after: fall back now (next provider, else the recorded answer) rather than stall the visitor.
+          if (wait > (i < eligible.length - 1 ? this.o.maxWaitBeforeFallbackMs : this.o.maxDelayMs)) break;
+          await this.o.sleep(wait);
         }
       }
     }

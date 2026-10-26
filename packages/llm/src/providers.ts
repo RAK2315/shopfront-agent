@@ -8,7 +8,7 @@ import type { ChatMessage, ChatStepRequest, LlmProvider, ObjectRequest, Provider
 
 type SdkModel = Parameters<typeof generateText>[0]['model'];
 
-function toProviderError(provider: ProviderId, e: unknown): LlmProviderError {
+export function toProviderError(provider: ProviderId, e: unknown): LlmProviderError {
   if (APICallError.isInstance(e)) {
     const retryAfter = Number(e.responseHeaders?.['retry-after']);
     return new LlmProviderError(
@@ -21,9 +21,11 @@ function toProviderError(provider: ProviderId, e: unknown): LlmProviderError {
   }
   if (e instanceof LlmProviderError) return e;
   const msg = e instanceof Error ? e.message : String(e);
-  // Network/timeouts are retryable; schema/parse errors are not.
-  const network = /fetch failed|ECONNRESET|ETIMEDOUT|timeout|aborted/i.test(msg);
-  return new LlmProviderError(provider, msg.slice(0, 300), undefined, network);
+  // Quick network failures are retried; schema/parse errors are not. Our own timeout (30–60 s) is not retried on the
+  // same provider: a model that just took that long is likely to again, so the router moves on (D-114).
+  const timedOut = (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError')) || /timeout|aborted/i.test(msg);
+  const network = /fetch failed|ECONNRESET|ETIMEDOUT|ECONNREFUSED|socket hang up/i.test(msg);
+  return new LlmProviderError(provider, msg.slice(0, 300), undefined, network && !timedOut);
 }
 
 export function toModelMessages(messages: ChatMessage[]): ModelMessage[] {

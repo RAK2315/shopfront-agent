@@ -254,6 +254,9 @@ export function Studio({
                             {p.state === "reading" ? "Title, description, materials and a price guess" : "Resizing and fingerprinting"}
                             {now > 0 && ` · ${Math.max(0, (now - p.startedAt) / 1000).toFixed(1)} s`}
                           </p>
+                          {p.state === "reading" && now - p.startedAt > 15_000 && (
+                            <p className="text-sm text-muted">The free AI tier is busy right now. This can take up to a minute.</p>
+                          )}
                           <div className="grid gap-2" aria-hidden>
                             {[80, 100, 60].map((w) => (
                               <span key={w} className="h-2.5 animate-pulse rounded-pill bg-surface-2 motion-reduce:animate-none" style={{ width: `${w}%` }} />

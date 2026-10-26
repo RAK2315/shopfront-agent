@@ -1849,6 +1849,22 @@
 - **Serves:** R2, S3.b, J1.
 ---
 
+## D-114: Free-tier waits: the server keeps itself warm, Groq rate limits fall back at once, Gemini timeouts aren't retried (2026-10-26; owner request)
+- **Why (measured):**
+  - The keep-warm workflow's `*/10` schedule ran only 49 times from Oct 18 to Oct 26: median gap 3.6 h, max 6.9 h. Render sleeps after 15 idle minutes, so most first visits were cold starts (about a minute), not the rare case D-097 assumed. UptimeRobot (OWNER) was never set up.
+  - The router honoured any `retry-after` before falling back. A Groq 429 on its per-minute token cap could hold a visitor for two waits of that length before Gemini was tried.
+  - Our own timeouts (30 s for chat, 60 s for Gemini vision) were retried on the same provider, so a stuck photo read could take about 3 minutes before the error or the recorded answer.
+- **Changes:**
+  - **Self-ping:** on Render only (`RENDER=true`), the server fetches its own `APP_URL/api/health/live` every 10 minutes until Dec 15 (`apps/web/src/server/keep-warm.ts`, started from `instrumentation.ts`). That route never touches the database, so Neon still sleeps (D-022, D-030). No new service; the same 750 h budget D-097 planned for (one always-on free service). The GitHub schedule stays as the backup.
+  - **Router:** a wait over 2.5 s (`maxWaitBeforeFallbackMs`) moves to the next provider at once. On the last provider, a wait over the 8 s max delay goes to the recorded answer instead.
+  - **Timeouts:** our own timeout is not retryable; quick network failures (`fetch failed`, `ECONNRESET`) still are.
+  - **Studio copy:** after 15 s of reading a photo, "The free AI tier is busy right now. This can take up to a minute."
+  - **README:** a "What to expect on the live demo" section (cold start, Groq, Gemini, cache and replay badges, caps, nightly reset).
+- **Tests:** `router.test.ts` +2, `providers.test.ts` (new, 3), `keep-warm.test.ts` (new, 4); 211/211 unit tests.
+- **Feature freeze (D-104):** these are ops and bug fixes with tests; no feature is added.
+- **Serves:** S3.b, J5, P13.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

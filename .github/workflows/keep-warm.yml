@@ -1,6 +1,7 @@
 # Keep-warm for the judging window (D-097): the Render free service sleeps after ~15 min idle, and a judge's first
 # request would wait about a minute. Every 10 minutes this pings /api/health/live, which never touches the database,
 # so Neon still autosuspends. Free: the repo is public. Runs until Dec 15, 2026 (the end of judging), then no-ops.
+# GitHub runs this schedule only every 2-7 hours in practice, so it is now the backup: the server pings itself (D-114).
 # Nightly (D-011, D-105, D-113): at 09:30 UTC (02:30 PT) it resets the shared demo seller and Telegram judge mode, then
 # reconciles our books with PayPal (D-095), only if the repo secret SHOPFRONT_ADMIN_TOKEN exists (docs/OPS.md §2);
 # without it the job skips. The reconcile only reads from PayPal; it never moves money. Run it by hand with

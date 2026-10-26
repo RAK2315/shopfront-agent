@@ -8,11 +8,12 @@
 
 | What | Interval | Target | Owner |
 |---|---|---|---|
-| **UptimeRobot** (free), HTTP(s) monitor | every **2 min** | `https://shopfront-agent.onrender.com/api/health/live` | owner sets it up; alert contact = owner's email |
-| **GitHub Action** `.github/workflows/keep-warm.yml` (backup) | every 10 min (GitHub may run it late) | same URL | in the repo; stops by itself after Dec 15 |
+| **Self-ping** in the server (`apps/web/src/server/keep-warm.ts`, D-114) | every **10 min** | `https://shopfront-agent.onrender.com/api/health/live` | in the app; Render only; stops by itself after Dec 15 |
+| **UptimeRobot** (free), HTTP(s) monitor | every **5 min** | same URL | owner sets it up (optional; it also alerts on outages) |
+| **GitHub Action** `.github/workflows/keep-warm.yml` (backup) | scheduled every 10 min, **actually every 2–7 h** (median 3.6 h, Oct 18–26) | same URL | in the repo; stops by itself after Dec 15 |
 
 - `/api/health/live` **never touches the database** (D-030), so pings keep Render awake while Neon still suspends after 5 min idle.
-- Render free sleeps after ~15 min without traffic; a cold start takes about **1 minute** (73 s measured, D-076). Two independent pingers make that rare.
+- Render free sleeps after ~15 min without traffic; a cold start takes about **1 minute** (73 s measured, D-076). The self-ping keeps it awake while the process runs; after a restart or a deploy it starts again on boot. The GitHub schedule alone could not: GitHub delays scheduled runs on busy runners.
 - **Render hours:** the free plan gives **750 instance-hours per workspace per month**. Kept warm all month, one service uses 744 h (31-day months) or 720 h (November). That fits **only if `shopfront-agent` is the only free service running in the workspace**. If the free services together run out of hours, Render suspends all of them until the 1st.
 - **Workspace check (2026-10-25, Render API):** `hacknite` is also an active free service; `faircore`, `cycleiq-api` and `ai-voice-detection-api` are suspended (no hours). **Suspended by the owner on 2026-10-25** (verified via the API), so `shopfront-agent` is the only running free service. Resume it after Dec 15 if wanted.
 - **Neon free:** 100 CU-hours/month at 0.25 CU ≈ 400 h awake. Only real visits and the nightly job (reset + reconciliation, once a day) wake it; expect well under the limit.
@@ -37,8 +38,8 @@ The shared demo seller ("Continue as Juniper Clay Studio") and Telegram judge mo
 |---|---|---|
 | Our daily cap | `LLM_MAX_CALLS_PER_DAY=400` | Further AI steps use the cache, then recorded replay (badged "Replayed recording") |
 | Per visitor | `LLM_MAX_CALLS_PER_IP_PER_HOUR=30` | That visitor gets cached/replayed answers for the rest of the hour |
-| Groq free tier | ~8k tokens/min on `openai/gpt-oss-120b` | Router falls back to Gemini (badged "Live · Gemini") |
-| Gemini free tier | per-minute and per-day request caps | Vision answers are cached by image hash; past the cap, cache then replay |
+| Groq free tier | ~8k tokens/min on `openai/gpt-oss-120b` | Router falls back to Gemini (badged "Live · Gemini"); if Groq asks for a wait over 2.5 s, it switches at once instead of waiting (D-114) |
+| Gemini free tier | per-minute and per-day request caps; a photo read takes ~10 s, sometimes much longer | Vision answers are cached by image hash; past the cap, cache then replay. A call that hits our 60 s timeout isn't retried (D-114); the studio says "This can take up to a minute" after 15 s |
 | The Gauntlet | one run at a time, 3 min cooldown, ~40 calls when uncached | The stored public run is shown on load; cached answers are labelled |
 
 - **Every PayPal call, price and total stays live** in every mode: replay only replaces model words (D-055).

@@ -89,6 +89,28 @@ describe('LlmRouter resilience chain (D-029)', () => {
     expect(sleep).toHaveBeenCalledTimes(2);
   });
 
+  it('switches provider at once when the retry-after is long and another provider is left (D-114)', async () => {
+    const groq = fake('groq', [rate('groq', 20_000)]);
+    const gemini = fake('gemini', [ok]);
+    const { router, sleep } = makeRouter([groq, gemini]);
+    const r = await router.object(req);
+    expect(r).toMatchObject({ source: 'gemini', fallbackReason: 'groq:429' });
+    expect(groq.calls).toHaveLength(1);
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it('on the last provider, a retry-after over the max delay goes to the recorded answer instead of waiting', async () => {
+    const replay = new MemoryStore();
+    const probe = makeRouter([fake('gemini', [ok])]);
+    await replay.set((await probe.router.object(req)).inputHash, ok);
+    const gemini = fake('gemini', [rate('gemini', 30_000)]);
+    const { router, sleep } = makeRouter([gemini], { replay });
+    const r = await router.object(req);
+    expect(r).toMatchObject({ source: 'replay', fallbackReason: 'gemini:429' });
+    expect(gemini.calls).toHaveLength(1);
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
   it('skips providers without vision for image requests', async () => {
     const gemini = fake('gemini', [rate('gemini')]);
     const groq = fake('groq', [ok], { vision: false, tools: true, structuredOutput: true });
