@@ -1861,6 +1861,7 @@
   - **Studio copy:** after 15 s of reading a photo, "The free AI tier is busy right now. This can take up to a minute."
   - **README:** a "What to expect on the live demo" section (cold start, Groq, Gemini, cache and replay badges, caps, nightly reset).
 - **Tests:** `router.test.ts` +2, `providers.test.ts` (new, 3), `keep-warm.test.ts` (new, 4); 211/211 unit tests.
+- **Verified on Render (563c553):** the boot log shows `[keep-warm] self-ping every 10 min until 2026-12-16`. With no outside request from 11:07:44 to 11:41:58 UTC (34 min; no GitHub run in that window), `/api/health` still reported the same `booted_at` (11:07:24) and answered in 0.9 s, so the service never slept. Render returns no request logs for this service, so the boot time is the evidence.
 - **Feature freeze (D-104):** these are ops and bug fixes with tests; no feature is added.
 - **Serves:** S3.b, J5, P13.
 ---

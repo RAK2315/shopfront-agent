@@ -10,7 +10,7 @@
 - [ ] **OWNER** (optional) Joined the PayPal Discord (G17).
 - [x] AG Grid sponsor resources read; AG Studio trial key in use, expires 1 Dec; extension asked on Nov 25 (P9; OWNER-TODO #7a, D-103).
 - [x] Render workspace: `hacknite` suspended by the owner; `shopfront-agent` is the only running free service, so keep-warm fits the 750 h month (P13; verified 2026-10-25 via the Render API).
-- [ ] **OWNER** UptimeRobot monitor on `/api/health/live` every 2 min (`docs/OPS.md`).
+- [ ] **OWNER** (optional) UptimeRobot monitor on `/api/health/live` every 5 min, for outage alerts; the server already keeps itself warm (D-114, `docs/OPS.md`).
 
 ## Project (S1, R0–R8)
 - [x] PayPal is central, not bolted on (R0, R2, G1). *(README "PayPal APIs used": 9 APIs, each with its use)*
@@ -47,7 +47,7 @@
 - [x] Judge path under 3 minutes (AT-6 #1). *(phase6-checks, final regression)*
 - [x] Test runs never show on public views (isolation, `fixes-checks` I1–I6).
 - [ ] **OWNER** Hosted URL checked from an incognito window on the owner's own phone and laptop.
-- [x] Up through judging (Dec 15): keep-warm Action every 10 min + UptimeRobot (owner) + the AG key fallback; see `docs/OPS.md`.
+- [x] Up through judging (Dec 15): the server pings itself every 10 min on Render (D-114; the GitHub Action is the backup, since GitHub runs it only every 2–7 h), the nightly reset + reconciliation (D-113), and the AG key fallback; see `docs/OPS.md`.
 - [ ] **OWNER** Never change the published sandbox buyer's password after submitting.
 
 ## Video (S6)
