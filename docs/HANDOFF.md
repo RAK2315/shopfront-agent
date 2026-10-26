@@ -71,7 +71,7 @@
 - **Owner's pre-approved Partial path:**
   - Each seller is paid directly. **Shopfront takes no cut**, so there's no fee ledger.
   - Refunds for routed sellers are a one-tap handoff to the seller's own PayPal, tracked by webhook, with a GET of the capture as the fallback.
-  - The README "Honest limitations" already says so.
+  - The README "Scope and design choices" already says so.
 - **Telegram:**
   - The bot is `@juniper_clay_copilot_bot`. The webhook is registered with its secret, and forged updates get 401.
   - Text, the phone photo through `getFile`, and buttons with callbacks all work on Render.

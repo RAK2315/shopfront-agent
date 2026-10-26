@@ -15,7 +15,7 @@
 ## Project (S1, R0–R8)
 - [x] PayPal is central, not bolted on (R0, R2, G1). *(README "PayPal APIs used": 9 APIs, each with its use)*
 - [x] AI is meaningful (R3, R8). *(README "Tools used"; DEVPOST "Tools")*
-- [x] Sandbox only (R1). *(env refuses non-sandbox base URLs; README "Honest limitations")*
+- [x] Sandbox only (R1). *(env refuses non-sandbox base URLs; README "Scope and design choices")*
 - [x] Working prototype, not a mockup (R4, S3.x). *(final regression on Render, all green: `docs/screenshots/final-regression.log`, D-104)*
 - [x] Documented for judges (R5). *(README top section, threat model, sandbox validation, development with AI)*
 - [x] New project built during the hackathon (R7, S8). *(first commit 2026-10-15)*
@@ -37,7 +37,7 @@
 - [x] MIT `LICENSE` at the root, detected by GitHub and shown in the About panel (S5.2). *(GitHub API: `license: MIT`, 2026-10-25)*
 - [ ] **OWNER** (suggested) Set the About panel's website to the demo URL and add topics (`paypal`, `mcp`, `ai-agents`, `ag-grid`, `hackathon`).
 - [x] All source, seed photos (CC0, credited), migrations and instructions included (S5.1). *(fresh clone, below)*
-- [x] README: problem, demo URL, judge credentials and path, criteria table, APIs, tools, guardrails, limitations, local run, credits (R5).
+- [x] README: problem, demo URL, judge credentials and path, criteria table, APIs, tools, guardrails, scope and design choices, local run, credits (R5).
 - [x] MCP connector instructions for Claude and other clients.
 - [x] No secrets in history (2026-10-15 scan of `git log -p` for every `.env` value: 0 hits); `.env` is ignored.
 

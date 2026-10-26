@@ -1828,6 +1828,16 @@
 - **Serves:** S6.1, S6.2, S6.4, J5, P9.
 ---
 
+## D-112: README restructured for judges; "Honest limitations" becomes "Scope and design choices" (2026-10-26; owner request)
+- **Why:** the owner found the README hard to read: too much on screen before the point, and limitations phrased as apologies.
+- **Changes:**
+  - The top is now the pitch, the video thumbnail and a 3-step "Try it in 3 minutes" with the sandbox buyer. The full 5-minute path, the Cart API details, the per-suite proof table, the judging-criteria table and the project structure are folded into `<details>` blocks. Nothing was removed except the plain-text and Mermaid copies of the architecture diagram (the SVG stays; `docs/ARCHITECTURE.md` has the rest) and the tools table, now a one-line "Built with" (the AI table already names each model's role).
+  - "Honest limitations" is rewritten as "Scope and design choices": the same facts (sandbox only, the demo shop paid into the platform account (D-006), partner-gated features (D-075, D-076), Store Sync request-access, the 3-day authorization honor period, Transaction Search lag, AG Grid licences, disputes and Vault not built), phrased as choices without claiming anything the build doesn't do.
+  - Free-tier behaviour moves to its own "What to expect on the live demo" section (filled in by D-114).
+  - The test-counts markers and the "What's real (and verified)" heading are kept; `test-counts.mts` and `sandbox-validation.mts` depend on them.
+- **Serves:** R5, S5, J5.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
