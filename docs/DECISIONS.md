@@ -1871,6 +1871,11 @@
 - **Serves:** R5, S2.
 ---
 
+## D-116: README has no collapsed sections (2026-10-26; owner)
+- **Change to D-112:** the five `<details>` blocks (the 5-minute path, the Cart API, what each suite proves, the judging criteria, the project structure) are normal headed sections again, so a judge can't miss them. The rest of D-112's layout stays.
+- **Serves:** R5, J5.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
