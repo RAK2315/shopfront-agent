@@ -1,4 +1,4 @@
-<p align="center"><img src="video/public/brand/logo-mark.svg" width="88" alt="Shopfront logo"></p>
+<p align="center"><img src="video/public/brand/logo-mark-tile.svg" width="96" alt="Shopfront logo"></p>
 
 <h1 align="center">Shopfront Agent</h1>
 

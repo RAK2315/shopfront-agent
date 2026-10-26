@@ -1822,6 +1822,8 @@
 - **Beat 5:** her real storefront at phone width plays beside the chat phone from the start (S6.2: the build on a phone), instead of a short cut at the end. It gives way to the real dashboard line "In-policy refunds run automatically" on "outside her policy". The chat messages are shortened from the transcript's own wording, never reworded.
 - **Beat 7:** the attack is shown large using the real photo the Gauntlet fed to the vision step (`apps/web/public/gauntlet/photo-sticker-price.jpg`), beside its spotlit row. The counters are the live run's final frame, not the screenshot.
 - **Captions:** off for beat 10, where the same words are on screen and nothing may move after the URL, and for the beat 7 question, which is the headline on screen.
+- **Beat 3 scrolls (owner: the jumps felt hard):** each jump cut that skipped a page scroll is now an eased scroll built from the two real frames on either side of the cut, stacked at their measured offset (335, 639 and 136 CSS px, found by matching the frames). The last move, back up to the "is live" banner, is a short slide with a crossfade, because publishing changes the page layout.
+- **README logo:** the mark on a rounded off-white tile (`video/public/brand/logo-mark-tile.svg`), so the dark S is visible on GitHub's dark theme.
 - **Master:** rendered in two halves (the full render ran the machine out of memory) and joined without re-encoding the video. Then +5.5 dB with a 5 ms look-ahead peak limiter at −2 dBFS: −15.3 LUFS integrated, true peak −1.75 dB. Loudnorm's dynamic mode was rejected because it lifted the music in the pauses about 4 dB more than the voice.
 - **Serves:** S6.1, S6.2, S6.4, J5, P9.
 ---

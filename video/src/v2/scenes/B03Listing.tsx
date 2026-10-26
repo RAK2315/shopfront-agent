@@ -19,16 +19,16 @@ export function B03Listing() {
         end={end}
         cuts={[
           { at: 0, from: 3.1 }, // the drop zone; the photo lands at 4.68; "Uploading…", Gemini starts reading
-          { at: 3.0, from: 13.4 }, // the draft, already in view (the read and the scroll are cut)
-          { at: 6.4, from: 18.45 }, // the price block: AI guess, she types $36 (and the stock)
-          { at: 11.0, from: 24.7 }, // Confirm price → confirmed
-          { at: 13.4, from: 28.4 }, // Publish (pressed at 29.05)
-          { at: 15.2, from: 32.7 }, // live, mirrored to PayPal's catalog, with the catalog id
+          { at: 3.9, from: 14.3, move: { dur: 0.9, scroll: 335 } }, // scroll down to the draft (the read itself is cut)
+          { at: 7.3, from: 19.35, move: { dur: 0.9, scroll: 639 } }, // scroll down to the price: AI guess, she types $36
+          { at: 11.0, from: 24.7, move: { dur: 0.25 } }, // (the stock typed) Confirm price → confirmed
+          { at: 13.85, from: 28.4, move: { dur: 0.6, scroll: 136 } }, // a little further (the take jumps at 27.05; the move starts before it): Publish (29.05)
+          { at: 16.1, from: 32.7, move: { dur: 0.7, slide: 90 } }, // back up the page: live, mirrored to PayPal's catalog
         ]}
         spots={[
-          { t0: 3.5, t1: 6.2, box: { x: 624, y: 332, width: 660, height: 310 } }, // fields filled by AI, each tagged
-          { t0: 6.8, t1: 13.2, box: { x: 636, y: 317, width: 632, height: 176 } }, // "Your price · you decide"
-          { t0: 15.6, t1: 19.1, box: { x: 136, y: 326, width: 1152, height: 157 } }, // "… is live", PayPal catalog id
+          { t0: 4.1, t1: 6.3, box: { x: 624, y: 332, width: 660, height: 310 } }, // fields filled by AI, each tagged
+          { t0: 7.5, t1: 13.2, box: { x: 636, y: 317, width: 632, height: 176 } }, // "Your price · you decide"
+          { t0: 16.4, t1: 19.1, box: { x: 136, y: 326, width: 1152, height: 157 } }, // "… is live", PayPal catalog id
         ]}
       />
       <PhotoDrop at={0.2} land={1.5} />

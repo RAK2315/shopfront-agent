@@ -1,3 +1,4 @@
+import React from "react";
 import { AbsoluteFill, Audio, Freeze, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion";
 import type { Box, Clip, Track } from "../../lib/clip";
 import { center } from "../../lib/clip";
@@ -10,7 +11,12 @@ import { Spotlights, type Spot } from "./Spotlight";
 // scrollbar cropped off. A list of cuts plays the track at real speed; each cut runs until the next one starts, and a
 // cut that runs past the end of the track holds its last frame. Waits are skipped by cutting, never sped up.
 // Spotlights and the cursor are placed in beat seconds and CSS px of the captured page.
-export type Cut = { at: number; from: number }; // at: seconds in this footage; from: capture seconds
+export type Cut = { at: number; from: number; move?: Move }; // at: seconds in this footage; from: capture seconds
+/** How a cut arrives when the page itself moved between the two takes' moments, over the `dur` seconds before `at`:
+ * `scroll` is the real scroll distance in CSS px (positive = further down the page), so the two real frames, stacked
+ * at their true offset, glide past as one page; `slide` (canvas px) is for a page whose layout changed: a short eased
+ * slide with a crossfade, downward for a move back up the page. */
+export type Move = { dur: number; scroll?: number; slide?: number };
 /** A magnified callout of a small area of the same footage (dense text, e.g. an AI answer), in sync with the cuts:
  * `box` in CSS px of the capture, placed with its top-left at canvas (x, y), `scale` times the full-frame size. */
 export type Loupe = { t0: number; t1: number; box: Box; x: number; y: number; scale: number };
@@ -29,7 +35,7 @@ export function Footage({ clip, track = "main", cuts, end, spots = [], loupes = 
   // Every press that happens inside a cut, in footage seconds.
   const presses: Press[] = [];
   cuts.forEach((c, i) => {
-    const until = cuts[i + 1]?.at ?? end;
+    const until = startOf(cuts, i + 1, end);
     for (const m of Object.values(clip.marks)) {
       if (m.kind !== "click" || m.track !== track || !m.box) continue;
       const s = c.at + (m.at - c.from);
@@ -59,14 +65,60 @@ function Cuts({ tr, cuts, end, k }: { tr: Track; cuts: Cut[]; end: number; k: nu
   return (
     <>
       {cuts.map((c, i) => {
-        const until = cuts[i + 1]?.at ?? end;
+        const until = startOf(cuts, i + 1, end);
+        const prev = cuts[i - 1];
         return (
-          <Sequence key={i} from={frames(c.at)} durationInFrames={Math.max(1, frames(until) - frames(c.at))} layout="none">
-            <Play tr={tr} from={c.from} k={k} />
-          </Sequence>
+          <React.Fragment key={i}>
+            {c.move && prev && (
+              <Sequence from={frames(c.at - c.move.dur)} durationInFrames={frames(c.move.dur)} layout="none">
+                <MoveView tr={tr} k={k} move={c.move} a={prev.from + (c.at - c.move.dur - prev.at)} b={c.from} />
+              </Sequence>
+            )}
+            <Sequence from={frames(c.at)} durationInFrames={Math.max(1, frames(until) - frames(c.at))} layout="none">
+              <Play tr={tr} from={c.from} k={k} />
+            </Sequence>
+          </React.Fragment>
         );
       })}
     </>
+  );
+}
+
+/** Where cut `i` stops playing: where the next one (or its move) begins. */
+function startOf(cuts: Cut[], i: number, end: number) {
+  const c = cuts[i];
+  return c ? c.at - (c.move?.dur ?? 0) : end;
+}
+
+/** The move between two cuts, built from the real frame each side of it (`a`, `b`: capture seconds). */
+function MoveView({ tr, k, move, a, b }: { tr: Track; k: number; move: Move; a: number; b: number }) {
+  const f = useCurrentFrame();
+  const u = ease.soft(Math.min(1, f / Math.max(1, frames(move.dur) - 1)));
+  const h = tr.css.h * k;
+  const top = (H - h) / 2;
+  let ya = 0;
+  let yb = 0;
+  let oa = 1 - u;
+  if (move.scroll) {
+    ya = -u * move.scroll * k;
+    yb = (1 - u) * move.scroll * k;
+  } else if (move.slide) {
+    ya = u * move.slide;
+    yb = -(1 - u) * move.slide;
+    oa = 1 - u;
+  }
+  const frame = (t: number, y: number, o: number) => (
+    <div style={{ position: "absolute", left: 0, top: top + y, width: tr.css.w * k, height: h, opacity: o }}>
+      <Freeze frame={0}>
+        <OffthreadVideo src={staticFile(tr.file)} trimBefore={Math.max(0, Math.round((t - tr.start) * FPS))} muted style={{ width: "100%", height: "100%" }} />
+      </Freeze>
+    </div>
+  );
+  return (
+    <AbsoluteFill style={{ background: "#fff" }}>
+      {frame(b, yb, move.slide ? u : 1)}
+      {frame(a, ya, oa)}
+    </AbsoluteFill>
   );
 }
 
