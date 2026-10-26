@@ -12,8 +12,8 @@ Shopfront Agent
 
 (197 characters.)
 
-## Built with (Devpost tags)
-paypal, paypal-orders-v2, paypal-js-sdk-v6, paypal-webhooks, paypal-cart-api, paypal-catalog, paypal-transaction-search, log-in-with-paypal, mcp, model-context-protocol, groq, gemini, vercel-ai-sdk, ag-grid, ag-charts, ag-studio, telegram-bot-api, next.js, react, typescript, drizzle, postgresql, neon, render, playwright, vitest, zod
+## Built with (Devpost tags, max 25)
+paypal, paypal-orders-v2, paypal-js-sdk-v6, paypal-webhooks, paypal-cart-api, paypal-catalog, paypal-transaction-search, log-in-with-paypal, mcp, groq, gemini, vercel-ai-sdk, ag-grid, ag-charts, ag-studio, telegram-bot-api, next.js, react, typescript, drizzle, postgresql, neon, render, playwright, zod
 
 ## Project story
 
