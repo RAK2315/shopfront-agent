@@ -3,13 +3,21 @@ import { AbsoluteFill, Freeze, interpolate, Sequence, useCurrentFrame } from "re
 import { BEATS, frames, startOf, XFADE } from "./config";
 import { Captions } from "./lib/Captions";
 import { Music, Voice } from "./lib/Sound";
+import { B01Hook } from "./scenes/B01Hook";
+import { B02Promise } from "./scenes/B02Promise";
 import { B03Listing } from "./scenes/B03Listing";
 import { B04AgentBuys } from "./scenes/B04AgentBuys";
+import { B05Phone } from "./scenes/B05Phone";
+import { B06PaidDirect } from "./scenes/B06PaidDirect";
+import { B07Gauntlet } from "./scenes/B07Gauntlet";
+import { B08Dashboard } from "./scenes/B08Dashboard";
+import { B09Trust } from "./scenes/B09Trust";
+import { B10Close } from "./scenes/B10Close";
 import { c, sans } from "./theme";
 
 // The v2 cut (DEMO-SCRIPT v6, D-110). Beats follow one another with a short crossfade: the new beat fades in over the
 // held last frame of the one before. `only` renders a subset (the preview of beats 3-4).
-const SCENES: Record<number, ComponentType> = { 3: B03Listing, 4: B04AgentBuys };
+const SCENES: Record<number, ComponentType> = { 1: B01Hook, 2: B02Promise, 3: B03Listing, 4: B04AgentBuys, 5: B05Phone, 6: B06PaidDirect, 7: B07Gauntlet, 8: B08Dashboard, 9: B09Trust, 10: B10Close };
 
 export function MainV2({ only }: { only?: number[] }) {
   const beats = BEATS.filter((b) => !only || only.includes(b.n));
@@ -33,7 +41,7 @@ export function MainV2({ only }: { only?: number[] }) {
               <S />
             </FadeIn>
             <Voice n={b.n} />
-            <Captions n={b.n} />
+            {b.captions !== false && <Captions n={b.n} />}
           </Sequence>
         );
       })}

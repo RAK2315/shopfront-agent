@@ -1,8 +1,8 @@
-import { AbsoluteFill, Audio, Freeze, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Freeze, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion";
 import type { Box, Clip, Track } from "../../lib/clip";
 import { center } from "../../lib/clip";
 import { frames } from "../config";
-import { FPS, H, W } from "../theme";
+import { c as col, ease, FPS, H, W } from "../theme";
 import { Cursor, type Press } from "./Cursor";
 import { Spotlights, type Spot } from "./Spotlight";
 
@@ -11,6 +11,9 @@ import { Spotlights, type Spot } from "./Spotlight";
 // cut that runs past the end of the track holds its last frame. Waits are skipped by cutting, never sped up.
 // Spotlights and the cursor are placed in beat seconds and CSS px of the captured page.
 export type Cut = { at: number; from: number }; // at: seconds in this footage; from: capture seconds
+/** A magnified callout of a small area of the same footage (dense text, e.g. an AI answer), in sync with the cuts:
+ * `box` in CSS px of the capture, placed with its top-left at canvas (x, y), `scale` times the full-frame size. */
+export type Loupe = { t0: number; t1: number; box: Box; x: number; y: number; scale: number };
 export const SCROLLBAR = 15; // CSS px of the page's scrollbar at the right edge, cropped off
 
 /** CSS px of the track → canvas px. */
@@ -20,7 +23,7 @@ export function framing(tr: Track) {
   return { k, toCanvas: (b: Box): Box => ({ x: b.x * k, y: b.y * k - oy, width: b.width * k, height: b.height * k }), pt: (p: { x: number; y: number }) => ({ x: p.x * k, y: p.y * k - oy }) };
 }
 
-export function Footage({ clip, track = "main", cuts, end, spots = [], hideCursor = false }: { clip: Clip; track?: string; cuts: Cut[]; end: number; spots?: Spot[]; hideCursor?: boolean }) {
+export function Footage({ clip, track = "main", cuts, end, spots = [], loupes = [], hideCursor = false }: { clip: Clip; track?: string; cuts: Cut[]; end: number; spots?: Spot[]; loupes?: Loupe[]; hideCursor?: boolean }) {
   const tr = clip.tracks[track]!;
   const fr = framing(tr);
   // Every press that happens inside a cut, in footage seconds.
@@ -35,15 +38,13 @@ export function Footage({ clip, track = "main", cuts, end, spots = [], hideCurso
   });
   return (
     <AbsoluteFill style={{ overflow: "hidden", background: "#fff" }}>
-      {cuts.map((c, i) => {
-        const until = cuts[i + 1]?.at ?? end;
-        return (
-          <Sequence key={i} from={frames(c.at)} durationInFrames={Math.max(1, frames(until) - frames(c.at))} layout="none">
-            <Play tr={tr} from={c.from} k={fr.k} />
-          </Sequence>
-        );
-      })}
+      <Cuts tr={tr} cuts={cuts} end={end} k={fr.k} />
       <Spotlights spots={spots.map((s) => ({ ...s, box: fr.toCanvas(s.box) }))} />
+      {loupes.map((l, i) => (
+        <LoupeView key={i} l={l} src={fr.toCanvas(l.box)}>
+          <Cuts tr={tr} cuts={cuts} end={end} k={fr.k} />
+        </LoupeView>
+      ))}
       {!hideCursor && <Cursor presses={presses} />}
       {presses.map((p, i) => (
         <Sequence key={i} from={frames(p.s)} durationInFrames={10} layout="none">
@@ -51,6 +52,49 @@ export function Footage({ clip, track = "main", cuts, end, spots = [], hideCurso
         </Sequence>
       ))}
     </AbsoluteFill>
+  );
+}
+
+function Cuts({ tr, cuts, end, k }: { tr: Track; cuts: Cut[]; end: number; k: number }) {
+  return (
+    <>
+      {cuts.map((c, i) => {
+        const until = cuts[i + 1]?.at ?? end;
+        return (
+          <Sequence key={i} from={frames(c.at)} durationInFrames={Math.max(1, frames(until) - frames(c.at))} layout="none">
+            <Play tr={tr} from={c.from} k={k} />
+          </Sequence>
+        );
+      })}
+    </>
+  );
+}
+
+/** The callout card: the full-frame footage scaled up and windowed onto `src` (canvas px). Fades and rises in. */
+function LoupeView({ l, src, children }: { l: Loupe; src: Box; children: React.ReactNode }) {
+  const s = useCurrentFrame() / FPS;
+  const e = interpolate(s, [l.t0, l.t0 + 0.4], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease.out });
+  const x = interpolate(s, [l.t1, l.t1 + 0.3], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease.in });
+  const o = Math.min(e, x);
+  if (o <= 0) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: l.x,
+        top: l.y,
+        width: src.width * l.scale,
+        height: src.height * l.scale,
+        overflow: "hidden",
+        borderRadius: 16,
+        opacity: o,
+        transform: `translateY(${(1 - e) * 14}px)`,
+        background: "#fff",
+        boxShadow: `0 24px 60px -12px rgb(30 20 10 / 0.45), 0 0 0 2px ${col.clay}`,
+      }}
+    >
+      <div style={{ position: "absolute", left: -src.x * l.scale, top: -src.y * l.scale, width: W, height: H, transform: `scale(${l.scale})`, transformOrigin: "0 0" }}>{children}</div>
+    </div>
   );
 }
 

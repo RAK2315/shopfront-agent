@@ -1816,6 +1816,15 @@
 - **Serves:** S6.1, S6.2, S6.4, J5, P9.
 ---
 
+## D-111: Video v2, the remaining beats: small departures from the v6 shot plan (2026-10-26; owner approved beats 3–4 and said go)
+- **Length:** 2:56 (176.2 s), not 2:50. The beat lengths follow the voice and the holds the owner asked for: the hook's three lines after the voice, the counters held 3 s in silence, Reconciled held about 3 s, the URL held 4.5 s. It is still under 3:00 (S6.1); `config.ts` fails the build at 178 s.
+- **Loupe (beat 8):** the AG Studio answers are about 11 CSS px at full frame, too small to read. A magnified callout of the same footage, kept in sync with the cuts, sits beside the spotlit panel while the answer holds. It is the real footage, enlarged, never redrawn.
+- **Beat 5:** her real storefront at phone width plays beside the chat phone from the start (S6.2: the build on a phone), instead of a short cut at the end. It gives way to the real dashboard line "In-policy refunds run automatically" on "outside her policy". The chat messages are shortened from the transcript's own wording, never reworded.
+- **Beat 7:** the attack is shown large using the real photo the Gauntlet fed to the vision step (`apps/web/public/gauntlet/photo-sticker-price.jpg`), beside its spotlit row. The counters are the live run's final frame, not the screenshot.
+- **Captions:** off for beat 10, where the same words are on screen and nothing may move after the URL, and for the beat 7 question, which is the headline on screen.
+- **Serves:** S6.1, S6.2, S6.4, J5, P9.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

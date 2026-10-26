@@ -57,7 +57,7 @@ export function captionLines(sentences: Placed[]): Line[] {
 export function Captions({ n }: { n: number }) {
   const t = useCurrentFrame() / FPS;
   const b = beatOf(n);
-  const lines = captionLines(b.sentences);
+  const lines = captionLines(b.sentences.filter((s) => !(b.noCap ?? []).includes(s.i + 1)));
   const l = lines.find((x) => t >= x.start && t < x.end);
   if (!l) return null;
   const o = Math.min(
