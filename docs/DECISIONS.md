@@ -1838,6 +1838,17 @@
 - **Serves:** R5, S5, J5.
 ---
 
+## D-113: The daily reconciliation runs from the keep-warm workflow's nightly job (2026-10-26; owner request)
+- **Why:** the daily run was an in-process `setInterval` (D-095). On Render's free plan, a restart or a sleep resets that timer, so "daily" depended on the service staying up for 24 h. The README listed this as a limitation.
+- **Change:**
+  - The keep-warm workflow's nightly job (09:30 UTC, renamed `nightly-reset` → `nightly`) resets the demo seller, then calls the existing admin action `{"action":"reconcile"}` with the same `SHOPFRONT_ADMIN_TOKEN` bearer. The step runs even if the reset fails, logs `matched` and the mismatch count, and raises a workflow warning on any mismatch.
+  - `workflow_dispatch` takes a `nightly` boolean so the job can be run by hand.
+  - No app code changed. The run is stored with trigger `script` (the admin action's label); nothing in the UI shows the trigger. The in-process timer, the boot run and the dashboard's stale check stay as fallbacks.
+  - The repo secret `SHOPFRONT_ADMIN_TOKEN` was missing, so the nightly reset had never run although the README said the demo shop "resets nightly". It was set on 2026-10-26 with the `docs/OPS.md` command (derived from `SESSION_SECRET`, never printed). This also turns the nightly reset on (D-105).
+- **D-022:** no new service or polling. One extra call a day, at the time the reset already wakes Neon. The reconcile only reads from PayPal (Transaction Search, GETs); it never moves money (D-002).
+- **Serves:** R2, S3.b, J1.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 

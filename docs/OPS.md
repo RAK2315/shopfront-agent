@@ -15,19 +15,20 @@
 - Render free sleeps after ~15 min without traffic; a cold start takes about **1 minute** (73 s measured, D-076). Two independent pingers make that rare.
 - **Render hours:** the free plan gives **750 instance-hours per workspace per month**. Kept warm all month, one service uses 744 h (31-day months) or 720 h (November). That fits **only if `shopfront-agent` is the only free service running in the workspace**. If the free services together run out of hours, Render suspends all of them until the 1st.
 - **Workspace check (2026-10-25, Render API):** `hacknite` is also an active free service; `faircore`, `cycleiq-api` and `ai-voice-detection-api` are suspended (no hours). **Suspended by the owner on 2026-10-25** (verified via the API), so `shopfront-agent` is the only running free service. Resume it after Dec 15 if wanted.
-- **Neon free:** 100 CU-hours/month at 0.25 CU ≈ 400 h awake. Only real visits wake it (and the daily reconciliation while awake); expect well under the limit.
+- **Neon free:** 100 CU-hours/month at 0.25 CU ≈ 400 h awake. Only real visits and the nightly job (reset + reconciliation, once a day) wake it; expect well under the limit.
 - GitHub disables scheduled workflows in a public repo after 60 days with no commits. The last commit lands around Nov 11, so the Action keeps running through Dec 15.
 
-## 2. Nightly demo reset (D-105)
+## 2. Nightly demo reset and reconciliation (D-105, D-113)
 The shared demo seller ("Continue as Juniper Clay Studio") and Telegram judge mode are reset by `POST /api/admin/demo {"action":"reset"}` with the admin bearer token (D-011): the frozen catalog comes back, order history is kept, and `/live` shows one public row, "Demo shop reset · 6 listings restored".
-- **Scheduled:** the keep-warm workflow's `nightly-reset` job runs at **09:30 UTC (02:30 PT, 15:00 IST)** through Dec 15. **It does nothing until the owner adds the repo secret** `SHOPFRONT_ADMIN_TOKEN`.
+- **Scheduled:** the keep-warm workflow's `nightly` job runs at **09:30 UTC (02:30 PT, 15:00 IST)** through Dec 15: the reset, then `{"action":"reconcile"}` (a read-only check of our books against PayPal's; the job logs `matched` and the mismatch count and warns on any mismatch). **Both steps skip without the repo secret** `SHOPFRONT_ADMIN_TOKEN` (set 2026-10-26).
+- **Run it by hand:** `gh workflow run keep-warm.yml -f nightly=true` (this also resets the demo seller).
 - **Owner, once:** from the repo root, with the GitHub CLI logged in, this stores the token without printing it:
 
   ```bash
   node --env-file=.env -e "process.stdout.write(require('crypto').createHmac('sha256', process.env.SESSION_SECRET).update('admin:demo-reset').digest('base64url'))" | gh secret set SHOPFRONT_ADMIN_TOKEN
   ```
 
-  If `SESSION_SECRET` ever changes, run it again. To stop the nightly reset, delete the secret (`gh secret delete SHOPFRONT_ADMIN_TOKEN`).
+  If `SESSION_SECRET` ever changes, run it again. To stop the nightly job, delete the secret (`gh secret delete SHOPFRONT_ADMIN_TOKEN`).
 - **Manual reset any time:** `node --env-file=.env scripts/admin.mjs '{"action":"reset"}'`.
 
 ## 3. AI free tiers and the replay fallback

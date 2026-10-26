@@ -1,18 +1,25 @@
 # Keep-warm for the judging window (D-097): the Render free service sleeps after ~15 min idle, and a judge's first
 # request would wait about a minute. Every 10 minutes this pings /api/health/live, which never touches the database,
 # so Neon still autosuspends. Free: the repo is public. Runs until Dec 15, 2026 (the end of judging), then no-ops.
-# Nightly demo reset (D-011, D-105): at 09:30 UTC (02:30 PT) it resets the shared demo seller and Telegram judge mode,
-# only if the repo secret SHOPFRONT_ADMIN_TOKEN exists (docs/OPS.md §2); without it the job skips.
+# Nightly (D-011, D-105, D-113): at 09:30 UTC (02:30 PT) it resets the shared demo seller and Telegram judge mode, then
+# reconciles our books with PayPal (D-095), only if the repo secret SHOPFRONT_ADMIN_TOKEN exists (docs/OPS.md §2);
+# without it the job skips. The reconcile only reads from PayPal; it never moves money. Run it by hand with
+# `gh workflow run keep-warm.yml -f nightly=true`.
 name: keep-warm
 on:
   schedule:
     - cron: "*/10 * * * *"
     - cron: "30 9 * * *"
   workflow_dispatch:
+    inputs:
+      nightly:
+        description: "Run the nightly job (reset + reconcile) instead of the ping"
+        type: boolean
+        default: false
 permissions: {}
 jobs:
   ping:
-    if: github.event.schedule != '30 9 * * *'
+    if: github.event.schedule != '30 9 * * *' && !inputs.nightly
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -24,10 +31,10 @@ jobs:
             sleep 20
           done
           exit 1
-  nightly-reset:
-    if: github.event.schedule == '30 9 * * *'
+  nightly:
+    if: github.event.schedule == '30 9 * * *' || inputs.nightly
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Reset the demo seller
         env:
@@ -38,6 +45,22 @@ jobs:
           for i in 1 2 3; do
             if curl -fsS -m 120 -X POST -H "authorization: Bearer $TOKEN" -H "content-type: application/json" \
               -d '{"action":"reset"}' https://shopfront-agent.onrender.com/api/admin/demo; then exit 0; fi
+            sleep 30
+          done
+          exit 1
+      - name: Reconcile with PayPal
+        if: ${{ !cancelled() }}
+        env:
+          TOKEN: ${{ secrets.SHOPFRONT_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then echo "No SHOPFRONT_ADMIN_TOKEN secret; skipping the reconciliation."; exit 0; fi
+          if [ "$(date -u +%Y%m%d)" -gt 20261215 ]; then echo "Judging window over; not reconciling."; exit 0; fi
+          for i in 1 2 3; do
+            if out=$(curl -fsS -m 150 -X POST -H "authorization: Bearer $TOKEN" -H "content-type: application/json"               -d '{"action":"reconcile"}' https://shopfront-agent.onrender.com/api/admin/demo); then
+              echo "$out" | jq -c '{id, ok, matched, mismatches: (.mismatches | length)}'
+              echo "$out" | jq -e '.ok == true and (.mismatches | length) == 0' > /dev/null || { echo "::warning::Reconciliation found mismatches; see the dashboard."; }
+              exit 0
+            fi
             sleep 30
           done
           exit 1
