@@ -19,7 +19,7 @@ Millions of makers sell only through social posts and DMs. They have no store, n
 
 **No model can move money.** Orders, captures, refunds and tracking are plain, tested code.
 
-<sub>Built for *Build What's Next with PayPal and AI* (2026), Track 1: Merchant Growth AI. Everything runs in the PayPal sandbox; no real money moves. MIT licence.</sub>
+<sub>Built for the *Build What's Next with PayPal and AI* hackathon (Devpost, 2026). Everything runs in the PayPal sandbox; no real money moves. MIT licence.</sub>
 
 [![Watch the 3-minute demo](https://img.youtube.com/vi/oJgww4Vydew/maxresdefault.jpg)](https://youtu.be/oJgww4Vydew)
 

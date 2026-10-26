@@ -1866,6 +1866,11 @@
 - **Serves:** S3.b, J5, P13.
 ---
 
+## D-115: No hackathon track in the README (2026-10-26; owner correction)
+- **Correction to D-107:** D-107 recorded "Devpost track: Track 1, Merchant Growth AI (owner's registration form)", and the README carried it. The official challenge page says "There are no prescribed problem statements and no set of tracks." The README line now names only the hackathon. No other doc named a track.
+- **Serves:** R5, S2.
+---
+
 ## Requirement updates
 *(When the organisers change a rule, quote it here with date and source. REQUIREMENTS.md stays frozen.)*
 
